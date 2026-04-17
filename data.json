@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-17T10:48:26.223Z",
+  "generated_at": "2026-04-17T10:53:29.447Z",
   "summary": {
     "total_positions": 151,
     "total_value": 926572670.887642,
@@ -1787,7 +1787,7 @@
           "apy_cost": null,
           "bonus_supply": 2.62956635380714,
           "bonus_borrow": null,
-          "apy_net": 7.655103077910129,
+          "apy_net": 5.02553672410299,
           "leverage": 1,
           "apy_reward": null,
           "supply_tokens_display": "RLUSD"
@@ -1831,7 +1831,7 @@
           "apy_cost": null,
           "bonus_supply": 3.71162068922359,
           "bonus_borrow": null,
-          "apy_net": 8.75034444740818,
+          "apy_net": 5.03872375818459,
           "leverage": 1,
           "apy_reward": null,
           "supply_tokens_display": "PYUSD"
@@ -1947,7 +1947,7 @@
           "apy_cost": null,
           "bonus_supply": 5.83258016194127,
           "bonus_borrow": null,
-          "apy_net": 12.754790870664262,
+          "apy_net": 6.922210708722991,
           "leverage": 1,
           "apy_reward": null,
           "supply_tokens_display": "AUSD"
@@ -2019,7 +2019,7 @@
           "apy_cost": null,
           "bonus_supply": -1.30302769463242e-7,
           "bonus_borrow": null,
-          "apy_net": 5.945479376841221,
+          "apy_net": 5.9454795071439905,
           "leverage": 1,
           "apy_reward": null,
           "supply_tokens_display": "rUSD"
@@ -5889,7 +5889,7 @@
           "apy_cost": null,
           "bonus_supply": 0.328147078614677,
           "bonus_borrow": null,
-          "apy_net": 5.169491395922873,
+          "apy_net": 4.841344317308197,
           "leverage": 1,
           "apy_reward": null,
           "supply_tokens_display": "USDC"
@@ -6000,7 +6000,7 @@
               "apy_cost": null,
               "bonus_supply": 0.328147078614677,
               "bonus_borrow": null,
-              "apy_net": 5.169491395922873,
+              "apy_net": 4.841344317308197,
               "leverage": 1,
               "apy_reward": null,
               "supply_tokens_display": "USDC"

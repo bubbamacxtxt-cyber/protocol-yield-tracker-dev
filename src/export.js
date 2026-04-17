@@ -109,28 +109,27 @@ function main() {
         p.bonus_borrow = bonusBorrowTotal || null;
         
         // Net APY: accounts for leverage
-        // equity = supply - borrow
-        // leverage = supply / equity (if equity > 0)
-        // gross_yield = (supply_usd × supply_apy) - (borrow_usd × borrow_apy) + rewards
-        // net_apy = gross_yield / equity
+        // Formula: net_apy = (supply_value × supply_apy - borrow_value × borrow_apy) / equity
+        // where supply_apy already includes bonus (base + bonus)
         if (p.apy_base != null) {
             const supplyUsd = p.asset_usd || 0;
             const borrowUsd = Math.abs(p.debt_usd || 0);
             const equity = supplyUsd - borrowUsd;
             
             if (equity > 0) {
-                const supplyApy = (p.apy_base || 0) + bonusSupplyTotal;
-                const borrowApy = (p.apy_cost || 0) - bonusBorrowTotal;
+                // supply_apy = base + bonus (combined), borrow_apy = borrow cost
+                const supplyApy = (p.apy_base || 0) + (p.bonus_supply || 0);
+                const borrowApy = p.apy_cost || 0;
                 
                 const supplyYield = supplyUsd * (supplyApy / 100);
                 const borrowCost = borrowUsd * (borrowApy / 100);
-                const rewardYield = bonusSupplyTotal * supplyUsd / 100;
                 
-                const grossYield = supplyYield - borrowCost + rewardYield;
+                const grossYield = supplyYield - borrowCost;
                 p.apy_net = (grossYield / equity) * 100;
                 p.leverage = supplyUsd / equity;
             } else {
-                p.apy_net = p.apy_base + bonusSupplyTotal;
+                // Underwater or zero equity
+                p.apy_net = (p.apy_base || 0) + (p.bonus_supply || 0);
                 p.leverage = 1;
             }
         } else {
