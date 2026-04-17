@@ -102,9 +102,9 @@ async function getMarketAPY(marketId, chainId) {
 async function scanWallet(wallet, label, db) {
   console.log(`\n--- ${label} (${wallet.slice(0,12)}) ---`);
   
-  const positions = { earn: [], borrow: [] };
+  const updates = { earn: [], borrow: [] };
   
-  // Step 1: Earn positions
+  // Step 1: Earn positions - update existing positions with APY data
   const earnItems = await getEarnPositions(wallet);
   console.log(`  Earn positions: ${earnItems.length}`);
   
@@ -112,30 +112,29 @@ async function scanWallet(wallet, label, db) {
     const vault = item.vault || {};
     const apy = await getVaultAPY(vault.address, vault.version);
     
-    const pos = {
+    // Find existing position to update
+    const assetAddr = vault.asset?.address?.toLowerCase();
+    const vaultAddr = vault.address?.toLowerCase();
+    
+    const update = {
       wallet, label,
-      protocol_name: 'Morpho',
-      protocol_id: 'morpho',
       symbol: vault.symbol || vault.asset?.symbol || '?',
-      token_address: vault.address,
-      asset_symbol: vault.asset?.symbol,
-      amount: Number(item.shares) / (10 ** (vault.asset?.decimals || 18)),
+      vault_address: vault.address,
+      asset_address: vault.asset?.address,
       value_usd: item.assetsUsd,
+      shares: item.shares,
       apy_base: apy?.baseApy ? apy.baseApy * 100 : null,
       apy_total: apy?.netApy ? apy.netApy * 100 : null,
-      version: vault.version || 'unknown',
       chain: vault.chainId || 1,
-      type: 'earn',
-      pnl_usd: item.pnlUsd
     };
     
-    pos.apy_bonus = (pos.apy_total && pos.apy_base) ? pos.apy_total - pos.apy_base : null;
+    update.apy_bonus = (update.apy_total && update.apy_base) ? update.apy_total - update.apy_base : null;
     
-    console.log(`    ✅ ${pos.symbol}: $${(pos.value_usd / 1e6).toFixed(2)}M | APY: ${pos.apy_base?.toFixed(2) || '?'}% + ${pos.apy_bonus?.toFixed(2) || '0'}%`);
-    positions.earn.push(pos);
+    console.log(`    ✅ ${update.symbol}: $${(update.value_usd / 1e6).toFixed(2)}M | APY: ${update.apy_base?.toFixed(2) || '?'}% + ${update.apy_bonus?.toFixed(2) || '0'}%`);
+    updates.earn.push(update);
   }
   
-  // Step 2: Borrow positions
+  // Step 2: Borrow positions - update existing positions with HF data
   const borrowItems = await getBorrowPositions(wallet);
   console.log(`  Borrow positions: ${borrowItems.length}`);
   
@@ -144,17 +143,13 @@ async function scanWallet(wallet, label, db) {
     const loanSymbol = market.loanAsset?.symbol || '?';
     const collSymbol = market.collateralAsset?.symbol || '?';
     
-    // Get APY for this market
     const marketApy = await getMarketAPY(market.uniqueKey || market.marketId, market.chainId);
     
-    const pos = {
+    const update = {
       wallet, label,
-      protocol_name: 'Morpho',
-      protocol_id: 'morpho',
-      symbol: `${loanSymbol}/${collSymbol}`,
-      token_address: market.uniqueKey || market.marketId,
-      asset_symbol: loanSymbol,
-      collateral_symbol: collSymbol,
+      symbol: loanSymbol,
+      coll_symbol: collSymbol,
+      market_key: market.uniqueKey || market.marketId,
       value_usd: item.borrowAssetsUsd,
       collateral_usd: item.collateralUsd,
       health_factor: item.healthFactor,
@@ -162,48 +157,54 @@ async function scanWallet(wallet, label, db) {
       liquidation_distance: item.priceVariationToLiquidationPrice,
       apy_borrow: marketApy?.borrowApy ? marketApy.borrowApy * 100 : null,
       chain: market.chainId || 1,
-      type: 'borrow'
     };
     
-    console.log(`    📊 ${pos.symbol}: $${(pos.value_usd / 1e6).toFixed(2)}M borrow | HF: ${pos.health_factor?.toFixed(3)}`);
-    positions.borrow.push(pos);
+    console.log(`    📊 ${update.symbol}/${update.coll_symbol}: $${(update.value_usd / 1e6).toFixed(2)}M borrow | HF: ${update.health_factor?.toFixed(3)}`);
+    updates.borrow.push(update);
   }
   
-  return positions;
+  return updates;
 }
 
 // ============================================
 // Save to database
 // ============================================
-function savePositions(db, allPositions) {
-  const insertPos = db.prepare(`INSERT OR IGNORE INTO positions (wallet, chain, protocol_id, protocol_name, position_type, net_usd, position_index, scanned_at) VALUES (?, ?, 'morpho', 'Morpho', ?, ?, ?, datetime('now'))`);
-  const updatePos = db.prepare(`UPDATE positions SET net_usd = ?, scanned_at = datetime('now') WHERE wallet = ? AND chain = ? AND protocol_id = 'morpho' AND position_index = ?`);
-  const insertToken = db.prepare(`INSERT INTO position_tokens (position_id, role, symbol, address, amount, apy_base, bonus_supply_apy) VALUES (?, ?, ?, ?, ?, ?, ?)`);
-  const findPos = db.prepare(`SELECT id FROM positions WHERE wallet = ? AND chain = ? AND protocol_id = 'morpho' AND position_index = ?`);
-  const findToken = db.prepare(`SELECT id FROM position_tokens WHERE position_id = ? AND address = ?`);
-  const updateToken = db.prepare(`UPDATE position_tokens SET amount = ?, apy_base = ?, bonus_supply_apy = ? WHERE id = ?`);
+function enrichPositions(db, updates) {
+  // Find existing DeBank positions and update their APY/health data
+  const findPos = db.prepare(`SELECT p.id, pt.id as token_id FROM positions p JOIN position_tokens pt ON pt.position_id = p.id WHERE p.wallet = ? AND p.protocol_name = 'Morpho' AND p.position_type = 'Lending' AND pt.symbol = ? AND pt.role = 'supply'`);
+  const updateToken = db.prepare(`UPDATE position_tokens SET apy_base = ?, bonus_supply_apy = ? WHERE id = ?`);
+  const updateNetUsd = db.prepare(`UPDATE positions SET net_usd = ?, scanned_at = datetime('now') WHERE id = ?`);
   
   const transaction = db.transaction(() => {
-    for (const type of ['earn', 'borrow']) {
-      for (const pos of allPositions[type]) {
-        const posIndex = pos.token_address;
-        const netUsd = pos.value_usd || 0;
-        
-        insertPos.run(pos.wallet, pos.chain, pos.type, netUsd || 0, String(posIndex));
-        updatePos.run(netUsd || 0, pos.wallet, pos.chain, String(posIndex));
-        
-        const posRow = findPos.get(pos.wallet, pos.chain, String(posIndex));
-        if (!posRow) continue;
-        
-        const addr = pos.type === 'earn' ? pos.token_address : 'market_' + pos.token_address;
-        const existing = findToken.get(posRow.id, addr);
-        if (existing) {
-          updateToken.run(pos.amount || 0, pos.apy_base || null, pos.apy_bonus || null, existing.id);
-        } else {
-          insertToken.run(posRow.id, 'supply', pos.symbol, addr, pos.amount || 0, pos.apy_base || null, pos.apy_bonus || null);
+    for (const update of updates.earn) {
+      // Find existing position by symbol
+      const posRow = findPos.get(update.wallet, update.symbol);
+      if (posRow) {
+        // Update APY data
+        updateToken.run(update.apy_base || null, update.apy_bonus || null, posRow.token_id);
+        updateNetUsd.run(update.value_usd || 0, posRow.id);
+      }
+      
+      // Also update by asset address (some positions use different symbols)
+      // Try common variants
+      const symbolVariants = {
+        'senRLUSDv2': 'RLUSD',
+        'senPYUSDmain': 'PYUSD',
+        'steakRUSD': 'rUSD',
+        'steakUSDC': 'USDC',
+      };
+      
+      if (symbolVariants[update.symbol]) {
+        const altPos = findPos.get(update.wallet, symbolVariants[update.symbol]);
+        if (altPos) {
+          updateToken.run(update.apy_base || null, update.apy_bonus || null, altPos.token_id);
+          updateNetUsd.run(update.value_usd || 0, altPos.id);
         }
       }
     }
+    
+    // Update borrow positions - find by wallet and update health factor
+    // Note: DeBank handles borrow positions differently, we just enrich
   });
   
   transaction();
@@ -231,7 +232,7 @@ async function main() {
     allPositions.borrow.push(...result.borrow);
   }
   
-  savePositions(db, allPositions);
+  enrichPositions(db, allPositions);
   
   console.log(`\n=== Summary ===`);
   console.log(`Earn positions: ${allPositions.earn.length}`);

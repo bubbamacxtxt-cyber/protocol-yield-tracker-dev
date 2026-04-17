@@ -106,12 +106,10 @@ async function getMeritAPRs(userAddress) {
 async function scanWallet(wallet, label, db) {
   console.log(`\n--- ${label} (${wallet.slice(0,12)}) ---`);
   
-  const allPositions = [];
-  
-  // Scan mainnet first
+  const enrichments = { supply: [], borrow: [] };
   const chainId = 1;
   
-  // Get supplies and borrows
+  // Get supplies, borrows, and state in parallel
   const [supplies, borrows, state] = await Promise.all([
     getUserSupplies(wallet, chainId),
     getUserBorrows(wallet, chainId),
@@ -124,97 +122,84 @@ async function scanWallet(wallet, label, db) {
   console.log(`  Supply positions: ${supplies.length}`);
   console.log(`  Borrow positions: ${borrows.length}`);
   
-  // Process supplies
+  // Process supplies - prepare enrichment data
   for (const s of supplies) {
-    const pos = {
+    const meritKey = `ethereum-supply-${s.currency?.symbol?.toLowerCase()}`;
+    
+    const enrich = {
       wallet, label,
-      protocol_name: 'Aave v3',
-      protocol_id: 'aave-v3',
       symbol: s.currency?.symbol || '?',
-      token_address: s.currency?.address,
-      market_address: s.market?.address,
-      amount: parseFloat(s.balance?.amount?.value || 0),
       value_usd: parseFloat(s.balance?.usd || 0),
       apy_base: parseFloat(s.apy?.value || 0) * 100,
-      apy_bonus: null,
-      chain: chainId,
-      type: 'supply',
-      is_collateral: s.isCollateral || false,
+      apy_bonus: meritAPRs[meritKey] || null,
     };
     
-    // Check for Merkl rewards
-    const marketName = s.market?.name || '';
-    const meritKey = `ethereum-supply-${s.currency?.symbol?.toLowerCase()}`;
-    if (meritAPRs[meritKey]) {
-      pos.apy_bonus = meritAPRs[meritKey];
-    }
-    
-    if (pos.value_usd > 0.01) {
-      console.log(`    ✅ ${pos.symbol}: $${pos.value_usd.toFixed(2)} | APY: ${pos.apy_base.toFixed(2)}%${pos.apy_bonus ? ' + ' + pos.apy_bonus.toFixed(2) + '%' : ''}`);
-      allPositions.push(pos);
+    if (enrich.value_usd > 0.01) {
+      console.log(`    ✅ ${enrich.symbol}: $${enrich.value_usd.toFixed(2)} | APY: ${enrich.apy_base.toFixed(2)}%${enrich.apy_bonus ? ' + ' + enrich.apy_bonus.toFixed(2) + '%' : ''}`);
+      enrichments.supply.push(enrich);
     }
   }
   
-  // Process borrows
+  // Process borrows - prepare enrichment data  
   for (const b of borrows) {
-    const pos = {
+    const enrich = {
       wallet, label,
-      protocol_name: 'Aave v3',
-      protocol_id: 'aave-v3',
       symbol: b.currency?.symbol || '?',
-      token_address: b.currency?.address,
-      market_address: b.market?.address,
-      amount: parseFloat(b.debt?.amount?.value || 0),
       value_usd: parseFloat(b.debt?.usd || 0),
       apy_borrow: parseFloat(b.apy?.value || 0) * 100,
-      chain: chainId,
-      type: 'borrow',
     };
     
-    if (pos.value_usd > 0.01) {
-      console.log(`    📊 ${pos.symbol}: $${pos.value_usd.toFixed(2)} borrow | APY: ${pos.apy_borrow.toFixed(2)}%`);
-      allPositions.push(pos);
+    if (enrich.value_usd > 0.01) {
+      console.log(`    📊 ${enrich.symbol}: $${enrich.value_usd.toFixed(2)} borrow | APY: ${enrich.apy_borrow.toFixed(2)}%`);
+      enrichments.borrow.push(enrich);
     }
   }
   
   // Show aggregate state
-  if (state) {
+  if (state && parseFloat(state.netWorth || 0) !== 0) {
     console.log(`  Health Factor: ${state.healthFactor ? parseFloat(state.healthFactor).toFixed(3) : 'N/A'}`);
     console.log(`  Net Worth: $${parseFloat(state.netWorth || 0).toFixed(2)}`);
     console.log(`  Net APY: ${parseFloat(state.netAPY?.value || 0) * 100}%`);
   }
   
-  return allPositions;
+  return enrichments;
 }
 
 // ============================================
-// Save to database
+// Enrich existing DeBank positions with APY data
 // ============================================
-function savePositions(db, allPositions) {
-  const insertPos = db.prepare(`INSERT OR IGNORE INTO positions (wallet, chain, protocol_id, protocol_name, position_type, net_usd, position_index, scanned_at) VALUES (?, ?, 'aave-v3', 'Aave v3', ?, ?, ?, datetime('now'))`);
-  const updatePos = db.prepare(`UPDATE positions SET net_usd = ?, scanned_at = datetime('now') WHERE wallet = ? AND chain = ? AND protocol_id = 'aave-v3' AND position_index = ?`);
-  const findPos = db.prepare(`SELECT id FROM positions WHERE wallet = ? AND chain = ? AND protocol_id = 'aave-v3' AND position_index = ?`);
-  const insertToken = db.prepare(`INSERT INTO position_tokens (position_id, role, symbol, address, amount, apy_base, bonus_supply_apy) VALUES (?, ?, ?, ?, ?, ?, ?)`);
-  const findToken = db.prepare(`SELECT id FROM position_tokens WHERE position_id = ? AND address = ?`);
-  const updateToken = db.prepare(`UPDATE position_tokens SET amount = ?, apy_base = ?, bonus_supply_apy = ? WHERE id = ?`);
+function enrichPositions(db, enrichments) {
+  // Find existing positions by symbol and protocol
+  const findSupplyPos = db.prepare(`
+    SELECT p.id, pt.id as token_id, pt.value_usd as old_usd 
+    FROM positions p 
+    JOIN position_tokens pt ON pt.position_id = p.id 
+    WHERE p.wallet = ? AND p.protocol_name = 'Aave v3' AND p.position_type = 'Lending' AND pt.symbol = ? AND pt.role = 'supply'
+  `);
+  const findBorrowPos = db.prepare(`
+    SELECT p.id, pt.id as token_id 
+    FROM positions p 
+    JOIN position_tokens pt ON pt.position_id = p.id 
+    WHERE p.wallet = ? AND p.protocol_name = 'Aave v3' AND p.position_type = 'Lending' AND pt.symbol = ? AND pt.role = 'borrow'
+  `);
+  const updateToken = db.prepare(`UPDATE position_tokens SET apy_base = ?, bonus_supply_apy = ? WHERE id = ?`);
+  const updateNetUsd = db.prepare(`UPDATE positions SET net_usd = ?, scanned_at = datetime('now') WHERE id = ?`);
   
   const transaction = db.transaction(() => {
-    for (const pos of allPositions) {
-      const posIndex = pos.token_address;
-      const netUsd = pos.value_usd || 0;
-      
-      insertPos.run(pos.wallet, pos.chain, pos.type, netUsd || 0, String(posIndex));
-      updatePos.run(netUsd || 0, pos.wallet, pos.chain, String(posIndex));
-      
-      const posRow = findPos.get(pos.wallet, pos.chain, String(posIndex));
-      if (!posRow) continue;
-      
-      const addr = pos.type === 'supply' ? pos.token_address : 'market_' + pos.token_address;
-      const existing = findToken.get(posRow.id, addr);
-      if (existing) {
-        updateToken.run(pos.amount || 0, pos.apy_base || null, pos.apy_bonus || null, existing.id);
-      } else {
-        insertToken.run(posRow.id, pos.type, pos.symbol, addr, pos.amount || 0, pos.apy_base || null, pos.apy_bonus || null);
+    // Enrich supply positions
+    for (const e of enrichments.supply) {
+      const posRow = findSupplyPos.get(e.wallet, e.symbol);
+      if (posRow) {
+        updateToken.run(e.apy_base || null, e.apy_bonus || null, posRow.token_id);
+        updateNetUsd.run(e.value_usd || 0, posRow.id);
+      }
+    }
+    
+    // Enrich borrow positions
+    for (const e of enrichments.borrow) {
+      const posRow = findBorrowPos.get(e.wallet, e.symbol);
+      if (posRow) {
+        updateToken.run(e.apy_borrow || null, null, posRow.token_id);
       }
     }
   });
@@ -237,19 +222,20 @@ async function main() {
   ];
   
   const db = new Database(DB_PATH);
-  const allPositions = [];
+  const allEnrichments = { supply: [], borrow: [] };
   
   console.log('=== Aave v3 Scanner ===\n');
   
   for (const w of wallets) {
-    const positions = await scanWallet(w.addr, w.label, db);
-    allPositions.push(...positions);
+    const enrichments = await scanWallet(w.addr, w.label, db);
+    allEnrichments.supply.push(...enrichments.supply);
+    allEnrichments.borrow.push(...enrichments.borrow);
   }
   
-  savePositions(db, allPositions);
+  enrichPositions(db, allEnrichments);
   
   console.log(`\n=== Summary ===`);
-  console.log(`Total positions: ${allPositions.length}`);
+  console.log(`Enriched ${allEnrichments.supply.length} supply + ${allEnrichments.borrow.length} borrow positions`);
   
   db.close();
 }
