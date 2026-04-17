@@ -327,6 +327,34 @@ function savePositions(db, positions) {
 }
 
 // ============================================
+// Morpho REST API (market/borrow positions)
+// ============================================
+
+const MORPHO_REST_API = 'https://app.morpho.org/api';
+
+async function getBorrowPositions(userAddress) {
+  const chainIds = [1, 8453, 42161, 137, 130, 747474, 999, 10, 143, 988, 480];
+  const url = `${MORPHO_REST_API}/positions/borrow?userAddress=${userAddress}&limit=500&skip=0&chainIds=${chainIds.join(',')}&orderBy=borrowAssetsUsd&orderDirection=DESC`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.items || [];
+  } catch { return []; }
+}
+
+async function getEarnPositions(userAddress) {
+  const chainIds = [1, 8453, 42161, 137, 130, 747474, 999, 10, 143, 988, 480];
+  const url = `${MORPHO_REST_API}/positions/earn?userAddress=${userAddress}&limit=500&skip=0&chainIds=${chainIds.join(',')}&orderBy=assetsUsd&orderDirection=DESC`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.items || [];
+  } catch { return []; }
+}
+
+// ============================================
 // CLI interface
 // ============================================
 
@@ -365,7 +393,27 @@ async function main() {
   // Save to DB
   savePositions(db, allPositions);
   
-  console.log(`\n=== Done: ${allPositions.length} positions found and saved ===`);
+  console.log(`\n=== Vault positions: ${allPositions.length} ===`);
+  
+  // === REST API: Market/borrow positions ===
+  console.log("\n=== Scanning market positions (REST API) ===");
+  let totalBorrowUsd = 0;
+  for (const w of wallets) {
+    const borrowPositions = await getBorrowPositions(w.wallet);
+    if (borrowPositions.length > 0) {
+      console.log(`  ${w.label}: ${borrowPositions.length} borrow positions`);
+      for (const p of borrowPositions) {
+        const loan = p.market?.loanAsset?.symbol || "?";
+        const coll = p.market?.collateralAsset?.symbol || "?";
+        const hf = p.healthFactor?.toFixed(3) || "?";
+        const borrowUsd = (p.borrowAssetsUsd / 1e6).toFixed(2);
+        console.log(`    ${loan}/${coll}: $${borrowUsd}M borrow, HF=${hf}`);
+        totalBorrowUsd += p.borrowAssetsUsd || 0;
+      }
+    }
+  }
+  console.log(`  Total borrow: $${(totalBorrowUsd / 1e6).toFixed(2)}M`);
+
   
   db.close();
 }
