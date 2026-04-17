@@ -1,0 +1,54 @@
+name: Morpho Scanner
+
+on:
+  schedule:
+    - cron: '0 */4 * * *'  # Every 4 hours
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      # Run Morpho scanner v2 (REST API - 3 calls per wallet)
+      - name: Scan Morpho positions
+        run: node src/morpho-scanner-v2.js
+        env:
+          ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
+
+      # Enrich positions with market data and Merkl rewards
+      - name: Enrich positions with market/vault info
+        run: node src/enrich-markets.js
+
+      - name: Fetch Merkl incentives
+        run: node src/fetch-merkl.js
+
+      - name: Fix token labels
+        run: node src/fix-morpho-tokens.js yield-tracker.db --apply || true
+
+      - name: Export to data.json
+        run: node src/export.js
+
+      - name: Alert on failure
+        if: failure()
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+            -d text="⚠️ Morpho scanner FAILED! Run #${{ github.run_number }}. Check: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+      - name: Commit and push
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Auto-update Morpho positions ${{ github.run_number }}"
+          file_pattern: data.json yield-tracker.db data/whales/ data/total-history.json
