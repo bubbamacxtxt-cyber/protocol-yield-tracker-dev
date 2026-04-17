@@ -147,11 +147,20 @@ async function scanWallet(wallet, label) {
     const vaultAddress = vault.address;
     const chainId = vault.chainId || 1;
     
-    // Get APY (async, but we'll await all later)
-    const apy = await getVaultAPY(vaultAddress, vault.version);
-    const apyBase = apy?.baseApy != null ? apy.baseApy * 100 : null;
-    const apyNet = apy?.netApy != null ? apy.netApy * 100 : null;
-    const bonus = (apyNet != null && apyBase != null) ? apyNet - apyBase : null;
+    // Get APY - use REST API netApy if available, otherwise fetch from GraphQL
+    let apyBase, apyNet, bonus;
+    if (vault.netApy != null) {
+      // REST API already has APY
+      apyNet = vault.netApy * 100;
+      apyBase = (vault.netApyExcludingRewards != null) ? vault.netApyExcludingRewards * 100 : apyNet;
+      bonus = apyNet - apyBase;
+    } else {
+      // Fallback to GraphQL
+      const apy = await getVaultAPY(vaultAddress, vault.version);
+      apyBase = apy?.baseApy != null ? apy.baseApy * 100 : null;
+      apyNet = apy?.netApy != null ? apy.netApy * 100 : null;
+      bonus = (apyNet != null && apyBase != null) ? apyNet - apyBase : null;
+    }
     
     positions.push({
       wallet, label,
