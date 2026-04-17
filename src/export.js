@@ -56,6 +56,24 @@ function main() {
         delete p.borrow_json;
         delete p.reward_json;
 
+        // Normalize chain names (DeBank uses lowercase, scanners may use chainId as string like "1.0")
+        const chainMap = { 1: 'eth', 8453: 'base', 42161: 'arb', 137: 'poly', 10: 'opt', 146: 'sonic', 9745: 'plasma', 5000: 'mnt', 130: 'uni', 143: 'sonic' };
+        const chainStr = String(p.chain || '').toLowerCase().replace(/\.0$/, '');  // "1.0" -> "1"
+        const chainNum = parseInt(chainStr);
+        if (!isNaN(chainNum) && chainMap[chainNum]) {
+            p.chain = chainMap[chainNum];
+        } else if (p.chain) {
+            p.chain = chainStr;
+        }
+
+        // Normalize position_type to strategy
+        const typeToStrategy = { 'Lending': 'lend', 'supply': 'lend', 'borrow': 'borrow', 'Borrow': 'borrow' };
+        p.strategy = typeToStrategy[p.position_type] || typeToStrategy[p.position_type?.toLowerCase()] || 'lend';
+
+        // Calculate asset_usd and debt_usd from supply/borrow tokens
+        p.asset_usd = (p.supply || []).reduce((sum, t) => sum + (t.value_usd || 0), 0) || p.asset_usd || 0;
+        p.debt_usd = (p.borrow || []).reduce((sum, t) => sum + (t.value_usd || 0), 0) || p.debt_usd || 0;
+
         // Calculate APY breakdown
         // Base APY: weighted average of supply tokens' apy_base
         let baseApyNum = 0, baseApyDen = 0;
@@ -91,22 +109,66 @@ function main() {
         p.bonus_supply = bonusSupplyTotal || null;
         p.bonus_borrow = bonusBorrowTotal || null;
         
-        // Net APY: (base + bonus_supply) * supply - (cost - bonus_borrow) * borrow / equity
-        if (p.apy_base != null && p.asset_usd > 0) {
-            const effectiveBase = (p.apy_base || 0) + bonusSupplyTotal;
-            const effectiveCost = (p.apy_cost || 0) - bonusBorrowTotal;
-            const baseYield = effectiveBase * p.asset_usd;
-            const costYield = effectiveCost * Math.abs(p.debt_usd || 0);
-            p.apy_net = p.net_usd > 0 ? ((baseYield - costYield) / p.net_usd) : null;
+        // Net APY: accounts for leverage
+        // equity = supply - borrow
+        // leverage = supply / equity (if equity > 0)
+        // gross_yield = (supply_usd × supply_apy) - (borrow_usd × borrow_apy) + rewards
+        // net_apy = gross_yield / equity
+        if (p.apy_base != null) {
+            const supplyUsd = p.asset_usd || 0;
+            const borrowUsd = Math.abs(p.debt_usd || 0);
+            const equity = supplyUsd - borrowUsd;
+            
+            if (equity > 0) {
+                const supplyApy = (p.apy_base || 0) + bonusSupplyTotal;
+                const borrowApy = (p.apy_cost || 0) - bonusBorrowTotal;
+                
+                const supplyYield = supplyUsd * (supplyApy / 100);
+                const borrowCost = borrowUsd * (borrowApy / 100);
+                const rewardYield = bonusSupplyTotal * supplyUsd / 100;
+                
+                const grossYield = supplyYield - borrowCost + rewardYield;
+                p.apy_net = (grossYield / equity) * 100;
+                p.leverage = supplyUsd / equity;
+            } else {
+                p.apy_net = p.apy_base + bonusSupplyTotal;
+                p.leverage = 1;
+            }
         } else {
             p.apy_net = null;
+            p.leverage = null;
         }
 
         // Reward APY: placeholder (would need reward token APR data)
         p.apy_reward = null;
     }
 
-    const deduped = allPositions; // DB is cleaned at scan time, no dedup needed
+    // Deduplicate: merge positions with same wallet + chain + protocol + first supply token symbol
+    // This handles DeBank + scanner duplicates (different position_index but same underlying asset)
+    const posMap = new Map();
+    for (const p of allPositions) {
+        const supplySymbol = (p.supply?.[0]?.symbol || p.borrow?.[0]?.symbol || '?').toLowerCase();
+        const key = `${p.wallet}|${p.chain}|${p.protocol_id}|${supplySymbol}`;
+        
+        if (posMap.has(key)) {
+            const existing = posMap.get(key);
+            // Merge: take the one with more data
+            // Prefer DeBank for USD values, scanner for APY
+            if (p.asset_usd > 0 && existing.asset_usd === 0) existing.asset_usd = p.asset_usd;
+            if (p.debt_usd > 0 && existing.debt_usd === 0) existing.debt_usd = p.debt_usd;
+            if (p.net_usd > 0 && existing.net_usd === 0) existing.net_usd = p.net_usd;
+            // Take APY from whichever has it
+            if (existing.apy_base == null && p.apy_base != null) existing.apy_base = p.apy_base;
+            if (existing.bonus_supply == null && p.bonus_supply != null) existing.bonus_supply = p.bonus_supply;
+            if (existing.apy_net == null && p.apy_net != null) existing.apy_net = p.apy_net;
+            // Merge tokens if scanner has them
+            if (p.supply?.length > 0 && existing.supply?.length === 0) existing.supply = p.supply;
+            if (p.borrow?.length > 0 && existing.borrow?.length === 0) existing.borrow = p.borrow;
+        } else {
+            posMap.set(key, p);
+        }
+    }
+    const deduped = [...posMap.values()];
 
     // Build whale data
     const whales = {};

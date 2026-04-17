@@ -22,6 +22,12 @@ const V1_APY_HASH = 'db4bd5b01c28c4702d575d3cc6718e9fdf02908fe1769a9ac84769183b1
 const V2_PERF_HASH = '2450946f568dabb9e65946408befef7d15c529139e2a397c75bf64cbccf1aa9b';
 
 // Symbol mapping for vault names to display symbols
+const CHAIN_NAMES = {
+  1: 'ETH', 8453: 'BASE', 42161: 'ARB', 137: 'MNT',
+  10: 'OPT', 5000: 'MNT', 81457: 'BLAST', 534352: 'SCROLL',
+  146: 'SONIC', 9745: 'PLASMA', 130: 'UNI', 747474: 'WCT',
+};
+
 const SYMBOL_MAP = {
   'senRLUSDv2': 'RLUSD', 'senPYUSDmain': 'PYUSD', 'senPYUSD': 'PYUSD',
   'steakRUSD': 'rUSD', 'steakUSDC': 'USDC', 'steakUSDT': 'USDT',
@@ -129,10 +135,13 @@ async function scanWallet(wallet, label) {
     const bonus = (apyNet != null && apyBase != null) ? apyNet - apyBase : null;
     
     positions.push({
-      wallet, label, chainId,
+      wallet, label,
+      chain: CHAIN_NAMES[chainId] || String(chainId),
+      chainId,
       protocol_name: 'Morpho',
       protocol_id: 'morpho',
       position_type: 'supply',
+      strategy: 'Lend',
       symbol,
       token_address: vaultAddress,
       asset_address: vault.asset?.address,
@@ -153,10 +162,13 @@ async function scanWallet(wallet, label) {
     const chainId = market.chainId || 1;
     
     positions.push({
-      wallet, label, chainId,
+      wallet, label,
+      chain: CHAIN_NAMES[chainId] || String(chainId),
+      chainId,
       protocol_name: 'Morpho',
       protocol_id: 'morpho',
       position_type: 'borrow',
+      strategy: 'Borrow',
       symbol: loanSymbol,
       collateral_symbol: collSymbol,
       token_address: market.uniqueKey || market.marketId,
@@ -166,7 +178,7 @@ async function scanWallet(wallet, label) {
       health_factor: item.healthFactor,
       ltv: item.ltv,
       liquidation_distance: item.priceVariationToLiquidationPrice,
-      apy_borrow: null, // Would need market query
+      apy_borrow: null,
     });
   }
   

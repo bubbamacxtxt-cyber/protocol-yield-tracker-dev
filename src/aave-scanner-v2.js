@@ -14,6 +14,12 @@ const AAVE_GRAPHQL = 'https://api.v3.aave.com/graphql';
 const MERIT_API = 'https://apps.aavechan.com/api/merit/aprs';
 
 // Known market addresses per chain
+const CHAIN_NAMES = {
+  1: 'ETH', 8453: 'BASE', 42161: 'ARB', 137: 'POLY',
+  10: 'OPT', 5000: 'MNT', 81457: 'BLAST', 534352: 'SCROLL',
+  146: 'SONIC', 9745: 'PLASMA', 130: 'UNI', 747474: 'WCT',
+};
+
 const MARKETS = {
   1: [
     '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2', // AaveV3Ethereum
@@ -99,10 +105,13 @@ async function scanWallet(wallet, label) {
     const bonus = meritAPRs[meritKey] || null;
     
     positions.push({
-      wallet, label, chainId,
+      wallet, label,
+      chain: CHAIN_NAMES[chainId] || String(chainId),
+      chainId,
       protocol_name: 'Aave v3',
       protocol_id: 'aave-v3',
       position_type: 'supply',
+      strategy: 'Lend',
       symbol,
       token_address: s.currency?.address,
       amount: parseFloat(s.balance?.amount?.value || 0),
@@ -119,15 +128,18 @@ async function scanWallet(wallet, label) {
     const apyBorrow = parseFloat(b.apy?.value || 0) * 100;
     
     positions.push({
-      wallet, label, chainId,
+      wallet, label,
+      chain: CHAIN_NAMES[chainId] || String(chainId),
+      chainId,
       protocol_name: 'Aave v3',
       protocol_id: 'aave-v3',
       position_type: 'borrow',
+      strategy: 'Borrow',
       symbol,
       token_address: b.currency?.address,
       amount: parseFloat(b.debt?.amount?.value || 0),
       value_usd: parseFloat(b.debt?.usd || 0),
-      apy_borrow: apyBorrow,
+      apy_base: apyBorrow,  // Store borrow APY as apy_base for cost calculation
     });
   }
   
