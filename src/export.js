@@ -143,26 +143,26 @@ function main() {
     }
 
     // Deduplicate: merge positions with same wallet + chain + protocol + first supply token symbol
-    // This handles DeBank + scanner duplicates (different position_index but same underlying asset)
+    // For positions with no supply tokens, use position_index as the key component
     const posMap = new Map();
     for (const p of allPositions) {
-        const supplySymbol = (p.supply?.[0]?.symbol || p.borrow?.[0]?.symbol || '?').toLowerCase();
+        const supplySymbol = (p.supply?.[0]?.symbol || p.borrow?.[0]?.symbol || p.position_index || '').toLowerCase();
         const key = `${p.wallet}|${p.chain}|${p.protocol_id}|${supplySymbol}`;
         
         if (posMap.has(key)) {
             const existing = posMap.get(key);
-            // Merge: take the one with more data
-            // Prefer DeBank for USD values, scanner for APY
-            if (p.asset_usd > 0 && existing.asset_usd === 0) existing.asset_usd = p.asset_usd;
-            if (p.debt_usd > 0 && existing.debt_usd === 0) existing.debt_usd = p.debt_usd;
-            if (p.net_usd > 0 && existing.net_usd === 0) existing.net_usd = p.net_usd;
-            // Take APY from whichever has it
+            // Merge: prefer position with more data (scanner > DeBank)
+            if (p.asset_usd > 0 && (existing.asset_usd === 0 || existing.asset_usd == null)) existing.asset_usd = p.asset_usd;
+            if (p.debt_usd > 0 && (existing.debt_usd === 0 || existing.debt_usd == null)) existing.debt_usd = p.debt_usd;
+            if (Math.abs(p.net_usd) > 0 && (existing.net_usd === 0 || existing.net_usd == null)) existing.net_usd = p.net_usd;
             if (existing.apy_base == null && p.apy_base != null) existing.apy_base = p.apy_base;
             if (existing.bonus_supply == null && p.bonus_supply != null) existing.bonus_supply = p.bonus_supply;
             if (existing.apy_net == null && p.apy_net != null) existing.apy_net = p.apy_net;
-            // Merge tokens if scanner has them
-            if (p.supply?.length > 0 && existing.supply?.length === 0) existing.supply = p.supply;
-            if (p.borrow?.length > 0 && existing.borrow?.length === 0) existing.borrow = p.borrow;
+            // Prefer scanner positions (has supply tokens)
+            if (p.supply?.length > 0) existing.supply = p.supply;
+            if (p.borrow?.length > 0) existing.borrow = p.borrow;
+            // Prefer scanner strategy
+            if (p.strategy === 'lend' || p.strategy === 'borrow') existing.strategy = p.strategy;
         } else {
             posMap.set(key, p);
         }
