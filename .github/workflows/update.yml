@@ -44,6 +44,10 @@ jobs:
       - name: Scan Aave positions
         run: node src/aave-scanner.js
 
+      # Euler scanner
+      - name: Scan Euler positions
+        run: node src/euler-scanner.js
+
       # APY enrichment (fetches rates from Aave/Morpho/Euler)
       - name: Enrich positions with market/vault info
         run: node src/enrich-markets.js
