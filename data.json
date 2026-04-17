@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-17T12:17:41.315Z",
+  "generated_at": "2026-04-17T12:22:10.421Z",
   "summary": {
     "total_positions": 152,
     "total_value": 1001159554.9961629,
@@ -1889,7 +1889,23 @@
           "position_index": "0x8292bb45bf1ee4d140127049757c2e0ff06317ed",
           "debank_updated_at": "2026-04-11T12:43:05.000Z",
           "scanned_at": "2026-04-16 09:13:53",
-          "supply": [],
+          "supply": [
+            {
+              "symbol": "eRLUSD-7",
+              "real_symbol": null,
+              "real_name": null,
+              "address": "0xaf5372792a29dc6b296d6ffd4aa3386aff8f9bb2",
+              "amount": null,
+              "price_usd": null,
+              "value_usd": 68733689.19,
+              "apy_base": 0,
+              "apy_base_source": null,
+              "bonus_supply_apy": null,
+              "bonus_supply_source": null,
+              "bonus_borrow_apy": null,
+              "bonus_borrow_source": null
+            }
+          ],
           "borrow": [],
           "rewards": [],
           "apy_base": 0.0148234,
@@ -1899,7 +1915,7 @@
           "apy_net": 0.05948469999999999,
           "leverage": 1,
           "apy_reward": null,
-          "supply_tokens_display": "-"
+          "supply_tokens_display": "eRLUSD-7"
         },
         {
           "id": 47,
@@ -1916,8 +1932,24 @@
           "debt_usd": 0,
           "position_index": "0x6c3ea9036406852006290770bedfcaba0e23a0e8",
           "debank_updated_at": "2026-04-11T12:43:05.000Z",
-          "scanned_at": "2026-04-16 09:13:53",
-          "supply": [],
+          "scanned_at": "2026-04-17 12:20:29",
+          "supply": [
+            {
+              "symbol": "ePYUSD-6",
+              "real_symbol": null,
+              "real_name": null,
+              "address": "0xba98fc35c9dfd69178ad5dce9fa29c64554783b5",
+              "amount": null,
+              "price_usd": null,
+              "value_usd": 45863419.77,
+              "apy_base": 0,
+              "apy_base_source": null,
+              "bonus_supply_apy": null,
+              "bonus_supply_source": null,
+              "bonus_borrow_apy": null,
+              "bonus_borrow_source": null
+            }
+          ],
           "borrow": [],
           "rewards": [],
           "apy_base": 0.0171701,
@@ -1927,7 +1959,7 @@
           "apy_net": 0.0599677,
           "leverage": 1,
           "apy_reward": null,
-          "supply_tokens_display": "-"
+          "supply_tokens_display": "ePYUSD-6"
         },
         {
           "id": 130,
@@ -6043,7 +6075,7 @@
               "address": "0x0229dB3921dE71CFa43Cfe9fb6A87b403647A9ae",
               "amount": 795382873370,
               "price_usd": null,
-              "value_usd": 0,
+              "value_usd": 1816295.38295673,
               "apy_base": 5.27964512709103,
               "apy_base_source": null,
               "bonus_supply_apy": 0.328147078614677,
@@ -6154,7 +6186,7 @@
                   "address": "0x0229dB3921dE71CFa43Cfe9fb6A87b403647A9ae",
                   "amount": 795382873370,
                   "price_usd": null,
-                  "value_usd": 0,
+                  "value_usd": 1816295.38295673,
                   "apy_base": 5.27964512709103,
                   "apy_base_source": null,
                   "bonus_supply_apy": 0.328147078614677,

@@ -119,7 +119,7 @@ async function main() {
         
         // Enrich Euler positions with DeFiLlama APYs
         if (p.protocol_name === 'Euler' && eulerApys) {
-            // Euler position_index is underlying asset address
+            // Euler position_index is underlying asset address OR vault address
             // Map known addresses to symbols
             const eulerAddrMap = {
                 '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': 'USDC',
@@ -127,8 +127,15 @@ async function main() {
                 '0x8292bb45bf1ee4d140127049757c2e0ff06317ed': 'RLUSD',
                 '0x00000000efe302beaa2b3e6e1b18d08d69a9012a': 'AUSD',
             };
+            // Vault → underlying mapping (for scanner-created positions)
+            const vaultToUnderlying = {
+                '0xaf5372792a29dc6b296d6ffd4aa3386aff8f9bb2': '0x8292bb45bf1ee4d140127049757c2e0ff06317ed', // eRLUSD → RLUSD
+                '0xba98fc35c9dfd69178ad5dce9fa29c64554783b5': '0x6c3ea9036406852006290770bedfcaba0e23a0e8', // ePYUSD → PYUSD
+            };
             const addr = (p.position_index || '').toLowerCase();
-            let sym = eulerAddrMap[addr];
+            // Check if this is a vault address, map to underlying
+            const underlyingAddr = vaultToUnderlying[addr] || addr;
+            let sym = eulerAddrMap[underlyingAddr];
             if (!sym) {
                 // Try supply token symbol
                 sym = (p.supply?.[0]?.symbol || '').toUpperCase().replace(/^E/, '').replace(/-\d+$/, '');
@@ -144,6 +151,10 @@ async function main() {
         }
 
         // Calculate asset_usd and debt_usd from supply/borrow tokens
+        // If supply tokens have no value but position has asset_usd, distribute it
+        const supplyValue = (p.supply || []).reduce((sum, t) => sum + (t.value_usd || 0), 0);
+        if (supplyValue === 0 && p.asset_usd > 0 && p.supply?.length > 0) {
+        }
         p.asset_usd = (p.supply || []).reduce((sum, t) => sum + (t.value_usd || 0), 0) || p.asset_usd || 0;
         p.debt_usd = (p.borrow || []).reduce((sum, t) => sum + (t.value_usd || 0), 0) || p.debt_usd || 0;
 
@@ -223,8 +234,24 @@ async function main() {
     // Deduplicate: merge positions with same wallet + chain + protocol + first supply token symbol
     // For positions with no supply tokens, use position_index as the key component
     const posMap = new Map();
+    // Vault → underlying mapping for Euler dedup
+    const vaultToUnderlying = {
+        '0xaf5372792a29dc6b296d6ffd4aa3386aff8f9bb2': '0x8292bb45bf1ee4d140127049757c2e0ff06317ed',
+        '0xba98fc35c9dfd69178ad5dce9fa29c64554783b5': '0x6c3ea9036406852006290770bedfcaba0e23a0e8',
+    };
     for (const p of allPositions) {
-        const supplySymbol = (p.supply?.[0]?.symbol || p.borrow?.[0]?.symbol || p.position_index || '').toLowerCase();
+        let supplySymbol = (p.supply?.[0]?.symbol || p.borrow?.[0]?.symbol || p.position_index || '').toLowerCase();
+        // For Euler scanner positions, use underlying address as key
+        if (p.protocol_id === 'euler2') {
+            const addr = (p.position_index || '').toLowerCase();
+            if (vaultToUnderlying[addr]) {
+                supplySymbol = vaultToUnderlying[addr];
+            } else if (p.supply?.[0]?.symbol) {
+                // Extract base symbol from eRLUSD-7 → rlUSD
+                const sym = p.supply[0].symbol.toUpperCase().replace(/^E/, '').replace(/-\d+$/, '');
+                supplySymbol = sym.toLowerCase();
+            }
+        }
         const key = `${p.wallet}|${p.chain}|${p.protocol_id}|${supplySymbol}`;
         
         if (posMap.has(key)) {
@@ -246,6 +273,15 @@ async function main() {
         }
     }
     const deduped = [...posMap.values()];
+
+    // After merge: distribute asset_usd to supply tokens that have $0 value
+    for (const p of deduped) {
+        const supplyValue = (p.supply || []).reduce((sum, t) => sum + (t.value_usd || 0), 0);
+        if (supplyValue === 0 && p.asset_usd > 0 && p.supply?.length > 0) {
+            const perToken = p.asset_usd / p.supply.length;
+            for (const t of p.supply) t.value_usd = perToken;
+        }
+    }
 
     // Filter dust positions (< $100) and fix bogus health_factor
     const filtered = deduped.filter(p => {
