@@ -110,6 +110,24 @@ async function getVaultAPY(vaultAddress, version) {
   return null;
 }
 
+// Get market borrow APY
+async function getMarketAPY(uniqueKey, chainId) {
+  if (!uniqueKey) return null;
+  try {
+    const res = await fetch(MORPHO_GRAPHQL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: `{ marketByUniqueKey(uniqueKey: "${uniqueKey}", chainId: ${chainId}) { state { supplyApy borrowApy } } }`
+      })
+    });
+    const data = await res.json();
+    const state = data?.data?.marketByUniqueKey?.state;
+    if (state) return { supplyApy: state.supplyApy * 100, borrowApy: state.borrowApy * 100 };
+  } catch {}
+  return null;
+}
+
 // ============================================
 // Scan single wallet
 // ============================================
@@ -162,6 +180,10 @@ async function scanWallet(wallet, label) {
     const collSymbol = market.collateralAsset?.symbol || '?';
     const chainId = market.chainId || 1;
     
+    // Get market APY
+    const marketApy = await getMarketAPY(market.uniqueKey, chainId);
+    if (process.env.DEBUG) console.log(`  Market APY for ${loanSymbol}/${collSymbol}:`, marketApy);
+    
     positions.push({
       wallet, label,
       chain: CHAIN_NAMES[chainId] || String(chainId),
@@ -179,7 +201,8 @@ async function scanWallet(wallet, label) {
       health_factor: item.healthFactor,
       ltv: item.ltv,
       liquidation_distance: item.priceVariationToLiquidationPrice,
-      apy_borrow: null,
+      apy_borrow: marketApy?.borrowApy || null,
+      apy_supply: marketApy?.supplyApy || null,
     });
   }
   
@@ -222,10 +245,14 @@ function savePositions(db, allPositions) {
       // Clear and re-insert tokens (ensures fresh data each scan)
       clearTokens.run(posRow.id, role);
       
+      // Use apy_borrow for borrow positions, apy_base for supply
+      const apy = role === 'borrow' ? (pos.apy_borrow || null) : (pos.apy_base || null);
+      const bonus = role === 'supply' ? (pos.apy_bonus || null) : null;
+      
       upsertToken.run(
         posRow.id, role, pos.symbol, pos.token_address,
         pos.amount || 0, pos.value_usd || 0,
-        pos.apy_base || null, pos.apy_bonus || null
+        apy, bonus
       );
     }
   });
@@ -257,10 +284,15 @@ async function main() {
     
     for (const p of positions) {
       const usd = (p.value_usd / 1e6).toFixed(2);
-      const apy = p.apy_base?.toFixed(2) || '?';
-      const bonus = p.apy_bonus?.toFixed(2) || '0';
       const type = p.position_type === 'supply' ? '✅' : '📊';
-      console.log(`  ${type} ${p.symbol}: $${usd}M | ${p.position_type} | APY: ${apy}% + ${bonus}%`);
+      if (p.position_type === 'supply') {
+        const apy = p.apy_base?.toFixed(2) || '?';
+        const bonus = p.apy_bonus?.toFixed(2) || '0';
+        console.log(`  ${type} ${p.symbol}: $${usd}M | supply | APY: ${apy}% + ${bonus}%`);
+      } else {
+        const apy = p.apy_borrow?.toFixed(2) || '?';
+        console.log(`  ${type} ${p.symbol}: $${usd}M | borrow | Cost: ${apy}%`);
+      }
     }
     
     allPositions.push(...positions);
