@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * Aave v3 Position Scanner (Enrich Only)
+ * Aave v3 Position Scanner (Multi-chain)
  * 
- * Enriches existing DeBank positions with APY data from Aave GraphQL.
- * Does NOT create new positions - that's DeBank's job.
+ * Enriches existing DeBank positions with supply/borrow tokens from Aave GraphQL.
+ * Scans all chains where Aave V3 operates.
  */
 
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
@@ -11,118 +11,118 @@ const Database = require('better-sqlite3');
 const DB_PATH = require('path').join(__dirname, '..', 'yield-tracker.db');
 
 const AAVE_GRAPHQL = 'https://api.v3.aave.com/graphql';
-const MERIT_API = 'https://apps.aavechan.com/api/merit/aprs';
 
-const MARKETS = {
-  1: [
-    '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2',
-    '0x0AA97c284e98396202b6A04024F5E2c65026F3c0',
-    '0x4e033931ad43597d96D6bcc25c280717730B58B1',
-    '0xAe05Cd22df81871bc7cC2a04BeCfb516bFe332C8',
-  ],
-  8453: ['0xA238Dd80C259a72e81d7e4664a9801593F98d1c5'],
-  42161: ['0x794a61358D6845594F94dc1DB02A252b5b4814aD'],
-  137: ['0x794a61358D6845594F94dc1DB02A252b5b4814aD'],
+const AAVE_POOLS = {
+  1: { chainName: 'eth', pools: ['0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2'] },
+  8453: { chainName: 'base', pools: ['0xA238Dd80C259a72e81d7e4664a9801593F98d1c5'] },
+  42161: { chainName: 'arb', pools: ['0x794a61358D6845594F94dc1DB02A252b5b4814aD'] },
+  137: { chainName: 'poly', pools: ['0x794a61358D6845594F94dc1DB02A252b5b4814aD'] },
+  9745: { chainName: 'plasma', pools: ['0x925a2A7214Ed92428B5b1B090F80b25700095e12'] },
+  5000: { chainName: 'mnt', pools: ['0x458F293454fE0d67EC0655f3672301301DD51422'] },
 };
 
 async function getUserSupplies(userAddress, chainId) {
-  const markets = MARKETS[chainId] || MARKETS[1];
-  const marketInputs = markets.map(addr => `{ address: "${addr}", chainId: ${chainId} }`).join(', ');
-  const res = await fetch(AAVE_GRAPHQL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      query: `{ userSupplies(request: { user: "${userAddress}", markets: [${marketInputs}] }) { currency { symbol } balance { usd } apy { value } isCollateral } }`
-    })
-  });
-  const data = await res.json();
-  return data?.data?.userSupplies || [];
+  const poolInfo = AAVE_POOLS[chainId];
+  if (!poolInfo) return [];
+  const marketInputs = poolInfo.pools.map(addr => `{ address: "${addr}", chainId: ${chainId} }`).join(', ');
+  try {
+    const res = await fetch(AAVE_GRAPHQL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: `{ userSupplies(request: { user: "${userAddress}", markets: [${marketInputs}] }) { currency { symbol } balance { usd } apy { value } isCollateral } }`
+      })
+    });
+    const data = await res.json();
+    return data?.data?.userSupplies || [];
+  } catch { return []; }
 }
 
 async function getUserBorrows(userAddress, chainId) {
-  const markets = MARKETS[chainId] || MARKETS[1];
-  const marketInputs = markets.map(addr => `{ address: "${addr}", chainId: ${chainId} }`).join(', ');
-  const res = await fetch(AAVE_GRAPHQL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      query: `{ userBorrows(request: { user: "${userAddress}", markets: [${marketInputs}] }) { currency { symbol } debt { usd } apy { value } } }`
-    })
-  });
-  const data = await res.json();
-  return data?.data?.userBorrows || [];
-}
-
-async function getUserMarketState(userAddress, marketAddress, chainId) {
-  const res = await fetch(AAVE_GRAPHQL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      query: `{ userMarketState(request: { user: "${userAddress}", market: "${marketAddress}", chainId: ${chainId} }) { netWorth healthFactor totalCollateralBase totalDebtBase netAPY { value } } }`
-    })
-  });
-  const data = await res.json();
-  return data?.data?.userMarketState || null;
-}
-
-async function getMeritAPRs(userAddress) {
+  const poolInfo = AAVE_POOLS[chainId];
+  if (!poolInfo) return [];
+  const marketInputs = poolInfo.pools.map(addr => `{ address: "${addr}", chainId: ${chainId} }`).join(', ');
   try {
-    const res = await fetch(`${MERIT_API}?user=${userAddress}`);
+    const res = await fetch(AAVE_GRAPHQL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: `{ userBorrows(request: { user: "${userAddress}", markets: [${marketInputs}] }) { currency { symbol } debt { usd } apy { value } } }`
+      })
+    });
     const data = await res.json();
-    return data?.currentAPR?.actionsAPR || {};
-  } catch { return {}; }
+    return data?.data?.userBorrows || [];
+  } catch { return []; }
 }
 
-async function scanWallet(wallet, label, db) {
-  console.log(`\n--- ${label} (${wallet.slice(0,12)}) ---`);
-  
-  const chainId = 1;
-  const [supplies, borrows, meritAPRs] = await Promise.all([
+async function scanWalletChain(wallet, chainId, chainName, db) {
+  const [supplies, borrows] = await Promise.all([
     getUserSupplies(wallet, chainId),
     getUserBorrows(wallet, chainId),
-    getMeritAPRs(wallet),
   ]);
   
-  console.log(`  Supply: ${supplies.length}, Borrow: ${borrows.length}`);
+  if (supplies.length === 0 && borrows.length === 0) return 0;
+  
+  console.log(`  ${chainName}: ${supplies.length} supply, ${borrows.length} borrow`);
   let enriched = 0;
   
-  const findSupply = db.prepare(`SELECT p.id, pt.id as token_id FROM positions p JOIN position_tokens pt ON pt.position_id = p.id WHERE p.wallet = ? AND p.protocol_name = 'Aave v3' AND pt.symbol = ? AND pt.role = 'supply'`);
-  const findBorrow = db.prepare(`SELECT p.id, pt.id as token_id FROM positions p JOIN position_tokens pt ON pt.position_id = p.id WHERE p.wallet = ? AND p.protocol_name = 'Aave v3' AND pt.symbol = ? AND pt.role = 'borrow'`);
-  const updateToken = db.prepare(`UPDATE position_tokens SET apy_base = ?, bonus_supply_apy = ?, value_usd = ? WHERE id = ?`);
-  const updateNet = db.prepare(`UPDATE positions SET net_usd = ?, scanned_at = datetime('now') WHERE id = ?`);
+  const insertToken = db.prepare(`
+    INSERT OR REPLACE INTO position_tokens (position_id, role, symbol, address, value_usd, apy_base, bonus_supply_apy)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `);
+  const insertReward = db.prepare(`
+    INSERT OR REPLACE INTO position_tokens (position_id, role, symbol, address, value_usd, apy_base)
+    VALUES (?, 'reward', ?, ?, ?, ?)
+  `);
   
   const transaction = db.transaction(() => {
     for (const s of supplies) {
       const symbol = s.currency?.symbol;
       if (!symbol) continue;
       const apyBase = parseFloat(s.apy?.value || 0) * 100;
-      const meritKey = `ethereum-supply-${symbol.toLowerCase()}`;
-      const bonus = meritAPRs[meritKey] || null;
+      const valueUsd = parseFloat(s.balance?.usd || 0);
       
-      const pos = findSupply.get(wallet, symbol);
-      if (pos) {
-        updateToken.run(apyBase, bonus, parseFloat(s.balance?.usd || 0), pos.token_id);
-        updateNet.run(parseFloat(s.balance?.usd || 0), pos.id);
-        enriched++;
+      // Find or create position
+      let pos = db.prepare(`SELECT id FROM positions WHERE wallet = ? AND chain = ? AND protocol_name = 'Aave V3'`).get(wallet, chainName);
+      if (!pos) {
+        // Create position entry for this chain
+        const result = db.prepare(`INSERT INTO positions (wallet, chain, protocol_name, protocol_id, position_type, strategy, net_usd, position_index, scanned_at)
+          VALUES (?, ?, 'Aave V3', 'aave-v3', 'Lending', 'lend', ?, '', datetime('now'))`).run(wallet, chainName, valueUsd);
+        pos = { id: result.lastInsertRowid };
+        console.log(`    Created position ${pos.id} for ${wallet.slice(0,10)} ${chainName}`);
       }
+      insertToken.run(pos.id, 'supply', symbol, '', valueUsd, apyBase, null);
+      enriched++;
     }
     
     for (const b of borrows) {
       const symbol = b.currency?.symbol;
       if (!symbol) continue;
       const apyBorrow = parseFloat(b.apy?.value || 0) * 100;
+      const valueUsd = parseFloat(b.debt?.usd || 0);
       
-      const pos = findBorrow.get(wallet, symbol);
-      if (pos) {
-        updateToken.run(apyBorrow, null, parseFloat(b.debt?.usd || 0), pos.token_id);
-        updateNet.run(-parseFloat(b.debt?.usd || 0), pos.id);
-        enriched++;
-      }
+      let pos = db.prepare(`SELECT id FROM positions WHERE wallet = ? AND chain = ? AND protocol_name = 'Aave V3'`).get(wallet, chainName);
+      if (!pos) continue; // Should have been created by supply
+      insertToken.run(pos.id, 'borrow', symbol, '', valueUsd, apyBorrow, null);
+      enriched++;
     }
   });
   
   transaction();
-  console.log(`  Enriched: ${enriched} positions`);
+  return enriched;
+}
+
+async function scanWallet(wallet, label, db) {
+  console.log(`\n--- ${label} (${wallet.slice(0,12)}) ---`);
+  let totalEnriched = 0;
+  
+  // Scan all chains
+  for (const [chainId, info] of Object.entries(AAVE_POOLS)) {
+    const enriched = await scanWalletChain(wallet, parseInt(chainId), info.chainName, db);
+    totalEnriched += enriched || 0;
+  }
+  
+  if (totalEnriched === 0) console.log('  No positions found');
 }
 
 async function main() {
@@ -136,7 +136,7 @@ async function main() {
   ];
   
   const db = new Database(DB_PATH);
-  console.log('=== Aave v3 Scanner (Enrich Only) ===');
+  console.log('=== Aave v3 Scanner (Multi-chain) ===');
   
   for (const w of wallets) {
     await scanWallet(w.addr, w.label, db);
