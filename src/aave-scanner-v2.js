@@ -1,0 +1,221 @@
+#!/usr/bin/env node
+/**
+ * Aave v3 Position Scanner v2 (Standalone)
+ * 
+ * Source of truth for Aave v3 positions.
+ * Creates positions directly from Aave GraphQL API.
+ */
+
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
+const Database = require('better-sqlite3');
+const DB_PATH = require('path').join(__dirname, '..', 'yield-tracker.db');
+
+const AAVE_GRAPHQL = 'https://api.v3.aave.com/graphql';
+const MERIT_API = 'https://apps.aavechan.com/api/merit/aprs';
+
+// Known market addresses per chain
+const MARKETS = {
+  1: [
+    '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2', // AaveV3Ethereum
+    '0x0AA97c284e98396202b6A04024F5E2c65026F3c0', // EtherFi
+    '0x4e033931ad43597d96D6bcc25c280717730B58B1', // Lido
+    '0xAe05Cd22df81871bc7cC2a04BeCfb516bFe332C8', // Horizon
+  ],
+  8453: ['0xA238Dd80C259a72e81d7e4664a9801593F98d1c5'],
+  42161: ['0x794a61358D6845594F94dc1DB02A252b5b4814aD'],
+  137: ['0x794a61358D6845594F94dc1DB02A252b5b4814aD'],
+};
+
+async function getUserSupplies(userAddress, chainId) {
+  const markets = MARKETS[chainId] || MARKETS[1];
+  const marketInputs = markets.map(addr => `{ address: "${addr}", chainId: ${chainId} }`).join(', ');
+  try {
+    const res = await fetch(AAVE_GRAPHQL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: `{ userSupplies(request: { user: "${userAddress}", markets: [${marketInputs}] }) { currency { symbol address } balance { amount { value } usd } apy { value } isCollateral } }`
+      })
+    });
+    const data = await res.json();
+    return data?.data?.userSupplies || [];
+  } catch { return []; }
+}
+
+async function getUserBorrows(userAddress, chainId) {
+  const markets = MARKETS[chainId] || MARKETS[1];
+  const marketInputs = markets.map(addr => `{ address: "${addr}", chainId: ${chainId} }`).join(', ');
+  try {
+    const res = await fetch(AAVE_GRAPHQL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: `{ userBorrows(request: { user: "${userAddress}", markets: [${marketInputs}] }) { currency { symbol address } debt { amount { value } usd } apy { value } } }`
+      })
+    });
+    const data = await res.json();
+    return data?.data?.userBorrows || [];
+  } catch { return []; }
+}
+
+async function getUserMarketState(userAddress, marketAddress, chainId) {
+  try {
+    const res = await fetch(AAVE_GRAPHQL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: `{ userMarketState(request: { user: "${userAddress}", market: "${marketAddress}", chainId: ${chainId} }) { netWorth healthFactor totalCollateralBase totalDebtBase netAPY { value } } }`
+      })
+    });
+    const data = await res.json();
+    return data?.data?.userMarketState || null;
+  } catch { return null; }
+}
+
+async function getMeritAPRs(userAddress) {
+  try {
+    const res = await fetch(`${MERIT_API}?user=${userAddress}`);
+    const data = await res.json();
+    return data?.currentAPR?.actionsAPR || {};
+  } catch { return {}; }
+}
+
+async function scanWallet(wallet, label) {
+  const positions = [];
+  const chainId = 1;
+  
+  const [supplies, borrows, meritAPRs, state] = await Promise.all([
+    getUserSupplies(wallet, chainId),
+    getUserBorrows(wallet, chainId),
+    getMeritAPRs(wallet),
+    getUserMarketState(wallet, MARKETS[1][0], chainId),
+  ]);
+  
+  // Process supplies
+  for (const s of supplies) {
+    const symbol = s.currency?.symbol || '?';
+    const apyBase = parseFloat(s.apy?.value || 0) * 100;
+    const meritKey = `ethereum-supply-${symbol.toLowerCase()}`;
+    const bonus = meritAPRs[meritKey] || null;
+    
+    positions.push({
+      wallet, label, chainId,
+      protocol_name: 'Aave v3',
+      protocol_id: 'aave-v3',
+      position_type: 'supply',
+      symbol,
+      token_address: s.currency?.address,
+      amount: parseFloat(s.balance?.amount?.value || 0),
+      value_usd: parseFloat(s.balance?.usd || 0),
+      apy_base: apyBase,
+      apy_bonus: bonus,
+      is_collateral: s.isCollateral || false,
+    });
+  }
+  
+  // Process borrows
+  for (const b of borrows) {
+    const symbol = b.currency?.symbol || '?';
+    const apyBorrow = parseFloat(b.apy?.value || 0) * 100;
+    
+    positions.push({
+      wallet, label, chainId,
+      protocol_name: 'Aave v3',
+      protocol_id: 'aave-v3',
+      position_type: 'borrow',
+      symbol,
+      token_address: b.currency?.address,
+      amount: parseFloat(b.debt?.amount?.value || 0),
+      value_usd: parseFloat(b.debt?.usd || 0),
+      apy_borrow: apyBorrow,
+    });
+  }
+  
+  return positions;
+}
+
+function savePositions(db, allPositions) {
+  const upsertPos = db.prepare(`
+    INSERT INTO positions (wallet, chain, protocol_id, protocol_name, position_type, net_usd, position_index, scanned_at)
+    VALUES (?, ?, 'aave-v3', 'Aave v3', ?, ?, ?, datetime('now'))
+    ON CONFLICT(wallet, chain, protocol_id, position_index) DO UPDATE SET
+      net_usd = excluded.net_usd,
+      position_type = excluded.position_type,
+      scanned_at = datetime('now')
+  `);
+  
+  const findPos = db.prepare(`SELECT id FROM positions WHERE wallet = ? AND chain = ? AND protocol_id = 'aave-v3' AND position_index = ?`);
+  
+  const upsertToken = db.prepare(`
+    INSERT INTO position_tokens (position_id, role, symbol, address, amount, value_usd, apy_base, bonus_supply_apy)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+  
+  const clearTokens = db.prepare(`DELETE FROM position_tokens WHERE position_id = ? AND role = ?`);
+  
+  const transaction = db.transaction(() => {
+    for (const pos of allPositions) {
+      const role = pos.position_type === 'supply' ? 'supply' : 'borrow';
+      const posIndex = pos.token_address;
+      const netUsd = role === 'borrow' ? -pos.value_usd : pos.value_usd;
+      
+      upsertPos.run(pos.wallet, pos.chainId, pos.position_type, netUsd || 0, String(posIndex));
+      const posRow = findPos.get(pos.wallet, pos.chainId, String(posIndex));
+      if (!posRow) continue;
+      
+      clearTokens.run(posRow.id, role);
+      
+      upsertToken.run(
+        posRow.id, role, pos.symbol, pos.token_address,
+        pos.amount || 0, pos.value_usd || 0,
+        pos.apy_base || null, pos.apy_bonus || null
+      );
+    }
+  });
+  
+  transaction();
+}
+
+async function main() {
+  const wallets = [
+    { addr: '0x31eae643b679a84b37e3d0b4bd4f5da90fb04a61', label: 'Reservoir-1' },
+    { addr: '0x99a95a9e38e927486fc878f41ff8b118eb632b10', label: 'Reservoir-3' },
+    { addr: '0x289c204b35859bfb924b9c0759a4fe80f610671c', label: 'Reservoir-2' },
+    { addr: '0x3063c5907faa10c01b242181aa689beb23d2bd65', label: 'Euler-Wallet' },
+    { addr: '0x41a9eb398518d2487301c61d2b33e4e966a9f1dd', label: 'Reservoir-4' },
+    { addr: '0x502d222e8e4daef69032f55f0c1a999effd78fb3', label: 'Reservoir-5' },
+  ];
+  
+  const db = new Database(DB_PATH);
+  const allPositions = [];
+  
+  console.log('=== Aave v3 Scanner (Standalone) ===\n');
+  
+  for (const w of wallets) {
+    console.log(`--- ${w.label} (${w.addr.slice(0,12)}) ---`);
+    const positions = await scanWallet(w.addr, w.label);
+    
+    for (const p of positions) {
+      const usd = (p.value_usd / 1e6).toFixed(2);
+      const apy = p.position_type === 'supply' ? (p.apy_base?.toFixed(2) || '?') : (p.apy_borrow?.toFixed(2) || '?');
+      const bonus = p.apy_bonus?.toFixed(2) || '0';
+      const type = p.position_type === 'supply' ? '✅' : '📊';
+      console.log(`  ${type} ${p.symbol}: $${usd}M | ${p.position_type} | APY: ${apy}%${p.apy_bonus ? ' + ' + bonus + '%' : ''}`);
+    }
+    
+    allPositions.push(...positions);
+  }
+  
+  savePositions(db, allPositions);
+  
+  console.log(`\n=== Summary ===`);
+  console.log(`Total: ${allPositions.length} (${allPositions.filter(p => p.position_type === 'supply').length} supply, ${allPositions.filter(p => p.position_type === 'borrow').length} borrow)`);
+  
+  db.close();
+}
+
+if (require.main === module) {
+  main().catch(console.error);
+}
+
+module.exports = { scanWallet, savePositions };

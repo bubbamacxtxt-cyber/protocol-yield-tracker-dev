@@ -21,15 +21,15 @@ jobs:
 
       - run: npm ci
 
-      # Morpho scanner v2 (REST API - 3 calls per wallet)
+      # Morpho scanner v3 (REST API - standalone, creates positions)
       - name: Scan Morpho positions
-        run: node src/morpho-scanner-v2.js
+        run: node src/morpho-scanner-v3.js
         env:
           ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
 
-      # Aave v3 scanner (GraphQL)
+      # Aave v3 scanner (GraphQL - standalone, creates positions)
       - name: Scan Aave v3 positions
-        run: node src/aave-scanner.js
+        run: node src/aave-scanner-v2.js
 
       # Enrich positions with market data and Merkl rewards
       - name: Enrich positions with market/vault info
