@@ -56,15 +56,14 @@ function main() {
         delete p.borrow_json;
         delete p.reward_json;
 
-        // Normalize chain names (DeBank uses lowercase, scanners may use chainId as string like "1.0")
+        // Normalize chain names to lowercase
         const chainMap = { 1: 'eth', 8453: 'base', 42161: 'arb', 137: 'poly', 10: 'opt', 146: 'sonic', 9745: 'plasma', 5000: 'mnt', 130: 'uni', 143: 'monad', 999: 'ink', 2741: 'abstract', 747474: 'wct', 81457: 'blast' };
-        const chainStr = String(p.chain || '').toLowerCase().replace(/\.0$/, '');  // "1.0" -> "1"
+        let chainStr = String(p.chain || '').toLowerCase().replace(/\.0$/, '');  // "1.0" -> "1"
         const chainNum = parseInt(chainStr);
         if (!isNaN(chainNum) && chainMap[chainNum]) {
-            p.chain = chainMap[chainNum];
-        } else if (p.chain) {
-            p.chain = chainStr;
+            chainStr = chainMap[chainNum];
         }
+        p.chain = chainStr;
 
         // Normalize position_type to strategy
         const typeToStrategy = { 'Lending': 'lend', 'supply': 'lend', 'borrow': 'borrow', 'Borrow': 'borrow' };

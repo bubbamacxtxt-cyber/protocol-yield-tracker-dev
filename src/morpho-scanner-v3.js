@@ -247,8 +247,8 @@ function savePositions(db, allPositions) {
       const netUsd = role === 'borrow' ? -pos.value_usd : pos.value_usd;
       
       // Upsert position
-      upsertPos.run(pos.wallet, pos.chainId, pos.position_type, netUsd || 0, String(posIndex));
-      const posRow = findPos.get(pos.wallet, pos.chainId, String(posIndex));
+      upsertPos.run(pos.wallet, pos.chain, pos.position_type, netUsd || 0, String(posIndex));
+      const posRow = findPos.get(pos.wallet, pos.chain, String(posIndex));
       if (!posRow) continue;
       
       // Clear and re-insert tokens (ensures fresh data each scan)
