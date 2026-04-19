@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-19T22:28:32.325Z",
+  "generated_at": "2026-04-19T22:29:00.355Z",
   "summary": {
     "total_positions": 162,
     "total_value": 1003563524.5936956,
@@ -151,8 +151,8 @@
               "value_usd": 332794378.46269,
               "apy_base": 8.29263099694337,
               "apy_base_source": null,
-              "bonus_supply_apy": 3.75,
-              "bonus_supply_source": "aave:eth(3.75%)",
+              "bonus_supply_apy": null,
+              "bonus_supply_source": null,
               "bonus_borrow_apy": null,
               "bonus_borrow_source": null
             }
@@ -192,9 +192,9 @@
           "rewards": [],
           "apy_base": 8.29263099694337,
           "apy_cost": 15.027226089632174,
-          "bonus_supply": 3.75,
+          "bonus_supply": null,
           "bonus_borrow": null,
-          "apy_net": -14.436354801774007,
+          "apy_net": -51.455925266602065,
           "leverage": 9.871885457287481,
           "apy_reward": null,
           "supply_tokens_display": "USDe"
@@ -417,8 +417,8 @@
               "value_usd": 130383667.064292,
               "apy_base": 5.21884284851289,
               "apy_base_source": null,
-              "bonus_supply_apy": 3.59692738152099,
-              "bonus_supply_source": "aave:plasma(3.60%)",
+              "bonus_supply_apy": null,
+              "bonus_supply_source": null,
               "bonus_borrow_apy": null,
               "bonus_borrow_source": null
             }
@@ -443,9 +443,9 @@
           "rewards": [],
           "apy_base": 5.21884284851289,
           "apy_cost": 15.0273798498118,
-          "bonus_supply": 3.59692738152099,
           "bonus_borrow": 0.482702685675316,
-          "apy_net": -47.15342022844894,
+          "bonus_supply": null,
+          "apy_net": -83.16016181347065,
           "leverage": 10.010416604461994,
           "apy_reward": null,
           "supply_tokens_display": "USDe"
@@ -821,8 +821,8 @@
               "value_usd": 9902384.44604867,
               "apy_base": 0.0678523939818098,
               "apy_base_source": null,
-              "bonus_supply_apy": 3.75,
-              "bonus_supply_source": "aave:mnt(3.75%)",
+              "bonus_supply_apy": null,
+              "bonus_supply_source": null,
               "bonus_borrow_apy": null,
               "bonus_borrow_source": null
             }
@@ -847,9 +847,9 @@
           "rewards": [],
           "apy_base": 0.0678523939818098,
           "apy_cost": 15.0273798499773,
-          "bonus_supply": 3.75,
           "bonus_borrow": 1.16167682670788,
-          "apy_net": -96.54714113914184,
+          "bonus_supply": null,
+          "apy_net": -133.8729298801659,
           "leverage": 9.953543664273088,
           "apy_reward": null,
           "supply_tokens_display": "USDe"

@@ -201,8 +201,13 @@ function matchesPosition(campaign, rules, position, allPositions) {
     return false;
   }
 
-  // minOfTokens: USDe gets the bonus (sUSDe excluded by token matching above)
-  // No wallet-level requirement - USDe alone qualifies
+  if (rules.minOfTokens) {
+    // Must have BOTH tokens in wallet
+    const walletSupplies = allPositions
+      .filter(p => p.role === 'supply' && p.wallet === position.wallet)
+      .map(p => p.symbol?.toUpperCase());
+    if (!rules.minOfTokens.every(t => walletSupplies.includes(t))) return false;
+  }
 
   return true;
 }
