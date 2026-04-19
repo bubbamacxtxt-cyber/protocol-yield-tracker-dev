@@ -144,12 +144,43 @@ async function main() {
                 const key = sym.toUpperCase();
                 const eulerPool = eulerApys[key];
                 if (eulerPool) {
-                    p.apy_base = eulerPool.apyBase / 100;
-                    p.bonus_supply = eulerPool.apyReward / 100;
+                    // DeFiLlama returns percentages directly (e.g. 3.28 = 3.28%)
+                    p.apy_base = eulerPool.apyBase;
+                    p.bonus_supply = eulerPool.apyReward;
                 }
             }
         }
 
+        // Add YBS yield to Aave positions with yield-bearing tokens (sUSDe, syrupUSDC, etc)
+        if (p.protocol_name?.includes('Aave') && p.supply?.length > 0) {
+            try {
+                const stablesPath2 = path.join(__dirname, '..', 'data', 'stables.json');
+                if (fs.existsSync(stablesPath2)) {
+                    const stablesData2 = JSON.parse(fs.readFileSync(stablesPath2, 'utf8'));
+                    for (const t of p.supply) {
+                        const ybsToken = (stablesData2.stables || []).find(s => s.name === t.symbol);
+                        if (ybsToken && ybsToken.aprValue && t.apy_base === 0) {
+                            // Add YBS yield to Aave supply APY
+                            t.apy_base = ybsToken.apy_30d || ybsToken.aprValue;
+                            t.apy_base_source = 'ybs:' + (ybsToken.aprValue).toFixed(2) + '%';
+                        }
+                    }
+                    // Recalculate position APY from updated tokens
+                    const supplyTokens = p.supply.filter(t => t.value_usd > 0);
+                    if (supplyTokens.length > 0) {
+                        let baseNum = 0, baseDen = 0;
+                        for (const t of supplyTokens) {
+                            if (t.apy_base != null) {
+                                baseNum += t.apy_base * t.value_usd;
+                                baseDen += t.value_usd;
+                            }
+                        }
+                        if (baseDen > 0) p.apy_base = baseNum / baseDen;
+                    }
+                }
+            } catch(e) {}
+        }
+        
         // Calculate asset_usd and debt_usd from supply/borrow tokens
         // If supply tokens have no value but position has asset_usd, distribute it
         const supplyValue = (p.supply || []).reduce((sum, t) => sum + (t.value_usd || 0), 0);
