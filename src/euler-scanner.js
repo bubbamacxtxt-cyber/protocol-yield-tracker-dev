@@ -134,21 +134,26 @@ async function scanWallet(db, wallet, label) {
 
 async function main() {
   const db = new Database(DB_PATH);
+  const fs = require('fs');
   
-  const reservoir = [
-    { addr: '0x31eae643b679a84b37e3d0b4bd4f5da90fb04a61', label: 'Reservoir-1' },
-    { addr: '0x99a95a9e38e927486fc878f41ff8b118eb632b10', label: 'Reservoir-3' },
-    { addr: '0x3063c5907faa10c01b242181aa689beb23d2bd65', label: 'Euler-Wallet' },
-    { addr: '0x289c204b35859bfb924b9c0759a4fe80f610671c', label: 'Reservoir-2' },
-    { addr: '0x41a9eb398518d2487301c61d2b33e4e966a9f1dd', label: 'Reservoir-4' },
-  ];
+  // Load all whale wallets
+  const whales = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'whales.json'), 'utf8'));
+  const walletMap = [];
+  for (const [name, config] of Object.entries(whales)) {
+    const wallets = Array.isArray(config) ? config : (config.vaults ? Object.values(config.vaults).flat() : []);
+    for (const w of wallets) {
+      walletMap.push({ addr: w.toLowerCase(), label: name });
+    }
+  }
   
-  console.log('=== Euler v2 Scanner (Reservoir Only) ===');
+  console.log('=== Euler v2 Scanner ===');
+  console.log(`Scanning ${walletMap.length} wallets`);
   
   let totalFound = 0;
-  for (const w of reservoir) {
+  for (const w of walletMap) {
     const found = await scanWallet(db, w.addr, w.label);
     totalFound += found;
+    await new Promise(r => setTimeout(r, 100));
   }
   
   console.log(`\n=== Done: ${totalFound} vault positions ===`);

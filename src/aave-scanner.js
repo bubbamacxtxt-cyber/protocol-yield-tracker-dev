@@ -143,25 +143,26 @@ async function scanWallet(db, wallet, label) {
 
 async function main() {
   const db = new Database(DB_PATH);
+  const fs = require('fs');
   
-  // Reservoir wallets only
-  const reservoir = [
-    '0x31eae643b679a84b37e3d0b4bd4f5da90fb04a61',
-    '0x99a95a9e38e927486fc878f41ff8b118eb632b10',
-    '0x3063c5907faa10c01b242181aa689beb23d2bd65',
-    '0x289c204b35859bfb924b9c0759a4fe80f610671c',
-    '0x41a9eb398518d2487301c61d2b33e4e966a9f1dd',
-  ];
+  // Load all whale wallets from whales.json
+  const whales = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'whales.json'), 'utf8'));
+  const walletMap = [];
+  for (const [name, config] of Object.entries(whales)) {
+    const wallets = Array.isArray(config) ? config : (config.vaults ? Object.values(config.vaults).flat() : []);
+    for (const w of wallets) {
+      walletMap.push({ addr: w.toLowerCase(), label: name });
+    }
+  }
   
-  const labels = ['Reservoir-1', 'Reservoir-3', 'Euler-Wallet', 'Reservoir-2', 'Reservoir-4'];
-  
-  console.log('=== Aave v3 Scanner (Reservoir Only) ===');
-  console.log(`Scanning ${reservoir.length} wallets on ${Object.keys(AAVE_POOLS).length} chains`);
+  console.log('=== Aave v3 Scanner ===');
+  console.log(`Scanning ${walletMap.length} wallets on ${Object.keys(AAVE_POOLS).length} chains`);
   
   let totalFound = 0;
-  for (let i = 0; i < reservoir.length; i++) {
-    const found = await scanWallet(db, reservoir[i], labels[i]);
+  for (const w of walletMap) {
+    const found = await scanWallet(db, w.addr, w.label);
     totalFound += found;
+    await new Promise(r => setTimeout(r, 100)); // Rate limit
   }
   
   console.log(`\n=== Done: ${totalFound} positions found ===`);
