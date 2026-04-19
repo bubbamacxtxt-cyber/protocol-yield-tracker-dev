@@ -181,12 +181,10 @@ function matchesPosition(campaign, rules, position, allPositions) {
   // Token symbol match
   const posSymbol = position.symbol?.toUpperCase();
   
-  // For 'min of X and Y' campaigns: bonus only applies to the target token (usually USDe)
+  // For 'min of X and Y' campaigns: bonus applies to USDe only (not sUSDe)
   if (rules.minOfTokens && rules.minOfTokens.length === 2) {
-    // minOfTokens means BOTH must be supplied as a requirement
-    // But only USDe gets the bonus, not sUSDe
-    if (posSymbol === 'SUSDE') return false; // sUSDe is a requirement, not rewarded
-    if (posSymbol !== 'USDE') return false;
+    if (posSymbol === 'SUSDE') return false; // sUSDe excluded
+    if (posSymbol !== 'USDE') return false; // only USDe
   } else {
     if (!rules.eligibleTokens.some(t => t.symbol?.toUpperCase() === posSymbol)) return false;
   }
@@ -203,8 +201,8 @@ function matchesPosition(campaign, rules, position, allPositions) {
     return false;
   }
 
-  // minOfTokens: bonus only applies to USDe (not sUSDe)
-  // No requirement to have both tokens - USDe alone qualifies
+  // minOfTokens: USDe gets the bonus (sUSDe excluded by token matching above)
+  // No wallet-level requirement - USDe alone qualifies
 
   return true;
 }
