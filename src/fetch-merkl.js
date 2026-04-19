@@ -181,12 +181,22 @@ function matchesPosition(campaign, rules, position, allPositions) {
   // Token symbol match
   const posSymbol = position.symbol?.toUpperCase();
   
-  // For 'min of X and Y' campaigns: bonus only applies to the target token (usually USDe)
+  // For 'min of X and Y' campaigns: bonus applies to eligible tokens (USDe, sUSDe)
   if (rules.minOfTokens && rules.minOfTokens.length === 2) {
-    // minOfTokens means BOTH must be supplied as a requirement
-    // But only USDe gets the bonus, not sUSDe
-    if (posSymbol === 'SUSDE') return false; // sUSDe is a requirement, not rewarded
-    if (posSymbol !== 'USDE') return false;
+    // minOfTokens determines which token gets bonus when BOTH are present
+    // If only one is present, it gets the bonus
+    const walletSupplies = allPositions
+      .filter(p => p.role === 'supply' && p.wallet === position.wallet)
+      .map(p => p.symbol?.toUpperCase());
+    const hasBoth = rules.minOfTokens.every(t => walletSupplies.includes(t));
+    if (hasBoth) {
+      // Only USDe gets bonus when both present (it's the 'min of' target)
+      if (posSymbol === 'SUSDE') return false;
+      if (posSymbol !== 'USDE') return false;
+    } else {
+      // Only one present - must be one of the minOfTokens
+      if (!rules.minOfTokens.includes(posSymbol)) return false;
+    }
   } else {
     if (!rules.eligibleTokens.some(t => t.symbol?.toUpperCase() === posSymbol)) return false;
   }
@@ -204,10 +214,17 @@ function matchesPosition(campaign, rules, position, allPositions) {
   }
 
   if (rules.minOfTokens) {
+    // minOfTokens: if wallet has BOTH tokens, only reward the one with lower amount
+    // If wallet has only ONE of them, reward it
     const walletSupplies = allPositions
       .filter(p => p.role === 'supply' && p.wallet === position.wallet)
       .map(p => p.symbol?.toUpperCase());
-    if (!rules.minOfTokens.every(t => walletSupplies.includes(t))) return false;
+    const hasAnyMinToken = rules.minOfTokens.some(t => walletSupplies.includes(t));
+    const hasAllMinTokens = rules.minOfTokens.every(t => walletSupplies.includes(t));
+    // If wallet has only one of the required tokens, reward it only if it's the eligible one
+    if (!hasAnyMinToken) return false;
+    // If wallet doesn't have ALL minOfTokens, only allow if the current position is one of them
+    if (!hasAllMinTokens && !rules.minOfTokens.includes(posSymbol)) return false;
   }
 
   return true;

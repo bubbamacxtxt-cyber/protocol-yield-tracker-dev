@@ -32,13 +32,13 @@ async function queryAave(user, chainId, pools) {
   const marketInputs = pools.map(addr => `{ address: "${addr}", chainId: ${chainId} }`).join(', ');
   const query = `{
     userSupplies(request: { user: "${user}", markets: [${marketInputs}] }) {
-      currency { symbol }
+      currency { symbol address }
       balance { usd }
       apy { value }
       isCollateral
     }
     userBorrows(request: { user: "${user}", markets: [${marketInputs}] }) {
-      currency { symbol }
+      currency { symbol address }
       debt { usd }
       apy { value }
     }
