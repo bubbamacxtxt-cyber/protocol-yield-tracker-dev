@@ -1,56 +1,60 @@
 # Improvement Priorities
 
-_Created: 2026-04-20_
+_Created: 2026-04-20 | Updated: 2026-04-20_
 
 ## 🔴 P0 — Critical / Broken
 
-| # | Issue | Impact | Effort |
-|---|-------|--------|--------|
-| 1 | **Scanner v3 not in workflow** — `morpho-scanner-v3.js` exists but workflow uses v2 | Missing Morpho positions, wrong APYs | 5 min (update workflow) |
-| 2 | **Aave scanner v2 unused** — `aave-scanner-v2.js` has Merit API integration | Missing Merit bonus APYs | 5 min (update workflow) |
-| 3 | **Euler scanner timeout** — some chains time out, no retry | Missing Euler positions on slow chains | 30 min (add retry logic) |
+| # | Issue | Status | Notes |
+|---|-------|--------|-------|
+| 1 | **Scanner v3 not in workflow** | ✅ DONE | Added `morpho-scanner.js` (was v3) to workflow |
+| 2 | **Aave scanner v2 unused** | ✅ DONE | Renamed v2 → `aave-scanner.js`, now in workflow |
+| 3 | **Euler scanner timeout** | ✅ DONE | Added 30s timeout + 3 retries with backoff |
 
 ## 🟡 P1 — Important / Data Quality
 
-| # | Issue | Impact | Effort |
-|---|-------|--------|--------|
-| 4 | **Morpho REST API for borrow positions** — current GraphQL `userByAddress` returns empty for most wallets | Missing borrow positions | 1 hr (switch to REST) |
-| 5 | **sUSDe native yield missing** — Aave reports 0%, need to add Ethena staking APY from YBS list | Positions show 0% supply APY | Already fixed in export.js ✓ |
-| 6 | **No DeBank balance fallback** — if DeBank fails, entire scan fails | Full pipeline failure | 2 hr (add fallback to Alchemy) |
-| 7 | **Morpho collateral labels wrong** — `fix-morpho-tokens.js` runs after enrichment | Confusing token names in UI | Already fixed ✓ |
+| # | Issue | Status | Notes |
+|---|-------|--------|-------|
+| 4 | **Morpho REST API for borrow positions** | ✅ DONE | `morpho-scanner.js` uses REST API, finds borrow positions |
+| 5 | **sUSDe native yield missing** | ✅ DONE | YBS enrichment in export.js adds Ethena staking APY |
+| 6 | **No DeBank balance fallback** | 🟡 PARTIAL | Added retry with 30s timeout; full Alchemy fallback not implemented |
+| 7 | **Morpho collateral labels wrong** | ✅ DONE | `fix-morpho-tokens.js` runs in workflow |
 
 ## 🟢 P2 — Nice to Have / Robustness
 
-| # | Issue | Impact | Effort |
-|---|-------|--------|--------|
-| 8 | **Consolidate scanners** — multiple versions of Aave/Morpho scanners | Maintenance confusion | 4 hr (pick best, delete others) |
-| 9 | **Add retry with backoff** — Merkl, DeFiLlama, Aave APIs fail silently | Sporadic missing data | 2 hr |
-| 10 | **Validation improvements** — current 5% threshold is too loose for small positions | Bad data passes validation | 1 hr |
-| 11 | **History tracking** — `position_history` table exists but not populated | No PnL tracking | 3 hr |
-| 12 | **Vault auto-discovery** — `vault-discoverer.js` exists but not integrated | New vaults missed until manual add | 4 hr |
+| # | Issue | Status | Notes |
+|---|-------|--------|-------|
+| 8 | **Consolidate scanners** | ✅ DONE | Old versions moved to `src/deprecated/`, renamed to canonical names |
+| 9 | **Add retry with backoff** | ✅ DONE | `fetch-helper.js` created, used by Merkl + enrich-markets |
+| 10 | **Validation improvements** | ✅ DONE | Tiered thresholds: 3%/5%/8%/15% based on position size |
+| 11 | **History tracking** | ✅ EXISTS | `data/total-history.json` already tracks daily totals |
+| 12 | **Vault auto-discovery** | ❌ TODO | `vault-discoverer.js` exists but not integrated |
 
 ## 🔵 P3 — Architecture / Future
 
-| # | Issue | Impact | Effort |
-|---|-------|--------|--------|
-| 13 | **Layer 2 v2 architecture** — scanner-architecture-v2.md proposes Alchemy-based discovery | Replace DeBank dependency | 8 hr |
-| 14 | **Real-time alerts** — Telegram alerts on large position changes | Early warning system | 4 hr |
-| 15 | **Multi-tenant support** — add/remove whales without code changes | Operational flexibility | 6 hr |
+| # | Issue | Status | Notes |
+|---|-------|--------|-------|
+| 13 | **Layer 2 v2 architecture** | ❌ TODO | Alchemy-based discovery (see `docs/scanner-architecture-v2.md`) |
+| 14 | **Real-time alerts** | ❌ TODO | Telegram alerts on large position changes |
+| 15 | **Multi-tenant support** | ❌ TODO | Add/remove whales without code changes |
 
 ---
 
-## Recommended Next Steps (this week)
+## Audit Findings (2026-04-20)
 
-1. **Today:** Update workflow to use scanner v3 + Aave v2 (P0 #1, #2) — 10 min
-2. **Today:** Add Euler retry logic (P0 #3) — 30 min
-3. **This week:** Switch Morpho to REST API for borrow positions (P1 #4) — 1 hr
-4. **This week:** Consolidate duplicate scanners (P2 #8) — 4 hr
+### Bugs Fixed During Audit
+1. **`asset_usd` not recalculated after merge** — Positions from Aave scanner + DeBank merged but `asset_usd` kept DeBank value (partial). Now recalculated from merged supply tokens.
+2. **`apy_cost` not recalculated after merge** — Borrow tokens from different sources didn't have weighted APY recalculated. Added post-merge recalc.
+3. **Audit script missing ×100** — Formula calculated decimal (-0.42) but didn't multiply by 100 for percentage (-42%).
+
+### Math Verified
+- Leverage formula: `net_apy = (supply×supplyApy - borrow×borrowApy) / equity × 100`
+- Negative net APY is correct when borrow cost > supply yield (amplified by leverage)
+- Yuzu: 11x leverage, 9.86% supply, 15.03% borrow → -42% net ✓
 
 ---
 
-## Current Tech Debt
+## Current Tech Debt (Updated)
 
-- 4 Morpho scanners (v1, v2, v3, rest-api) — only v3 should remain
-- 2 Aave scanners (v1, v2) — v2 should be default
-- `check-*.js` debug scripts in root — should move to `debug/` or delete
 - `yield-tracker.db` committed to git — should be in `.gitignore` (data.json is the export)
+- `audit.js` in root — should move to `debug/`
+- InfiniFi + Superform drift — need manual review (17%, 15% off from DeBank)
