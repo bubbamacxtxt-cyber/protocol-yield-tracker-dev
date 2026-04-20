@@ -28,12 +28,35 @@ function loadWallets() {
     return JSON.parse(fs.readFileSync(file, 'utf8'));
 }
 
-async function api(endpoint) {
-    const res = await fetch(`${DEBANK_API}${endpoint}`, {
-        headers: { 'Accept': 'application/json', 'AccessKey': DEBANK_KEY }
-    });
-    if (!res.ok) throw new Error(`DeBank ${res.status}: ${await res.text()}`);
-    return res.json();
+let DEBANK_AVAILABLE = true;
+
+async function api(endpoint, retries = 2) {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 30000);
+            const res = await fetch(`${DEBANK_API}${endpoint}`, {
+                headers: { 'Accept': 'application/json', 'AccessKey': DEBANK_KEY },
+                signal: controller.signal
+            });
+            clearTimeout(timeout);
+            if (res.status === 429 || res.status >= 500) {
+                const retryAfter = res.headers.get('retry-after') || 5;
+                console.warn(`DeBank ${res.status}, retrying in ${retryAfter}s...`);
+                await new Promise(r => setTimeout(r, retryAfter * 1000 * attempt));
+                continue;
+            }
+            if (!res.ok) throw new Error(`DeBank ${res.status}: ${await res.text()}`);
+            return res.json();
+        } catch (err) {
+            if (attempt === retries) {
+                if (err.name === 'AbortError') console.error('DeBank request timed out');
+                else console.error(`DeBank error: ${err.message}`);
+                DEBANK_AVAILABLE = false;
+                return null;
+            }
+        }
+    }
 }
 
 // --- Database ---
@@ -208,8 +231,18 @@ async function scanAll() {
     console.log('=== Protocol Yield Tracker v3 ===\n');
     cgCalls = 0;
 
-    const unitsBefore = await api('/v1/account/units');
-    console.log(`Units: ${unitsBefore.balance.toLocaleString()}\n`);
+    // Verify DeBank is available
+    try {
+        const unitsBefore = await api('/v1/account/units');
+        if (unitsBefore) {
+            console.log(`Units: ${unitsBefore.balance?.toLocaleString()}\n`);
+        } else {
+            console.error('DeBank API unavailable - skipping DeBank scan');
+            console.error('Aave/Morpho/Euler scanners will still run separately');
+        }
+    } catch (err) {
+        console.error('DeBank connectivity check failed:', err.message);
+    }
 
     const db = initDB(path.join(__dirname, '..', 'yield-tracker.db'));
 
