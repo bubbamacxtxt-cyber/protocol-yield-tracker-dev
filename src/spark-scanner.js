@@ -4,22 +4,62 @@
  *
  * Source of truth for SparkLend positions.
  * Uses reusable Aave-fork RPC helpers for SparkLend.
- * Also scans Spark Savings vaults (spUSDC, spUSDT, etc.)
+ * Also scans Spark Savings balances.
  *
  * Notes:
- * - Ethereum SparkLend + Spark Savings only, for now.
+ * - SparkLend currently scanned on Ethereum only in this file.
+ * - Spark Savings registry is based on current Spark docs.
  * - Designed to tolerate constrained RPCs with raw eth_call fallback.
  */
 
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const path = require('path');
 const Database = require('better-sqlite3');
+const { Contract } = require('ethers');
 const DB_PATH = path.join(__dirname, '..', 'yield-tracker.db');
 const { getProvider, scanAaveForkWallet, ERC20_ABI } = require('./aave-fork-rpc');
 
 const POOL_ADDRESSES_PROVIDER = '0x02C3eA4e34C0cBd694D2adFa2c690EECbC1793eE';
 
-const SPARK_SAVINGS = {
+const SPARK_SAVINGS_BY_CHAIN = {
+  eth: {
+    chainId: 1,
+    tokens: {
+      sUSDS: { address: '0xa3931d71877c0e7a3148cb7eb4463524fec27fbd', underlying: 'USDS', decimals: 18 },
+      sUSDC: { address: '0xBc65ad17c5C0a2A4D159fa5a503f4992c7B545FE', underlying: 'USDC', decimals: 6 },
+    },
+  },
+  base: {
+    chainId: 8453,
+    tokens: {
+      sUSDS: { address: '0x5875eEE11Cf8398102FdAd704C9E96607675467a', underlying: 'USDS', decimals: 18 },
+      sUSDC: { address: '0x3128a0F7f0ea68E7B7c9B00AFa7E41045828e858', underlying: 'USDC', decimals: 6 },
+    },
+  },
+  arb: {
+    chainId: 42161,
+    tokens: {
+      sUSDS: { address: '0xdDb46999F8891663a8F2828d25298f70416d7610', underlying: 'USDS', decimals: 18 },
+      sUSDC: { address: '0x940098b108fB7D0a7E374f6eDED7760787464609', underlying: 'USDC', decimals: 6 },
+    },
+  },
+  op: {
+    chainId: 10,
+    tokens: {
+      sUSDS: { address: '0xb5B2dc7fd34C249F4be7fB1fCea07950784229e0', underlying: 'USDS', decimals: 18 },
+      sUSDC: { address: '0xCF9326e24EBfFBEF22ce1050007A43A3c0B6DB55', underlying: 'USDC', decimals: 6 },
+    },
+  },
+  unichain: {
+    chainId: 130,
+    tokens: {
+      sUSDS: { address: '0xA06b10Db9F390990364A3984C04FaDf1c13691b5', underlying: 'USDS', decimals: 18 },
+      sUSDC: { address: '0x14d9143BEcC348920b68D123687045db49a016C6', underlying: 'USDC', decimals: 6 },
+    },
+  },
+};
+
+const LEGACY_SPARK_SAVINGS_ETH = {
   spUSDC:  { address: '0x28B3a8fb53B741A8Fd78c0fb9A6B2393d896a43d', underlying: 'USDC',  decimals: 6 },
   spUSDT:  { address: '0xe2e7a17dFf93280dec073C995595155283e3C372', underlying: 'USDT',  decimals: 6 },
   spETH:   { address: '0xfE6eb3b609a7C8352A241f7F3A21CEA4e9209B8f', underlying: 'WETH',  decimals: 18 },
@@ -53,53 +93,61 @@ async function getSparkLendPositions(wallet, label, provider) {
   }
 }
 
+async function readSavingsBalance(wallet, label, provider, chain, chainId, symbol, config, protocolName = 'Spark Savings', protocolId = 'spark-savings') {
+  try {
+    const token = new Contract(config.address, ERC20_ABI, provider);
+    const balance = await token.balanceOf(wallet);
+    if (balance <= 0n) return null;
+
+    let underlyingAmount = balance;
+    try {
+      const vault = new Contract(config.address, ERC4626_ABI, provider);
+      underlyingAmount = await vault.convertToAssets(balance);
+    } catch {
+      try {
+        const vault = new Contract(config.address, ERC4626_ABI, provider);
+        const totalAssets = await vault.totalAssets();
+        const totalSupply = await vault.totalSupply();
+        if (totalSupply > 0n) underlyingAmount = (balance * totalAssets) / totalSupply;
+      } catch {
+        // Keep raw balance when no ERC4626 path works
+      }
+    }
+
+    return {
+      wallet,
+      label,
+      chain,
+      chainId,
+      protocol_name: protocolName,
+      protocol_id: protocolId,
+      position_type: 'supply',
+      strategy: 'Savings',
+      symbol,
+      token_address: config.address,
+      amount: Number(underlyingAmount) / (10 ** config.decimals),
+      value_usd: 0,
+      apy_base: null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 async function getSparkSavingsPositions(wallet, label, provider) {
   const positions = [];
 
-  for (const [name, config] of Object.entries(SPARK_SAVINGS)) {
-    try {
-      const token = new (require('ethers').Contract)(config.address, ERC20_ABI, provider);
-      const balance = await token.balanceOf(wallet);
-
-      if (balance > 0n) {
-        let underlyingAmount = balance;
-
-        try {
-          const vault = new (require('ethers').Contract)(config.address, ERC4626_ABI, provider);
-          underlyingAmount = await vault.convertToAssets(balance);
-        } catch {
-          try {
-            const vault = new (require('ethers').Contract)(config.address, ERC4626_ABI, provider);
-            const totalAssets = await vault.totalAssets();
-            const totalSupply = await vault.totalSupply();
-            if (totalSupply > 0n) {
-              underlyingAmount = (balance * totalAssets) / totalSupply;
-            }
-          } catch {
-            // Keep raw balance
-          }
-        }
-
-        const formattedAmount = Number(underlyingAmount) / (10 ** config.decimals);
-
-        positions.push({
-          wallet, label,
-          chain: 'eth',
-          chainId: 1,
-          protocol_name: 'Spark Savings',
-          protocol_id: 'spark-savings',
-          position_type: 'supply',
-          strategy: 'Savings',
-          symbol: name,
-          token_address: config.address,
-          amount: formattedAmount,
-          value_usd: 0,
-          apy_base: null,
-        });
-      }
-    } catch {
-      // Skip failed tokens
+  for (const [chain, meta] of Object.entries(SPARK_SAVINGS_BY_CHAIN)) {
+    if (chain !== 'eth') continue;
+    for (const [symbol, config] of Object.entries(meta.tokens)) {
+      const pos = await readSavingsBalance(wallet, label, provider, chain, meta.chainId, symbol, config);
+      if (pos) positions.push(pos);
     }
+  }
+
+  for (const [symbol, config] of Object.entries(LEGACY_SPARK_SAVINGS_ETH)) {
+    const pos = await readSavingsBalance(wallet, label, provider, 'eth', 1, symbol, config, 'Spark Savings Legacy', 'spark-savings-legacy');
+    if (pos) positions.push(pos);
   }
 
   return positions;
@@ -149,10 +197,11 @@ function savePositions(db, allPositions) {
 
 async function enrichSavingsAPY(positions) {
   for (const pos of positions) {
-    if (pos.protocol_id !== 'spark-savings') continue;
+    if (pos.protocol_id !== 'spark-savings' && pos.protocol_id !== 'spark-savings-legacy') continue;
 
     try {
-      const res = await fetch(`https://spark.data.blockanalitica.com/v1/tokens/${pos.token_address}/?chainid=1`);
+      const chainid = pos.chainId || 1;
+      const res = await fetch(`https://spark.data.blockanalitica.com/v1/tokens/${pos.token_address}/?chainid=${chainid}`);
       const payload = await res.json();
       const data = payload.data || payload;
 
@@ -195,7 +244,7 @@ async function main() {
 
     const savingsPositions = await getSparkSavingsPositions(w.addr, w.label, provider);
     for (const p of savingsPositions) {
-      console.log(`  💰 Spark Savings ${p.symbol}: ${p.amount.toLocaleString()} | pending USD`);
+      console.log(`  💰 ${p.protocol_name} ${p.symbol}: ${p.amount.toLocaleString()} | pending USD`);
     }
 
     console.log(`  ⏱ ${(Date.now() - started).toLocaleString()} ms`);
@@ -210,6 +259,7 @@ async function main() {
   console.log(`Total positions: ${allPositions.length}`);
   console.log(`  SparkLend: ${allPositions.filter(p => p.protocol_id === 'spark-lend').length}`);
   console.log(`  Spark Savings: ${allPositions.filter(p => p.protocol_id === 'spark-savings').length}`);
+  console.log(`  Spark Savings Legacy: ${allPositions.filter(p => p.protocol_id === 'spark-savings-legacy').length}`);
 
   db.close();
 }
@@ -218,4 +268,4 @@ if (require.main === module) {
   main().catch(console.error);
 }
 
-module.exports = { getSparkLendPositions, getSparkSavingsPositions, savePositions, enrichSavingsAPY };
+module.exports = { getSparkLendPositions, getSparkSavingsPositions, savePositions, enrichSavingsAPY, SPARK_SAVINGS_BY_CHAIN };
