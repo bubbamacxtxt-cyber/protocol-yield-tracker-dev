@@ -257,35 +257,91 @@ async function makePosition(wallet, label, meta, tokenType, tokenAddress, amount
   };
 }
 
+async function getDirectBalance(token, wallet, chain) {
+  const cfg = PENDLE_CHAINS[chain];
+  if (!cfg?.alchemy || !ALCHEMY_KEY) return null;
+  const res = await fetchJSON(`${cfg.alchemy}${ALCHEMY_KEY}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      jsonrpc: '2.0', id: 1,
+      method: 'eth_call',
+      params: [{ to: token, data: '0x70a08231000000000000000000000000' + wallet.slice(2) }, 'latest']
+    }),
+  }, 1);
+  if (!res?.result || res.result === '0x') return null;
+  return res.result;
+}
+
 async function scanWallet(db, wallet, label, registry) {
   console.log(`\n--- ${label} (${wallet.slice(0, 12)}) ---`);
   const found = [];
+  const foundAddrs = new Set(); // Track addresses we've already processed
 
   for (const [chain, maps] of Object.entries(registry)) {
     if (!maps) continue;
+    
+    // Method 1: Alchemy token balances (catches most tokens)
     const balances = await getBalances(wallet, chain);
-    if (!balances.length) continue;
+    if (balances.length) {
+      for (const bal of balances) {
+        const amountHex = bal.tokenBalance;
+        if (!amountHex || amountHex === '0x0' || amountHex === '0x00') continue;
+        const addr = String(bal.contractAddress || '').toLowerCase();
+        if (foundAddrs.has(addr)) continue;
 
-    for (const bal of balances) {
-      const amountHex = bal.tokenBalance;
+        if (maps.pt[addr]) {
+          const pos = await makePosition(wallet, label, maps.pt[addr], 'pt', addr, amountHex);
+          if (!pos) continue;
+          found.push(pos);
+          foundAddrs.add(addr);
+          console.log(`  ${chain} PT ${pos.symbol} $${pos.value_usd.toFixed(2)}`);
+        } else if (maps.yt[addr]) {
+          const pos = await makePosition(wallet, label, maps.yt[addr], 'yt', addr, amountHex);
+          if (!pos) continue;
+          found.push(pos);
+          foundAddrs.add(addr);
+          console.log(`  ${chain} YT ${pos.symbol} $${pos.value_usd.toFixed(2)}`);
+        } else if (maps.lp[addr]) {
+          const pos = await makePosition(wallet, label, maps.lp[addr], 'lp', addr, amountHex);
+          if (!pos) continue;
+          found.push(pos);
+          foundAddrs.add(addr);
+          console.log(`  ${chain} LP ${pos.symbol} $${pos.value_usd.toFixed(2)}`);
+        }
+      }
+    }
+    
+    // Method 2: Direct balance checks for known Pendle tokens Alchemy might miss
+    const knownAddrs = [
+      ...Object.keys(maps.pt),
+      ...Object.keys(maps.yt),
+      ...Object.keys(maps.lp),
+    ];
+    
+    for (const addr of knownAddrs) {
+      if (foundAddrs.has(addr)) continue; // Already found via Alchemy
+      const amountHex = await getDirectBalance(addr, wallet, chain);
       if (!amountHex || amountHex === '0x0' || amountHex === '0x00') continue;
-      const addr = String(bal.contractAddress || '').toLowerCase();
-
+      
       if (maps.pt[addr]) {
         const pos = await makePosition(wallet, label, maps.pt[addr], 'pt', addr, amountHex);
         if (!pos) continue;
         found.push(pos);
-        console.log(`  ${chain} PT ${pos.symbol} $${pos.value_usd.toFixed(2)}`);
+        foundAddrs.add(addr);
+        console.log(`  ${chain} PT ${pos.symbol} $${pos.value_usd.toFixed(2)} (direct)`);
       } else if (maps.yt[addr]) {
         const pos = await makePosition(wallet, label, maps.yt[addr], 'yt', addr, amountHex);
         if (!pos) continue;
         found.push(pos);
-        console.log(`  ${chain} YT ${pos.symbol} $${pos.value_usd.toFixed(2)}`);
+        foundAddrs.add(addr);
+        console.log(`  ${chain} YT ${pos.symbol} $${pos.value_usd.toFixed(2)} (direct)`);
       } else if (maps.lp[addr]) {
         const pos = await makePosition(wallet, label, maps.lp[addr], 'lp', addr, amountHex);
         if (!pos) continue;
         found.push(pos);
-        console.log(`  ${chain} LP ${pos.symbol} $${pos.value_usd.toFixed(2)}`);
+        foundAddrs.add(addr);
+        console.log(`  ${chain} LP ${pos.symbol} $${pos.value_usd.toFixed(2)} (direct)`);
       }
     }
   }
