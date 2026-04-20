@@ -33,15 +33,42 @@ const ORACLE_ABI = [
   'function getAssetPrice(address asset) view returns (uint256)',
 ];
 
+const contextCache = new Map();
+
+function getRpcUrl(rpcUrl) {
+  return rpcUrl || process.env.ALCHEMY_RPC_URL || process.env.ETH_RPC_URL || 'https://eth.drpc.org';
+}
+
 function getProvider(rpcUrl) {
-  return new JsonRpcProvider(rpcUrl || process.env.ALCHEMY_RPC_URL || process.env.ETH_RPC_URL || 'https://eth.drpc.org');
+  return new JsonRpcProvider(getRpcUrl(rpcUrl));
+}
+
+function isLimitedBatchRpc(provider) {
+  const url = String(provider?._getConnection?.().url || provider?.connection?.url || '');
+  return /drpc\.org/i.test(url);
+}
+
+async function mapWithConcurrency(items, limit, fn) {
+  const out = new Array(items.length);
+  let index = 0;
+  async function worker() {
+    while (index < items.length) {
+      const i = index++;
+      out[i] = await fn(items[i], i);
+    }
+  }
+  const workers = Array.from({ length: Math.min(limit, items.length) }, () => worker());
+  await Promise.all(workers);
+  return out;
 }
 
 async function resolveAaveForkContracts(providerAddress, provider) {
   const addressesProvider = new Contract(providerAddress, ADDRESSES_PROVIDER_ABI, provider);
-  const poolAddress = await addressesProvider.getPool();
-  const dataProviderAddress = await addressesProvider.getPoolDataProvider();
-  const oracleAddress = await addressesProvider.getPriceOracle();
+  const [poolAddress, dataProviderAddress, oracleAddress] = await Promise.all([
+    addressesProvider.getPool(),
+    addressesProvider.getPoolDataProvider(),
+    addressesProvider.getPriceOracle(),
+  ]);
 
   return {
     addressesProvider,
@@ -60,23 +87,23 @@ async function getReserves(dataProvider, pool, provider) {
     return tokens.map(t => ({ symbol: t.symbol, address: t.tokenAddress }));
   } catch {
     const reserveList = await pool.getReservesList();
-    const reserves = [];
-    for (const address of reserveList) {
+    const concurrency = isLimitedBatchRpc(provider) ? 2 : 8;
+    const reserves = await mapWithConcurrency(reserveList, concurrency, async (address) => {
       try {
         const token = new Contract(address, ERC20_ABI, provider);
         const [symbol, decimals] = await Promise.all([token.symbol(), token.decimals()]);
-        reserves.push({ address, symbol, decimals: Number(decimals) });
+        return { address, symbol, decimals: Number(decimals) };
       } catch {
-        reserves.push({ address, symbol: '?', decimals: null });
+        return { address, symbol: '?', decimals: null };
       }
-    }
+    });
     return reserves;
   }
 }
 
 async function buildReserveMetadata(reserves, dataProvider, oracle, provider) {
-  const meta = [];
-  for (const reserve of reserves) {
+  const concurrency = isLimitedBatchRpc(provider) ? 2 : 8;
+  return await mapWithConcurrency(reserves, concurrency, async (reserve) => {
     try {
       const underlying = new Contract(reserve.address, ERC20_ABI, provider);
       const [underlyingDecimals, reserveData, rawPrice] = await Promise.all([
@@ -85,7 +112,7 @@ async function buildReserveMetadata(reserves, dataProvider, oracle, provider) {
         oracle.getAssetPrice(reserve.address).catch(() => 0n),
       ]);
 
-      meta.push({
+      return {
         address: reserve.address,
         symbol: reserve.symbol,
         decimals: Number(underlyingDecimals),
@@ -94,9 +121,9 @@ async function buildReserveMetadata(reserves, dataProvider, oracle, provider) {
         variableDebtTokenAddress: reserveData[9],
         liquidityRate: reserveData[5],
         oraclePrice: rawPrice,
-      });
+      };
     } catch {
-      meta.push({
+      return {
         address: reserve.address,
         symbol: reserve.symbol,
         decimals: reserve.decimals ?? 18,
@@ -105,29 +132,37 @@ async function buildReserveMetadata(reserves, dataProvider, oracle, provider) {
         variableDebtTokenAddress: null,
         liquidityRate: 0n,
         oraclePrice: 0n,
-      });
+      };
     }
-  }
-  return meta;
+  });
+}
+
+async function getAaveForkContext(providerAddress, provider) {
+  const key = `${providerAddress.toLowerCase()}`;
+  if (contextCache.has(key)) return contextCache.get(key);
+
+  const contracts = await resolveAaveForkContracts(providerAddress, provider);
+  const reserves = await getReserves(contracts.dataProvider, contracts.pool, provider);
+  const reserveMeta = await buildReserveMetadata(reserves, contracts.dataProvider, contracts.oracle, provider);
+
+  const value = { contracts, reserveMeta };
+  contextCache.set(key, value);
+  return value;
 }
 
 function priceToUsd(rawPrice, decimals, amount) {
-  // Aave-style oracle usually returns base-currency price with 8 decimals when base is USD-ish.
-  // For Spark mainnet this is good enough for current scanner usage.
   if (!rawPrice || !amount) return 0;
   return (Number(amount) * Number(rawPrice)) / 1e8;
 }
 
 async function scanAaveForkWallet({ wallet, label, chain, chainId, providerAddress, protocolName, protocolId, provider }) {
   const positions = [];
-  const contracts = await resolveAaveForkContracts(providerAddress, provider);
+  const { contracts, reserveMeta } = await getAaveForkContext(providerAddress, provider);
   const accountData = await contracts.pool.getUserAccountData(wallet);
   const healthFactor = accountData.healthFactor > 0n ? Number(accountData.healthFactor) / 1e18 : null;
 
-  const reserves = await getReserves(contracts.dataProvider, contracts.pool, provider);
-  const reserveMeta = await buildReserveMetadata(reserves, contracts.dataProvider, contracts.oracle, provider);
-
-  for (const reserve of reserveMeta) {
+  const concurrency = isLimitedBatchRpc(provider) ? 1 : 6;
+  const reserveResults = await mapWithConcurrency(reserveMeta, concurrency, async (reserve) => {
     try {
       const [userData, aTokenBal, stableDebtBal, variableDebtBal] = await Promise.all([
         contracts.dataProvider.getUserReserveData(reserve.address, wallet),
@@ -135,49 +170,55 @@ async function scanAaveForkWallet({ wallet, label, chain, chainId, providerAddre
         reserve.stableDebtTokenAddress ? new Contract(reserve.stableDebtTokenAddress, ERC20_ABI, provider).balanceOf(wallet).catch(() => 0n) : 0n,
         reserve.variableDebtTokenAddress ? new Contract(reserve.variableDebtTokenAddress, ERC20_ABI, provider).balanceOf(wallet).catch(() => 0n) : 0n,
       ]);
-
-      const suppliedRaw = aTokenBal > 0n ? aTokenBal : userData.currentATokenBalance;
-      const stableDebtRaw = stableDebtBal > 0n ? stableDebtBal : userData.currentStableDebt;
-      const variableDebtRaw = variableDebtBal > 0n ? variableDebtBal : userData.currentVariableDebt;
-
-      if (suppliedRaw > 0n) {
-        const amount = Number(suppliedRaw) / (10 ** reserve.decimals);
-        positions.push({
-          wallet, label, chain, chainId,
-          protocol_name: protocolName,
-          protocol_id: protocolId,
-          position_type: 'supply',
-          strategy: 'Lend',
-          symbol: reserve.symbol,
-          token_address: reserve.address,
-          amount,
-          value_usd: priceToUsd(reserve.oraclePrice, reserve.decimals, amount),
-          apy_base: Number(userData.liquidityRate || reserve.liquidityRate || 0n) / 1e25,
-          is_collateral: userData.usageAsCollateralEnabled,
-          health_factor: healthFactor,
-        });
-      }
-
-      const totalDebtRaw = stableDebtRaw + variableDebtRaw;
-      if (totalDebtRaw > 0n) {
-        const amount = Number(totalDebtRaw) / (10 ** reserve.decimals);
-        positions.push({
-          wallet, label, chain, chainId,
-          protocol_name: protocolName,
-          protocol_id: protocolId,
-          position_type: 'borrow',
-          strategy: 'Borrow',
-          symbol: reserve.symbol,
-          token_address: reserve.address,
-          amount,
-          value_usd: priceToUsd(reserve.oraclePrice, reserve.decimals, amount),
-          apy_base: Number(userData.stableBorrowRate || 0n) / 1e25,
-          is_collateral: false,
-          health_factor: healthFactor,
-        });
-      }
+      return { reserve, userData, aTokenBal, stableDebtBal, variableDebtBal };
     } catch {
-      // skip reserve
+      return null;
+    }
+  });
+
+  for (const row of reserveResults) {
+    if (!row) continue;
+    const { reserve, userData, aTokenBal, stableDebtBal, variableDebtBal } = row;
+
+    const suppliedRaw = aTokenBal > 0n ? aTokenBal : userData.currentATokenBalance;
+    const stableDebtRaw = stableDebtBal > 0n ? stableDebtBal : userData.currentStableDebt;
+    const variableDebtRaw = variableDebtBal > 0n ? variableDebtBal : userData.currentVariableDebt;
+
+    if (suppliedRaw > 0n) {
+      const amount = Number(suppliedRaw) / (10 ** reserve.decimals);
+      positions.push({
+        wallet, label, chain, chainId,
+        protocol_name: protocolName,
+        protocol_id: protocolId,
+        position_type: 'supply',
+        strategy: 'Lend',
+        symbol: reserve.symbol,
+        token_address: reserve.address,
+        amount,
+        value_usd: priceToUsd(reserve.oraclePrice, reserve.decimals, amount),
+        apy_base: Number(userData.liquidityRate || reserve.liquidityRate || 0n) / 1e25,
+        is_collateral: userData.usageAsCollateralEnabled,
+        health_factor: healthFactor,
+      });
+    }
+
+    const totalDebtRaw = stableDebtRaw + variableDebtRaw;
+    if (totalDebtRaw > 0n) {
+      const amount = Number(totalDebtRaw) / (10 ** reserve.decimals);
+      positions.push({
+        wallet, label, chain, chainId,
+        protocol_name: protocolName,
+        protocol_id: protocolId,
+        position_type: 'borrow',
+        strategy: 'Borrow',
+        symbol: reserve.symbol,
+        token_address: reserve.address,
+        amount,
+        value_usd: priceToUsd(reserve.oraclePrice, reserve.decimals, amount),
+        apy_base: Number(userData.stableBorrowRate || 0n) / 1e25,
+        is_collateral: false,
+        health_factor: healthFactor,
+      });
     }
   }
 
@@ -189,6 +230,7 @@ module.exports = {
   resolveAaveForkContracts,
   getReserves,
   buildReserveMetadata,
+  getAaveForkContext,
   scanAaveForkWallet,
   ERC20_ABI,
 };
