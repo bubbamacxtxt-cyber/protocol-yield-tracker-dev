@@ -138,13 +138,48 @@ function upsertPosition(db, pos) {
   `).run(positionId, pos.symbol, pos.token_address, pos.amount, pos.price_usd, pos.value_usd, pos.apy_base);
 }
 
-function makePosition(wallet, label, meta, tokenType, tokenAddress, amountRaw) {
+async function getLpPrice(meta, chainId) {
+  // Calculate LP price from pool liquidity and total supply
+  const liquidityUsd = meta.liquidity?.usd;
+  if (!liquidityUsd) return 0;
+  
+  // Get total supply from market contract
+  const cfg = PENDLE_CHAINS[Object.keys(PENDLE_CHAINS).find(k => PENDLE_CHAINS[k].chainId === chainId)];
+  if (!cfg?.alchemy || !ALCHEMY_KEY) return 0;
+  
+  try {
+    const res = await fetchJSON(`${cfg.alchemy}${ALCHEMY_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0', id: 1,
+        method: 'eth_call',
+        params: [{ to: meta.marketAddress, data: '0x18160ddd' }, 'latest'] // totalSupply()
+      }),
+    }, 1);
+    if (!res?.result || res.result === '0x') return 0;
+    const totalSupply = BigInt(res.result);
+    const decimals = meta.lp?.decimals ?? 18;
+    const totalSupplyNum = Number(totalSupply) / (10 ** decimals);
+    if (totalSupplyNum <= 0) return 0;
+    return liquidityUsd / totalSupplyNum;
+  } catch (e) {
+    return 0;
+  }
+}
+
+async function makePosition(wallet, label, meta, tokenType, tokenAddress, amountRaw) {
   const token = meta[tokenType];
   const amountBn = BigInt(amountRaw);
   const decimals = token?.decimals ?? 18;
   const amount = Number(amountBn) / (10 ** decimals);
   if (!Number.isFinite(amount) || amount <= 0) return null;
-  const priceUsd = Number(token?.price?.usd || (tokenType === 'lp' ? meta.details?.price?.usd : 0) || 0);
+  
+  let priceUsd = Number(token?.price?.usd || 0);
+  if (tokenType === 'lp' && priceUsd === 0) {
+    priceUsd = await getLpPrice(meta, meta.chainId);
+  }
+  
   const valueUsd = amount * priceUsd;
   const dte = daysToExpiry(meta.expiry);
 
@@ -237,17 +272,17 @@ async function scanWallet(db, wallet, label, registry) {
       const addr = String(bal.contractAddress || '').toLowerCase();
 
       if (maps.pt[addr]) {
-        const pos = makePosition(wallet, label, maps.pt[addr], 'pt', addr, amountHex);
+        const pos = await makePosition(wallet, label, maps.pt[addr], 'pt', addr, amountHex);
         if (!pos) continue;
         found.push(pos);
         console.log(`  ${chain} PT ${pos.symbol} $${pos.value_usd.toFixed(2)}`);
       } else if (maps.yt[addr]) {
-        const pos = makePosition(wallet, label, maps.yt[addr], 'yt', addr, amountHex);
+        const pos = await makePosition(wallet, label, maps.yt[addr], 'yt', addr, amountHex);
         if (!pos) continue;
         found.push(pos);
         console.log(`  ${chain} YT ${pos.symbol} $${pos.value_usd.toFixed(2)}`);
       } else if (maps.lp[addr]) {
-        const pos = makePosition(wallet, label, maps.lp[addr], 'lp', addr, amountHex);
+        const pos = await makePosition(wallet, label, maps.lp[addr], 'lp', addr, amountHex);
         if (!pos) continue;
         found.push(pos);
         console.log(`  ${chain} LP ${pos.symbol} $${pos.value_usd.toFixed(2)}`);
