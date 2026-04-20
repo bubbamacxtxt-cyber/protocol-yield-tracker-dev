@@ -17,9 +17,18 @@ const path = require('path');
 const Database = require('better-sqlite3');
 const { Contract } = require('ethers');
 const DB_PATH = path.join(__dirname, '..', 'yield-tracker.db');
+const { JsonRpcProvider } = require('ethers');
 const { getProvider, scanAaveForkWallet, ERC20_ABI } = require('./aave-fork-rpc');
 
 const POOL_ADDRESSES_PROVIDER = '0x02C3eA4e34C0cBd694D2adFa2c690EECbC1793eE';
+
+const CHAIN_RPC_URLS = {
+  eth: () => process.env.ALCHEMY_RPC_URL || process.env.ETH_RPC_URL || 'https://eth.drpc.org',
+  base: () => process.env.BASE_RPC_URL || process.env.ALCHEMY_BASE_RPC_URL || 'https://base.drpc.org',
+  arb: () => process.env.ARB_RPC_URL || process.env.ARBITRUM_RPC_URL || process.env.ALCHEMY_ARB_RPC_URL || 'https://arbitrum.drpc.org',
+  op: () => process.env.OP_RPC_URL || process.env.OPTIMISM_RPC_URL || process.env.ALCHEMY_OP_RPC_URL || 'https://optimism.drpc.org',
+  unichain: () => process.env.UNICHAIN_RPC_URL,
+};
 
 const SPARK_SAVINGS_BY_CHAIN = {
   eth: {
@@ -134,13 +143,22 @@ async function readSavingsBalance(wallet, label, provider, chain, chainId, symbo
   }
 }
 
+function getChainProvider(chain, defaultProvider) {
+  if (chain === 'eth') return defaultProvider;
+  const rpcUrl = CHAIN_RPC_URLS[chain]?.();
+  if (!rpcUrl) return null;
+  return new JsonRpcProvider(rpcUrl);
+}
+
 async function getSparkSavingsPositions(wallet, label, provider) {
   const positions = [];
 
   for (const [chain, meta] of Object.entries(SPARK_SAVINGS_BY_CHAIN)) {
-    if (chain !== 'eth') continue;
+    const chainProvider = getChainProvider(chain, provider);
+    if (!chainProvider) continue;
+
     for (const [symbol, config] of Object.entries(meta.tokens)) {
-      const pos = await readSavingsBalance(wallet, label, provider, chain, meta.chainId, symbol, config);
+      const pos = await readSavingsBalance(wallet, label, chainProvider, chain, meta.chainId, symbol, config);
       if (pos) positions.push(pos);
     }
   }
