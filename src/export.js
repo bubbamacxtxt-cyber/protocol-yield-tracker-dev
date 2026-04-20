@@ -305,12 +305,63 @@ async function main() {
     }
     const deduped = [...posMap.values()];
 
-    // After merge: distribute asset_usd to supply tokens that have $0 value
+    // After merge: recalculate asset_usd, apy_base, bonus, apy_net from merged tokens
     for (const p of deduped) {
         const supplyValue = (p.supply || []).reduce((sum, t) => sum + (t.value_usd || 0), 0);
+        const borrowValue = (p.borrow || []).reduce((sum, t) => sum + (t.value_usd || 0), 0);
+        if (supplyValue > 0) p.asset_usd = supplyValue;
+        if (borrowValue > 0) p.debt_usd = borrowValue;
+        // If supply tokens have $0 value but position has asset_usd, distribute it
         if (supplyValue === 0 && p.asset_usd > 0 && p.supply?.length > 0) {
             const perToken = p.asset_usd / p.supply.length;
             for (const t of p.supply) t.value_usd = perToken;
+        }
+        
+        // Recalculate apy_base from merged supply tokens
+        const supplyTokens = (p.supply || []).filter(t => t.value_usd > 0 && t.apy_base != null);
+        if (supplyTokens.length > 0) {
+            let baseNum = 0, baseDen = 0;
+            for (const t of supplyTokens) {
+                baseNum += t.apy_base * t.value_usd;
+                baseDen += t.value_usd;
+            }
+            if (baseDen > 0) p.apy_base = baseNum / baseDen;
+        }
+        
+        // Recalculate apy_cost from merged borrow tokens
+        const borrowTokens = (p.borrow || []).filter(t => t.value_usd > 0 && t.apy_base != null);
+        if (borrowTokens.length > 0) {
+            let costNum = 0, costDen = 0;
+            for (const t of borrowTokens) {
+                costNum += t.apy_base * t.value_usd;
+                costDen += t.value_usd;
+            }
+            if (costDen > 0) p.apy_cost = costNum / costDen;
+        }
+        
+        // Recalculate bonus from merged tokens
+        let bonusTotal = 0;
+        for (const t of (p.supply || [])) {
+            if (t.bonus_supply_apy) bonusTotal += t.bonus_supply_apy;
+        }
+        if (bonusTotal > 0) p.bonus_supply = bonusTotal;
+        
+        // Recalculate apy_net with leverage formula
+        if (p.asset_usd > 0 && p.debt_usd > 0 && p.apy_base != null) {
+            const supplyUsd = p.asset_usd;
+            const borrowUsd = Math.abs(p.debt_usd);
+            const equity = supplyUsd - borrowUsd;
+            if (equity > 0) {
+                const supplyApy = (p.apy_base || 0) + (p.bonus_supply || 0);
+                const borrowApy = p.apy_cost || 15; // default borrow cost
+                const supplyYield = supplyUsd * (supplyApy / 100);
+                const borrowCost = borrowUsd * (borrowApy / 100);
+                p.apy_net = ((supplyYield - borrowCost) / equity) * 100;
+                p.leverage = supplyUsd / equity;
+            } else {
+                p.apy_net = (p.apy_base || 0) + (p.bonus_supply || 0);
+                p.leverage = 1;
+            }
         }
     }
 
@@ -375,7 +426,8 @@ async function main() {
                     } catch(e) {}
                     if (susdeApy !== null) {
                         p.apy_base = susdeApy;
-                        p.apy_net = susdeApy;
+                        // Don't overwrite apy_net if bonus was already applied
+                        if (p.bonus_supply == null) p.apy_net = susdeApy;
                         p.apy_current = susdeApy;
                     }
                 }
