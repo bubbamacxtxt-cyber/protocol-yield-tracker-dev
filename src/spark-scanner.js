@@ -5,6 +5,10 @@
  * Source of truth for SparkLend positions.
  * Uses reusable Aave-fork RPC helpers for SparkLend.
  * Also scans Spark Savings vaults (spUSDC, spUSDT, etc.)
+ *
+ * Notes:
+ * - Ethereum SparkLend + Spark Savings only, for now.
+ * - Designed to tolerate constrained RPCs with raw eth_call fallback.
  */
 
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
@@ -179,6 +183,7 @@ async function main() {
 
   for (const w of walletMap) {
     console.log(`${w.label} (${w.addr.slice(0,12)}...)`);
+    const started = Date.now();
 
     const lendPositions = await getSparkLendPositions(w.addr, w.label, provider);
     for (const p of lendPositions) {
@@ -193,6 +198,7 @@ async function main() {
       console.log(`  💰 Spark Savings ${p.symbol}: ${p.amount.toLocaleString()} | pending USD`);
     }
 
+    console.log(`  ⏱ ${(Date.now() - started).toLocaleString()} ms`);
     allPositions.push(...lendPositions, ...savingsPositions);
   }
 
