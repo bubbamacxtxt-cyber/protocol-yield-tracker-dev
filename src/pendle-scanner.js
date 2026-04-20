@@ -140,8 +140,10 @@ function upsertPosition(db, pos) {
 
 function makePosition(wallet, label, meta, tokenType, tokenAddress, amountRaw) {
   const token = meta[tokenType];
+  const amountBn = BigInt(amountRaw);
   const decimals = token?.decimals ?? 18;
-  const amount = Number(BigInt(amountRaw)) / (10 ** decimals);
+  const amount = Number(amountBn) / (10 ** decimals);
+  if (!Number.isFinite(amount) || amount <= 0) return null;
   const priceUsd = Number(token?.price?.usd || (tokenType === 'lp' ? meta.details?.price?.usd : 0) || 0);
   const valueUsd = amount * priceUsd;
   const dte = daysToExpiry(meta.expiry);
@@ -236,14 +238,17 @@ async function scanWallet(db, wallet, label, registry) {
 
       if (maps.pt[addr]) {
         const pos = makePosition(wallet, label, maps.pt[addr], 'pt', addr, amountHex);
+        if (!pos) continue;
         found.push(pos);
         console.log(`  ${chain} PT ${pos.symbol} $${pos.value_usd.toFixed(2)}`);
       } else if (maps.yt[addr]) {
         const pos = makePosition(wallet, label, maps.yt[addr], 'yt', addr, amountHex);
+        if (!pos) continue;
         found.push(pos);
         console.log(`  ${chain} YT ${pos.symbol} $${pos.value_usd.toFixed(2)}`);
       } else if (maps.lp[addr]) {
         const pos = makePosition(wallet, label, maps.lp[addr], 'lp', addr, amountHex);
+        if (!pos) continue;
         found.push(pos);
         console.log(`  ${chain} LP ${pos.symbol} $${pos.value_usd.toFixed(2)}`);
       }
@@ -261,6 +266,16 @@ async function scanWallet(db, wallet, label, registry) {
 
 async function main() {
   const db = new Database(DB_PATH);
+
+  // Clean stale zero-value Pendle positions from previous runs (delete child tokens first)
+  const staleIds = db.prepare(`SELECT id FROM positions WHERE protocol_name = 'Pendle' AND net_usd = 0`).all().map(r => r.id);
+  if (staleIds.length > 0) {
+    const placeholders = staleIds.map(() => '?').join(',');
+    db.prepare(`DELETE FROM position_tokens WHERE position_id IN (${placeholders})`).run(...staleIds);
+    db.prepare(`DELETE FROM positions WHERE id IN (${placeholders})`).run(...staleIds);
+    console.log(`  Cleaned ${staleIds.length} stale zero-value Pendle positions`);
+  }
+
   const whales = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'whales.json'), 'utf8'));
   const walletMap = [];
 

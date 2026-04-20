@@ -62,7 +62,13 @@ jobs:
         env:
           ALCHEMY_RPC_URL: ${{ secrets.ALCHEMY_RPC_URL }}
 
-      # APY enrichment (fetches rates from Aave/Morpho/Euler/Spark)
+      # Pendle scanner (API-first PT/YT/LP discovery)
+      - name: Scan Pendle positions
+        run: node src/pendle-scanner.js
+        env:
+          ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
+
+      # APY enrichment (fetches rates from Aave/Morpho/Euler/Spark/Pendle)
       - name: Enrich positions with market/vault info
         run: node src/enrich-markets.js
 

@@ -316,6 +316,21 @@ async function main() {
         p.apy_reward = null;
     }
 
+    // If scanner Pendle exists for a wallet, drop ALL generic DeBank Pendle blobs for that wallet.
+    const pendleScannerWallets = new Set(
+        allPositions
+            .filter(p => String(p.protocol_name || '').toLowerCase() === 'pendle' && (p.net_usd || 0) > 0)
+            .map(p => String(p.wallet || '').toLowerCase())
+    );
+    const filteredPositions = allPositions.filter(p => {
+        const protocolId = String(p.protocol_id || '').toLowerCase();
+        const protocolName = String(p.protocol_name || '').toLowerCase();
+        const wallet = String(p.wallet || '').toLowerCase();
+        const isGenericPendleBlob = protocolName !== 'pendle' && (protocolId === 'pendle2' || protocolId === 'arb_pendle2' || protocolId === 'plasma_pendle2');
+        if (isGenericPendleBlob && pendleScannerWallets.has(wallet)) return false;
+        return true;
+    });
+
     // Deduplicate: merge positions with same wallet + chain + protocol + first supply token symbol
     // For positions with no supply tokens, use position_index as the key component
     const posMap = new Map();
@@ -324,7 +339,7 @@ async function main() {
         '0xaf5372792a29dc6b296d6ffd4aa3386aff8f9bb2': '0x8292bb45bf1ee4d140127049757c2e0ff06317ed',
         '0xba98fc35c9dfd69178ad5dce9fa29c64554783b5': '0x6c3ea9036406852006290770bedfcaba0e23a0e8',
     };
-    for (const p of allPositions) {
+    for (const p of filteredPositions) {
         let supplySymbol = (p.supply?.[0]?.symbol || p.borrow?.[0]?.symbol || p.position_index || '').toLowerCase();
         // For Euler scanner positions, use underlying address as key
         if (p.protocol_id === 'euler2') {
