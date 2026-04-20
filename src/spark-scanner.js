@@ -37,7 +37,7 @@ const POOL_ABI = [
 
 const DATA_PROVIDER_ABI = [
   'function getUserReserveData(address asset, address user) view returns (uint256 currentATokenBalance, uint256 currentStableDebt, uint256 currentVariableDebt, uint256 principalStableDebt, uint256 scaledVariableDebt, uint256 stableBorrowRate, uint256 liquidityRate, uint40 stableRateLastUpdated, bool usageAsCollateralEnabled)',
-  'function getReserveData(address asset) view returns (uint256 unbacked, uint128 accruedToTreasuryScaled, uint128 totalAToken, uint128 totalStableDebt, uint128 totalVariableDebt, uint128 liquidityRate, uint128 variableBorrowRate, uint128 stableBorrowRate, uint40 lastUpdateTimestamp, uint16 id, address aTokenAddress, address stableDebtTokenAddress, address variableDebtTokenAddress, address interestRateStrategyAddress, uint128 accruedToTreasury, uint40 debtCeiling, uint40 debtCeilingDecimals, uint8 eModeCategoryId, uint128 borrowCap, uint128 supplyCap, uint8 eModeLtv, uint8 eModeLiquidationThreshold, uint8 eModeLiquidationBonus, bool eModeLabel, bool borrowableInIsolation, bool flashLoanEnabled)',
+  'function getReserveData(address asset) view returns (uint256 unbacked, uint128 accruedToTreasuryScaled, uint128 totalAToken, uint128 totalStableDebt, uint128 totalVariableDebt, uint128 liquidityRate, uint40 lastUpdateTimestamp, address aTokenAddress, address stableDebtTokenAddress, address variableDebtTokenAddress, address interestRateStrategyAddress, uint8 id)',
   'function getAllReservesTokens() view returns (tuple(string symbol, address tokenAddress)[])'
 ];
 
@@ -109,14 +109,12 @@ async function getSparkLendPositions(wallet, label, provider) {
         const variableDebt = data.currentVariableDebt;
         const supplyApy = data.liquidityRate;
         const borrowApy = data.stableBorrowRate;
+        const underlyingToken = new (require('ethers').Contract)(reserve.address, ERC20_ABI, provider);
+        const underlyingDecimals = await underlyingToken.decimals();
         
         if (supplied > 0n) {
-          // Get aToken for balance/price
-          const reserveData = await dataProvider.getReserveData(reserve.address);
-          const aToken = new (require('ethers').Contract)(reserveData.aTokenAddress, ERC20_ABI, provider);
-          const decimals = await aToken.decimals();
           const rawBalance = supplied;
-          const formattedBalance = Number(rawBalance) / (10 ** Number(decimals));
+          const formattedBalance = Number(rawBalance) / (10 ** Number(underlyingDecimals));
           
           positions.push({
             wallet, label,
@@ -138,9 +136,7 @@ async function getSparkLendPositions(wallet, label, provider) {
         
         if (stableDebt > 0n || variableDebt > 0n) {
           const totalDebt = stableDebt + variableDebt;
-          const token = new (require('ethers').Contract)(reserve.address, ERC20_ABI, provider);
-          const decimals = await token.decimals();
-          const formattedDebt = Number(totalDebt) / (10 ** Number(decimals));
+          const formattedDebt = Number(totalDebt) / (10 ** Number(underlyingDecimals));
           
           positions.push({
             wallet, label,
