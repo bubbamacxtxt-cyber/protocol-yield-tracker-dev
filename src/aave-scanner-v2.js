@@ -7,8 +7,9 @@
  */
 
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
+const path = require('path');
 const Database = require('better-sqlite3');
-const DB_PATH = require('path').join(__dirname, '..', 'yield-tracker.db');
+const DB_PATH = path.join(__dirname, '..', 'yield-tracker.db');
 
 const AAVE_GRAPHQL = 'https://api.v3.aave.com/graphql';
 const MERIT_API = 'https://apps.aavechan.com/api/merit/aprs';
@@ -190,22 +191,23 @@ function savePositions(db, allPositions) {
 }
 
 async function main() {
-  const wallets = [
-    { addr: '0x31eae643b679a84b37e3d0b4bd4f5da90fb04a61', label: 'Reservoir-1' },
-    { addr: '0x99a95a9e38e927486fc878f41ff8b118eb632b10', label: 'Reservoir-3' },
-    { addr: '0x289c204b35859bfb924b9c0759a4fe80f610671c', label: 'Reservoir-2' },
-    { addr: '0x3063c5907faa10c01b242181aa689beb23d2bd65', label: 'Euler-Wallet' },
-    { addr: '0x41a9eb398518d2487301c61d2b33e4e966a9f1dd', label: 'Reservoir-4' },
-    { addr: '0x502d222e8e4daef69032f55f0c1a999effd78fb3', label: 'Reservoir-5' },
-  ];
+  const fs = require('fs');
+  const whales = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'whales.json'), 'utf8'));
+  const walletMap = [];
+  for (const [label, config] of Object.entries(whales)) {
+    const addrs = Array.isArray(config) ? config : (config.vaults ? Object.values(config.vaults).flat() : []);
+    for (const addr of addrs) {
+      walletMap.push({ addr, label });
+    }
+  }
   
   const db = new Database(DB_PATH);
   const allPositions = [];
   
-  console.log('=== Aave v3 Scanner (Standalone) ===\n');
+  console.log('=== Aave v3 Scanner v2 ===\n');
+  console.log(`Scanning ${walletMap.length} wallets on ${Object.keys(MARKETS).length} chains\n`);
   
-  for (const w of wallets) {
-    console.log(`--- ${w.label} (${w.addr.slice(0,12)}) ---`);
+  for (const w of walletMap) {
     const positions = await scanWallet(w.addr, w.label);
     
     for (const p of positions) {
@@ -222,7 +224,7 @@ async function main() {
   savePositions(db, allPositions);
   
   console.log(`\n=== Summary ===`);
-  console.log(`Total: ${allPositions.length} (${allPositions.filter(p => p.position_type === 'supply').length} supply, ${allPositions.filter(p => p.position_type === 'borrow').length} borrow)`);
+  console.log(`Total: ${allPositions.length} positions found`);
   
   db.close();
 }

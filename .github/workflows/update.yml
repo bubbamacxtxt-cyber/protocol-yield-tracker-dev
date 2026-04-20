@@ -40,9 +40,11 @@ jobs:
       - name: Fetch Re Protocol data
         run: node src/fetch-re.js
 
-      # Aave multi-chain scanner
+      # Aave multi-chain scanner (v2 with Merit bonuses + more markets)
       - name: Scan Aave positions
-        run: node src/aave-scanner.js
+        run: node src/aave-scanner-v2.js
+        env:
+          DEBANK_API_KEY: ${{ secrets.DEBANK_API_KEY }}
 
       # Euler scanner
       - name: Scan Euler positions

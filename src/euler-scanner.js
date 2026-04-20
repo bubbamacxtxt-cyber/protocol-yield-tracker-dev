@@ -20,14 +20,30 @@ const VAULT_UNDERLYING = {
   '0x3a68c35f7c672f18845e6e7f6b6a5c7d5e5f5a5b': { symbol: 'USDC', decimals: 6 },
 };
 
-async function querySubgraph(query) {
-  const res = await fetch(EULER_SUBGRAPH, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query })
-  });
-  const data = await res.json();
-  return data?.data || {};
+async function querySubgraph(query, retries = 3) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+      const res = await fetch(EULER_SUBGRAPH, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query }),
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+      const data = await res.json();
+      if (data.errors) throw new Error(data.errors[0]?.message || 'GraphQL error');
+      return data?.data || {};
+    } catch (err) {
+      if (attempt === retries) {
+        console.error(`  Euler query failed after ${retries} attempts: ${err.message}`);
+        return {};
+      }
+      console.log(`  Euler query retry ${attempt}/${retries}...`);
+      await new Promise(r => setTimeout(r, 2000 * attempt));
+    }
+  }
 }
 
 async function getTrackingBalances(wallet) {
