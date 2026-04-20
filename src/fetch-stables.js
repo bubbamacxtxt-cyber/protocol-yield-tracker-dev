@@ -59,7 +59,7 @@ const TOKEN_META = {
     protocol: 'maple',
   },
   syrupUSDC: {
-    addresses: [],
+    addresses: ['0x80ac24aa929eaf5013f6436cda2a7ba190f5cc0b'],
     aliases: ['syrupUSDC'],
     protocol: 'jupiter-lend',
   },
@@ -144,7 +144,7 @@ const TOKEN_META = {
     protocol: 'gearn',
   },
   ynUSDx: {
-    addresses: [],
+    addresses: ['0x3db228fe836d99ccb25ec4dfdc80ed6d2cddcb4b'],
     aliases: ['ynUSDx'],
     protocol: 'yieldnest',
   },
@@ -189,7 +189,7 @@ const TOKEN_META = {
     protocol: 'yield-protocol',
   },
   dUSDC: {
-    addresses: [],
+    addresses: ['0x1e33e98af620f1d563fcd3cfd3c75ace841204ef'],
     aliases: ['dUSDC'],
     protocol: 'dolomite',
   },
@@ -215,13 +215,14 @@ const TOKEN_META = {
   },
 };
 
-// Tokens not properly tracked on DeFiLlama — fetched from alternative APIs
-const AUGUST_DIGITAL_VAULTS = [
-  { name: 'upGAMMAusdc', address: '0x998D7b14c123c1982404562b68edDB057b0477cB', chain: 'Ethereum' },
-];
 
 async function main() {
   console.log('Fetching DeFiLlama yields...');
+  
+  // Vaults fetched from alternative APIs (not in DeFiLlama YBS list)
+  const AUGUST_DIGITAL_VAULTS = [
+    { name: 'upGAMMAusdc', address: '0x998D7b14c123c1982404562b68edDB057b0477cB', chain: 'Ethereum' },
+  ];
   
   const res = await fetch(DEFI_LLAMA);
   if (!res.ok) throw new Error(`DeFiLlama ${res.status}: ${await res.text()}`);
@@ -347,7 +348,8 @@ async function main() {
       console.log(`  ❌ ${v.name}: ${e.message}`);
     }
   }
-  
+
+
   const outPath = path.join(__dirname, '..', 'data', 'stables.json');
   fs.writeFileSync(outPath, JSON.stringify({
     stables,
