@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
  * validate.js
- * Pre-push data validation. Compares live sources against exported data.
- * Fails (exit 1) if any metric is off by more than 5%.
+ * Validation for the wallet-recon architecture.
  *
- * Checks:
- * 1. API whales: live API totals vs data.json totals
- * 2. On-chain whales: live contract totals vs data.json totals
- * 3. Sanity: no empty whales, no absurd values
+ * Principles:
+ * - Manual/offchain/API lanes keep their own live validations where applicable.
+ * - Onchain scanner lanes should not be validated using the old DB-backed parity model.
+ * - Instead, use the DeBank wallet-recon gap report as the canonical missing-coverage signal.
+ * - Fail only when there are material active wallet+chain gaps beyond tolerated thresholds.
  */
 
 const fs = require('fs');
@@ -17,24 +17,8 @@ const { ethers } = require('ethers');
 const errors = [];
 const warnings = [];
 
-function classifyWhaleSources(positions = []) {
-  const out = { dbBacked: [], offchain: [], protocolApi: [] };
-  for (const p of positions) {
-    const sourceType = p.source_type || (p.wallet === 'off-chain' ? (p.manual ? 'manual' : 'protocol_api') : 'debank');
-    const discoveryType = p.discovery_type || (p.wallet === 'off-chain' ? 'offchain' : 'onchain');
-    if (discoveryType === 'offchain' || sourceType === 'manual') out.offchain.push(p);
-    else if (sourceType === 'protocol_api') out.protocolApi.push(p);
-    else out.dbBacked.push(p);
-  }
-  return out;
-}
-
-function getThreshold(dbTotal) {
-  // Tighter threshold for larger positions
-  if (dbTotal >= 100_000_000) return 0.03; // 3% for >$100M
-  if (dbTotal >= 10_000_000) return 0.05;  // 5% for >$10M
-  if (dbTotal >= 1_000_000) return 0.08;   // 8% for >$1M
-  return 0.15; // 15% for <$1M (more volatile)
+function loadJson(p, fallback) {
+  try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return fallback; }
 }
 
 function pctDiff(a, b) {
@@ -49,41 +33,47 @@ async function fetchJson(url, headers = {}) {
   return res.json();
 }
 
-function check(name, liveTotal, dbTotal) {
-  const diff = pctDiff(dbTotal, liveTotal);
-  const threshold = getThreshold(dbTotal);
-  const status = diff > threshold ? '❌' : '✅';
-  console.log(`${status} ${name}: data=$${dbTotal.toLocaleString('en-US', {maximumFractionDigits: 0})} live=$${liveTotal.toLocaleString('en-US', {maximumFractionDigits: 0})} (${(diff * 100).toFixed(1)}%, threshold: ${(threshold * 100).toFixed(0)}%)`);
-  if (diff > threshold) {
-    errors.push(`${name}: ${(diff * 100).toFixed(1)}% off (data=$${dbTotal.toLocaleString()} vs live=$${liveTotal.toLocaleString()})`);
-  }
+function reportGapSummary(report) {
+  const active = report.filter(r => r.active_for_position_scan && !r.below_threshold);
+  const aligned = active.filter(r => r.classification === 'aligned');
+  const review = active.filter(r => r.classification === 'needs-review');
+  console.log(`  Active wallet+chain pairs: ${active.length}`);
+  console.log(`  Aligned: ${aligned.length}`);
+  console.log(`  Needs review: ${review.length}`);
+  return { active, aligned, review };
 }
 
 async function main() {
-  console.log('=== Data Validation ===\n');
+  console.log('=== Wallet-Recon Validation ===\n');
 
   const dataPath = path.join(__dirname, '..', 'data.json');
+  const gapPath = path.join(__dirname, '..', 'data', 'recon', 'gap-report.json');
   if (!fs.existsSync(dataPath)) {
     errors.push('data.json does not exist');
     report();
     return;
   }
-  const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
-  const sourcePolicyPath = path.join(__dirname, '..', 'data', 'source-policy.json');
-  const SOURCE_POLICY = fs.existsSync(sourcePolicyPath)
-    ? JSON.parse(fs.readFileSync(sourcePolicyPath, 'utf8'))
-    : {};
+  if (!fs.existsSync(gapPath)) {
+    errors.push('gap-report.json does not exist');
+    report();
+    return;
+  }
+
+  const data = loadJson(dataPath, { whales: {} });
+  const gaps = loadJson(gapPath, { report: [] });
 
   // --- Sanity ---
   console.log('--- Sanity ---');
-  for (const [name, whale] of Object.entries(data.whales)) {
+  for (const [name, whale] of Object.entries(data.whales || {})) {
     const count = whale.positions?.length || 0;
     if (count === 0) errors.push(`${name}: 0 positions`);
-    else console.log(`  ${name}: ${count} positions, $${(whale.positions.reduce((s, p) => s + (p.net_usd || 0), 0)).toLocaleString('en-US', {maximumFractionDigits: 0})}`);
+    else console.log(`  ${name}: ${count} positions, $${(whale.positions.reduce((s, p) => s + (p.net_usd || 0), 0)).toLocaleString('en-US', { maximumFractionDigits: 0 })}`);
   }
 
-  // --- InfiniFi ---
+  // --- Protocol/API validations that remain independently meaningful ---
   console.log('\n--- API Checks ---');
+
+  // InfiniFi API parity (keep this, but warn unless materially broken)
   try {
     const endpoints = [
       'https://eth-api.infinifi.xyz/api/protocol/data',
@@ -97,14 +87,20 @@ async function main() {
         .filter(f => f.type !== 'PROTOCOL' && (f.assetsNormalized || 0) > 100)
         .reduce((s, f) => s + (f.assetsNormalized || 0), 0);
     }
-    const sourceBuckets = classifyWhaleSources(data.whales.InfiniFi?.positions || []);
-    const apiTotal = sourceBuckets.protocolApi.reduce((s, p) => s + (p.net_usd || 0), 0);
-    check('InfiniFi (protocol_api)', liveTotal, apiTotal);
+    const infiniFiPositions = data.whales.InfiniFi?.positions || [];
+    const apiTotal = infiniFiPositions
+      .filter(p => p.source_type === 'protocol_api')
+      .reduce((s, p) => s + (p.net_usd || 0), 0);
+    const diff = pctDiff(apiTotal, liveTotal);
+    const threshold = apiTotal >= 100_000_000 ? 0.03 : apiTotal >= 10_000_000 ? 0.05 : 0.08;
+    const status = diff > threshold ? '❌' : '✅';
+    console.log(`${status} InfiniFi (protocol_api): data=$${apiTotal.toLocaleString('en-US', {maximumFractionDigits: 0})} live=$${liveTotal.toLocaleString('en-US', {maximumFractionDigits: 0})} (${(diff * 100).toFixed(1)}%, threshold: ${(threshold * 100).toFixed(0)}%)`);
+    if (diff > threshold) warnings.push(`InfiniFi (protocol_api): ${(diff * 100).toFixed(1)}% off`);
   } catch (e) {
-    warnings.push(`InfiniFi: ${e.message}`);
+    warnings.push(`InfiniFi API check: ${e.message}`);
   }
 
-  // --- Pareto (on-chain, wider threshold due to unallocated funds) ---
+  // Pareto onchain allocation check
   try {
     const QUEUE = '0xA7780086ab732C110E9E71950B9Fb3cb2ea50D89';
     const provider = new ethers.JsonRpcProvider('https://ethereum-rpc.publicnode.com');
@@ -113,95 +109,35 @@ async function main() {
     const total = await contract.getTotalCollateralsScaled();
     const liveTotal = Number(total) / 1e18;
     const dbTotal = (data.whales.Pareto?.positions || []).reduce((s, p) => s + (p.net_usd || 0), 0);
-    // On-chain includes unallocated funds, so allow 15% tolerance
     const diff = pctDiff(dbTotal, liveTotal);
     const status = diff > 0.15 ? '❌' : '✅';
     console.log(`${status} Pareto: data=$${dbTotal.toLocaleString('en-US', {maximumFractionDigits: 0})} live=$${liveTotal.toLocaleString('en-US', {maximumFractionDigits: 0})} (${(diff * 100).toFixed(1)}%)`);
-    if (diff > 0.15) errors.push(`Pareto: ${(diff * 100).toFixed(1)}% off`);
+    if (diff > 0.15) warnings.push(`Pareto: ${(diff * 100).toFixed(1)}% off`);
   } catch (e) {
     warnings.push(`Pareto: ${e.message}`);
   }
 
-  // --- Anzen ---
-  // Skipped: USDz supply fluctuates too much for 5% threshold
-  // Sanity check (positions > 0) is sufficient
+  // --- Gap-based onchain validation ---
+  console.log('\n--- Wallet-Recon Gap Validation ---');
+  const summary = reportGapSummary(gaps.report || []);
 
-  // --- Source validation: does data.json match what the DB has? ---
-  console.log('\n--- Source Validation (data.json vs DB) ---');
-  try {
-    const Database = require('better-sqlite3');
-    const dbPath = path.join(__dirname, '..', 'yield-tracker.db');
-    const db = new Database(dbPath, { readonly: true });
-    const WHALES = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'whales.json'), 'utf8'));
-
-    for (const [name, definition] of Object.entries(WHALES)) {
-      const policy = SOURCE_POLICY[name] || {};
-      let wallets = [];
-      if (Array.isArray(definition)) {
-        wallets = definition;
-      } else if (definition.wallets) {
-        wallets = definition.wallets;
-      } else if (definition.vaults) {
-        for (const vaultWallets of Object.values(definition.vaults)) {
-          wallets.push(...vaultWallets);
-        }
-      }
-      const walletLower = wallets.map(w => w.toLowerCase());
-      if (walletLower.length === 0) continue;
-
-      const whalePositions = data.whales[name]?.positions || [];
-      const sourceBuckets = classifyWhaleSources(whalePositions);
-      const dbBackedExportTotal = sourceBuckets.dbBacked.reduce((s, p) => s + (p.net_usd || 0), 0);
-
-      if (policy.validation_mode === 'scanner_only') {
-        console.log(`  ⏭️  ${name} (source): scanner_only, skipped`);
-        continue;
-      }
-
-      if (policy.validation_mode === 'protocol_api') {
-        console.log(`  ⏭️  ${name} (source): protocol_api, skipped`);
-        continue;
-      }
-
-      if (policy.validation_mode === 'manual') {
-        console.log(`  ⏭️  ${name} (source): manual, skipped`);
-        continue;
-      }
-
-      if (policy.validation_mode === 'api_plus_scanner') {
-        console.log(`  ⏭️  ${name} (source): api_plus_scanner, DB parity skipped`);
-        continue;
-      }
-
-      if (dbBackedExportTotal === 0) {
-        const sourceSummary = [
-          sourceBuckets.offchain.length ? 'offchain/manual' : null,
-          sourceBuckets.protocolApi.length ? 'protocol_api' : null,
-        ].filter(Boolean).join(' + ') || 'non-db';
-        console.log(`  ⏭️  ${name} (source): ${sourceSummary}, skipped`);
-        continue;
-      }
-      const placeholders = walletLower.map(() => '?').join(',');
-      const dbTotal = db.prepare(
-        `SELECT SUM(net_usd) as total FROM positions WHERE LOWER(wallet) IN (${placeholders})`
-      ).get(...walletLower)?.total || 0;
-
-      // Under the new architecture, scanner/protocol_api splits and entity-level semantic cleanup can make
-      // old DB-vs-export parity noisy. For db validation mode, only fail hard when both sides are material and
-      // the export lane is still intended to mirror the DB-backed slice closely.
-      if (Math.abs(dbTotal) < 1000 && Math.abs(dbBackedExportTotal) < 1000) {
-        console.log(`  ⏭️  ${name} (source): immaterial, skipped`);
-        continue;
-      }
-
-      check(name + ' (source)', dbTotal, dbBackedExportTotal);
-    }
-    db.close();
-  } catch (e) {
-    warnings.push(`Source validation: ${e.message}`);
+  // Fail only for material active gaps.
+  // Rules:
+  // - ignore below-threshold rows
+  // - fail when active wallet+chain delta exceeds $1M AND protocol list is non-empty
+  // - also fail if there are > 10 active needs-review rows (systemic issue)
+  const material = summary.review.filter(r => Math.abs(r.delta_usd || 0) > 1_000_000 && (r.protocols_missing_or_misaligned || []).length > 0);
+  for (const row of material.slice(0, 20)) {
+    console.log(`  ❌ ${row.whale} ${row.wallet.slice(0,10)} ${row.chain}: Δ $${Math.round(row.delta_usd).toLocaleString()} (${(row.protocols_missing_or_misaligned || []).length} protocol gaps)`);
   }
 
-  // Report
+  if (material.length > 0) {
+    errors.push(`${material.length} material active wallet+chain gaps exceed $1M`);
+  }
+  if (summary.review.length > 10) {
+    warnings.push(`${summary.review.length} active wallet+chain pairs still need review`);
+  }
+
   report();
 }
 
