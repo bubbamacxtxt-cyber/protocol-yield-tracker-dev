@@ -90,6 +90,18 @@ function promoteCanonicalYieldRows(position, stables, vaults) {
         return addr && (p.supply || []).some(t => String(t.address || '').toLowerCase() === addr);
     });
 
+    const ybsByProtocol = (stables || []).find(s => {
+        const proto = String(s.protocol || '').toLowerCase();
+        return (pid && proto.includes(pid)) || (pname && proto.includes(pname));
+    });
+    const vaultByProtocol = (vaults || []).find(v => {
+        const proto = String(v.protocol || '').toLowerCase();
+        return proto && ((pid && proto.includes(pid)) || (pname && proto.includes(pname)));
+    });
+
+    const matchedStable = stableMatch || ybsByProtocol || null;
+    const matchedVault = vaultMatch || vaultByProtocol || null;
+
     const looksLikeYbsCanonical = pid === 'ethena' || pid === 'sky' || pid === 'infinifixyz' || pid === 'capapp'
         || pname.includes('ethena') || pname.includes('sky') || pname.includes('infinifi') || pname === 'cap'
         || assetType.includes('ethena') || assetType.includes('sky')
@@ -97,42 +109,34 @@ function promoteCanonicalYieldRows(position, stables, vaults) {
 
     const looksLikeVaultCanonical = pid === 'upshift' || pname.includes('upshift') || supplyText.includes('upgammausdc');
 
-    if (stableMatch && looksLikeYbsCanonical) {
-        p.source_type = 'protocol_api';
-        p.source_name = 'ybs-list';
-        p.confidence = 'high';
-        p.normalization_status = 'canonical';
-        if (String(stableMatch.protocol || '').includes('infinifi')) p.exposure_class = 'indirect_strategy_exposure';
-        else p.exposure_class = 'yield_bearing_stable';
-        return p;
-    }
-
-    if (vaultMatch && looksLikeVaultCanonical) {
-        p.source_type = 'protocol_api';
-        p.source_name = 'vault-registry';
-        p.confidence = 'high';
-        p.normalization_status = 'canonical';
-        p.exposure_class = 'vault_position';
-        return p;
-    }
-
-    // Fallback rows that already map to known canonical yield/vault protocols should not remain generic DeBank.
-    if (looksLikeYbsCanonical) {
+    if (matchedStable && looksLikeYbsCanonical) {
         p.source_type = 'protocol_api';
         p.source_name = stableMatch ? 'ybs-list' : 'canonical-yield-registry';
         p.confidence = 'high';
         p.normalization_status = 'canonical';
-        if (pid === 'infinifixyz' || pname.includes('infinifi')) p.exposure_class = 'indirect_strategy_exposure';
+        if (String(matchedStable.protocol || '').includes('infinifi')) p.exposure_class = 'indirect_strategy_exposure';
         else p.exposure_class = 'yield_bearing_stable';
+
+        const apy = matchedStable.apy_30d ?? matchedStable.aprValue ?? matchedStable.apy_7d ?? matchedStable.apy_1d;
+        if (apy != null && (p.apy_base == null || p.apy_base === 0)) {
+            p.apy_base = apy;
+            p.apy_base_source = stableMatch ? `ybs:${matchedStable.name}` : `canonical-yield-registry:${matchedStable.name || matchedStable.protocol}`;
+        }
         return p;
     }
 
-    if (looksLikeVaultCanonical) {
+    if (matchedVault && looksLikeVaultCanonical) {
         p.source_type = 'protocol_api';
         p.source_name = vaultMatch ? 'vault-registry' : 'canonical-vault-registry';
         p.confidence = 'high';
         p.normalization_status = 'canonical';
         p.exposure_class = 'vault_position';
+
+        const apy = matchedVault.apy_30d ?? matchedVault.apy_7d ?? matchedVault.apy_1d;
+        if (apy != null && (p.apy_base == null || p.apy_base === 0)) {
+            p.apy_base = apy;
+            p.apy_base_source = vaultMatch ? `vault:${matchedVault.symbol || matchedVault.name}` : `canonical-vault-registry:${matchedVault.symbol || matchedVault.name || matchedVault.protocol}`;
+        }
         return p;
     }
 

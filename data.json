@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-21T10:19:04.228Z",
+  "generated_at": "2026-04-21T10:31:41.710Z",
   "summary": {
     "total_positions": 145,
     "total_value": 840922907.1887625,
@@ -686,7 +686,7 @@
           "protocol_canonical": "ethena",
           "protocol_display": "Ethena",
           "protocol_category": "staking",
-          "apy_base": null,
+          "apy_base": 3.59036,
           "apy_cost": null,
           "bonus_supply": null,
           "bonus_borrow": null,
@@ -697,6 +697,7 @@
           "confidence": "high",
           "normalization_status": "canonical",
           "exposure_class": "yield_bearing_stable",
+          "apy_base_source": "canonical-yield-registry:sUSDe",
           "source_priority": 80
         },
         {
@@ -2104,7 +2105,7 @@
           "protocol_canonical": "capapp",
           "protocol_display": "cap",
           "protocol_category": null,
-          "apy_base": null,
+          "apy_base": 5.61703,
           "apy_cost": null,
           "bonus_supply": null,
           "bonus_borrow": null,
@@ -2115,6 +2116,7 @@
           "confidence": "high",
           "normalization_status": "canonical",
           "exposure_class": "yield_bearing_stable",
+          "apy_base_source": "canonical-yield-registry:stcUSD",
           "source_priority": 80
         },
         {
@@ -2142,7 +2144,7 @@
           "protocol_canonical": "upshift",
           "protocol_display": "Upshift",
           "protocol_category": null,
-          "apy_base": null,
+          "apy_base": 0,
           "apy_cost": null,
           "bonus_supply": null,
           "bonus_borrow": null,
@@ -2153,6 +2155,7 @@
           "confidence": "high",
           "normalization_status": "canonical",
           "exposure_class": "vault_position",
+          "apy_base_source": "canonical-vault-registry:Fluent USDnr Pre-deposit",
           "source_priority": 80
         },
         {
@@ -2527,7 +2530,7 @@
           "protocol_canonical": "sky",
           "protocol_display": "Sky",
           "protocol_category": null,
-          "apy_base": null,
+          "apy_base": 3.75,
           "apy_cost": null,
           "bonus_supply": null,
           "bonus_borrow": null,
@@ -2538,6 +2541,7 @@
           "confidence": "high",
           "normalization_status": "canonical",
           "exposure_class": "yield_bearing_stable",
+          "apy_base_source": "canonical-yield-registry:sUSDS",
           "source_priority": 80
         },
         {
@@ -3444,8 +3448,8 @@
           "borrow": [],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "protocol_api",
-          "source_name": "canonical-yield-registry",
+          "source_type": "debank",
+          "source_name": "fetch",
           "protocol_canonical": "pendle",
           "protocol_display": "Pendle",
           "protocol_category": "yield-splitting",
@@ -3458,10 +3462,10 @@
           "apy_reward": null,
           "supply_tokens_display": "YT-sUSDE-7MAY2026",
           "pendle_status": "direct",
-          "confidence": "high",
+          "source_priority": 40,
+          "confidence": "medium",
           "normalization_status": "canonical",
-          "exposure_class": "yield_bearing_stable",
-          "source_priority": 80
+          "exposure_class": "direct_position"
         },
         {
           "id": 140,
@@ -4418,7 +4422,7 @@
           "protocol_canonical": "infinifixyz",
           "protocol_display": "infiniFi",
           "protocol_category": null,
-          "apy_base": null,
+          "apy_base": 5.79981,
           "apy_cost": null,
           "bonus_supply": null,
           "bonus_borrow": null,
@@ -4429,6 +4433,7 @@
           "confidence": "high",
           "normalization_status": "canonical",
           "exposure_class": "indirect_strategy_exposure",
+          "apy_base_source": "canonical-yield-registry:siUSD",
           "source_priority": 80
         },
         {
@@ -4742,7 +4747,7 @@
               "protocol_canonical": "infinifixyz",
               "protocol_display": "infiniFi",
               "protocol_category": null,
-              "apy_base": null,
+              "apy_base": 5.79981,
               "apy_cost": null,
               "bonus_supply": null,
               "bonus_borrow": null,
@@ -4753,6 +4758,7 @@
               "confidence": "high",
               "normalization_status": "canonical",
               "exposure_class": "indirect_strategy_exposure",
+              "apy_base_source": "canonical-yield-registry:siUSD",
               "source_priority": 80
             },
             {
@@ -5324,14 +5330,14 @@
           "paused": false,
           "manual": false,
           "source_type": "protocol_api",
-          "source_name": "canonical-yield-registry",
+          "source_name": "fetch-infinifi",
           "discovery_type": "onchain",
           "apy_net": 8.15,
           "supply_tokens_display": "steakUSDCinfinifi",
+          "source_priority": 80,
           "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "indirect_strategy_exposure",
-          "source_priority": 80
+          "exposure_class": "direct_position"
         },
         {
           "wallet": "0x817d93DbdFd8190bbef0a73fCf5Dd9DA5A87E032",
@@ -5408,14 +5414,14 @@
           "paused": false,
           "manual": false,
           "source_type": "protocol_api",
-          "source_name": "canonical-yield-registry",
+          "source_name": "fetch-infinifi",
           "discovery_type": "onchain",
           "apy_net": 7.4,
           "supply_tokens_display": "infinifiUSD",
+          "source_priority": 80,
           "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "indirect_strategy_exposure",
-          "source_priority": 80
+          "exposure_class": "direct_position"
         },
         {
           "wallet": "0x7E9AA426abC2D9006E8C9881754BAA00a392158d",
@@ -5795,8 +5801,8 @@
           ],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "protocol_api",
-          "source_name": "canonical-yield-registry",
+          "source_type": "scanner",
+          "source_name": "aave-scanner",
           "protocol_canonical": "aave",
           "protocol_display": "Aave V3",
           "protocol_category": "lending",
@@ -5808,10 +5814,10 @@
           "leverage": 12.210939312853721,
           "apy_reward": null,
           "supply_tokens_display": "PT-sUSDE-18JUN2026",
+          "source_priority": 100,
           "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "yield_bearing_stable",
-          "source_priority": 80
+          "exposure_class": "direct_position"
         }
       ],
       "is_multi_vault": true,
@@ -6125,8 +6131,8 @@
               ],
               "rewards": [],
               "discovery_type": "onchain",
-              "source_type": "protocol_api",
-              "source_name": "canonical-yield-registry",
+              "source_type": "scanner",
+              "source_name": "aave-scanner",
               "protocol_canonical": "aave",
               "protocol_display": "Aave V3",
               "protocol_category": "lending",
@@ -6138,10 +6144,10 @@
               "leverage": 12.210939312853721,
               "apy_reward": null,
               "supply_tokens_display": "PT-sUSDE-18JUN2026",
+              "source_priority": 100,
               "confidence": "high",
               "normalization_status": "canonical",
-              "exposure_class": "yield_bearing_stable",
-              "source_priority": 80
+              "exposure_class": "direct_position"
             }
           ],
           "slug": "upshift-singularv"
@@ -6649,7 +6655,7 @@
           "protocol_canonical": "sky",
           "protocol_display": "Sky",
           "protocol_category": null,
-          "apy_base": null,
+          "apy_base": 3.75,
           "apy_cost": null,
           "bonus_supply": null,
           "bonus_borrow": null,
@@ -6660,6 +6666,7 @@
           "confidence": "high",
           "normalization_status": "canonical",
           "exposure_class": "yield_bearing_stable",
+          "apy_base_source": "canonical-yield-registry:sUSDS",
           "source_priority": 80
         },
         {
@@ -8080,7 +8087,7 @@
               "protocol_canonical": "sky",
               "protocol_display": "Sky",
               "protocol_category": null,
-              "apy_base": null,
+              "apy_base": 3.75,
               "apy_cost": null,
               "bonus_supply": null,
               "bonus_borrow": null,
@@ -8091,6 +8098,7 @@
               "confidence": "high",
               "normalization_status": "canonical",
               "exposure_class": "yield_bearing_stable",
+              "apy_base_source": "canonical-yield-registry:sUSDS",
               "source_priority": 80
             },
             {
@@ -9625,7 +9633,7 @@
           "apy_current": 0,
           "apy_gross": 0,
           "apy_avg": 0,
-          "apy_base": 0,
+          "apy_base": 3.75,
           "apy_rewards": 0,
           "apy_fee": 0,
           "maturity": null,
@@ -9642,6 +9650,7 @@
           "confidence": "high",
           "normalization_status": "canonical",
           "exposure_class": "yield_bearing_stable",
+          "apy_base_source": "canonical-yield-registry:sUSDS",
           "source_priority": 80
         }
       ],
