@@ -374,6 +374,30 @@ async function main() {
         delete p.supply_json;
         delete p.borrow_json;
         delete p.reward_json;
+
+        // Reconstruct synthetic supply token for positions with asset_usd but no token rows
+        // Only for issuer/protocol-native positions (Ethena, Sky, Cap) where DeBank didn't insert tokens
+        const isIssuerPosition = ['Ethena', 'Sky', 'Cap', 'infinifiUSD', 'sGHO', 'sUSDS', 'stcUSD'].includes(p.protocol_name);
+        if (isIssuerPosition && p.asset_usd > 0 && p.supply.length === 0) {
+            const syntheticSymbol = p.protocol_name === 'Ethena' ? 'USDe'
+                : p.protocol_name === 'Sky' ? 'sUSDS'
+                : p.protocol_name === 'Cap' ? 'stcUSD'
+                : p.yield_source || p.protocol_name;
+            p.supply = [{
+                symbol: syntheticSymbol,
+                address: p.position_index || '',
+                amount: null,
+                price_usd: null,
+                value_usd: p.asset_usd,
+                apy_base: null,
+                apy_base_source: null,
+                bonus_supply_apy: null,
+                bonus_supply_source: null,
+                bonus_borrow_apy: null,
+                bonus_borrow_source: null
+            }];
+        }
+
         normalizeSourceMeta(p);
         applyProtocolRegistry(p, protocolRegistry);
         finalizeSourceMeta(p);
@@ -782,18 +806,9 @@ async function main() {
                 );
             if (isStandaloneCanonicalYield && scannerContextForSuppression.length > 0) return false;
 
-            // Stronger suppression: if a canonical issued-asset row shares the same primary token address
-            // as a scanner-owned row on the same wallet+chain, it is enrichment, not standalone exposure.
-            // Raw-protocol suppression first: if this is an Ethena issuer row but same wallet+chain already
-            // has scanner-owned Aave exposure carrying USDe/sUSDe, suppress it even before semantic promotion settles.
-            const isRawEthenaRow = String(p.protocol_id || '').toLowerCase() === 'ethena' || String(p.protocol_name || '').toLowerCase() === 'ethena';
-            if (isRawEthenaRow) {
-                const aaveHasUsde = scannerContextForSuppression.some(x =>
-                    String(x.protocol_name || '').toLowerCase().includes('aave') &&
-                    [...(x.supply || []), ...(x.borrow || [])].some(t => ['usde','susde'].includes(String(t.symbol || '').toLowerCase()) || ['0x4c9edd5852cd905f086c759e8383e09bff1e68b3','0x9d39a5de30e57443bff2a8307a4256c8797a3497'].includes(String(t.address || '').toLowerCase()))
-                );
-                if (aaveHasUsde) return false;
-            }
+            // NOTE: Ethena rows are NOT suppressed here. A direct USDe holding (Ethena issuer)
+            // is a separate economic position from Aave collateral. Both should appear.
+            // The generic dedup (clusterKey) will catch true duplicates.
 
             if (isCanonicalYieldRow) {
                 const pAddr = String(p.position_index || '').toLowerCase();
