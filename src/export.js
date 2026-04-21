@@ -30,12 +30,20 @@ function applyProtocolRegistry(position, registry) {
             p.protocol_display = entry.display_name || p.protocol_name;
             p.protocol_category = entry.category || null;
             if (entry.display_name) p.protocol_name = entry.display_name;
+
+            // Normalize certain protocol display names that still arrive through legacy rows.
+            if (key === 'cap') p.protocol_name = 'Cap';
+            if (key === 'infinifi') p.protocol_name = 'InfiniFi';
+            if (key === 'pendle' && p.pendle_status === 'fallback') p.protocol_name = 'Pendle Fallback';
             return p;
         }
     }
     p.protocol_canonical = pid || String(pname || '').toLowerCase().replace(/\s+/g, '-');
     p.protocol_display = p.protocol_name;
     p.protocol_category = null;
+    if (p.protocol_canonical === 'capapp') p.protocol_name = 'Cap';
+    if (p.protocol_canonical === 'infinifixyz') p.protocol_name = 'InfiniFi';
+    if (p.protocol_canonical === 'pendle' && p.pendle_status === 'fallback') p.protocol_name = 'Pendle Fallback';
     return p;
 }
 
@@ -51,6 +59,7 @@ function finalizeSourceMeta(position) {
     if (!p.confidence) {
         if (p.pendle_status === 'fallback') p.confidence = 'low';
         else if (p.source_type === 'scanner') p.confidence = 'high';
+        else if (p.source_type === 'protocol_api') p.confidence = 'high';
         else if (p.source_type === 'manual') p.confidence = 'medium';
         else p.confidence = 'medium';
     }
@@ -63,6 +72,70 @@ function finalizeSourceMeta(position) {
         else if (p.wallet === 'off-chain') p.exposure_class = 'manual_offchain';
         else p.exposure_class = 'direct_position';
     }
+    return p;
+}
+
+function promoteCanonicalYieldRows(position, stables, vaults) {
+    const p = position;
+    const pid = String(p.protocol_id || '').toLowerCase();
+    const pname = String(p.protocol_name || '').toLowerCase();
+    const assetType = String(p.asset_type || '').toLowerCase();
+    const supplyText = String(p.supply_tokens_display || '').toLowerCase();
+
+    if (p.pendle_status === 'fallback' || pid === 'pendle2' || pid === 'arb_pendle2' || pid === 'plasma_pendle2') return p;
+
+    const stableMatch = findYbsToken(stables || [], p.supply?.[0]?.symbol || p.supply_tokens_display, p.supply?.[0]?.address);
+    const vaultMatch = (vaults || []).find(v => {
+        const addr = String(v.address || '').toLowerCase();
+        return addr && (p.supply || []).some(t => String(t.address || '').toLowerCase() === addr);
+    });
+
+    const looksLikeYbsCanonical = pid === 'ethena' || pid === 'sky' || pid === 'infinifixyz' || pid === 'capapp'
+        || pname.includes('ethena') || pname.includes('sky') || pname.includes('infinifi') || pname === 'cap'
+        || assetType.includes('ethena') || assetType.includes('sky')
+        || supplyText.includes('susde') || supplyText.includes('susds') || supplyText.includes('siusd') || supplyText.includes('stcusd');
+
+    const looksLikeVaultCanonical = pid === 'upshift' || pname.includes('upshift') || supplyText.includes('upgammausdc');
+
+    if (stableMatch && looksLikeYbsCanonical) {
+        p.source_type = 'protocol_api';
+        p.source_name = 'ybs-list';
+        p.confidence = 'high';
+        p.normalization_status = 'canonical';
+        if (String(stableMatch.protocol || '').includes('infinifi')) p.exposure_class = 'indirect_strategy_exposure';
+        else p.exposure_class = 'yield_bearing_stable';
+        return p;
+    }
+
+    if (vaultMatch && looksLikeVaultCanonical) {
+        p.source_type = 'protocol_api';
+        p.source_name = 'vault-registry';
+        p.confidence = 'high';
+        p.normalization_status = 'canonical';
+        p.exposure_class = 'vault_position';
+        return p;
+    }
+
+    // Fallback rows that already map to known canonical yield/vault protocols should not remain generic DeBank.
+    if (looksLikeYbsCanonical) {
+        p.source_type = 'protocol_api';
+        p.source_name = stableMatch ? 'ybs-list' : 'canonical-yield-registry';
+        p.confidence = 'high';
+        p.normalization_status = 'canonical';
+        if (pid === 'infinifixyz' || pname.includes('infinifi')) p.exposure_class = 'indirect_strategy_exposure';
+        else p.exposure_class = 'yield_bearing_stable';
+        return p;
+    }
+
+    if (looksLikeVaultCanonical) {
+        p.source_type = 'protocol_api';
+        p.source_name = vaultMatch ? 'vault-registry' : 'canonical-vault-registry';
+        p.confidence = 'high';
+        p.normalization_status = 'canonical';
+        p.exposure_class = 'vault_position';
+        return p;
+    }
+
     return p;
 }
 
@@ -150,6 +223,12 @@ async function main() {
     const db = new Database(DB_PATH, { readonly: true });
     let eulerApys = {};
     const protocolRegistry = loadProtocolRegistry();
+    const ybsPath = path.join(__dirname, '..', 'data', 'stables.json');
+    const ybsData = fs.existsSync(ybsPath) ? JSON.parse(fs.readFileSync(ybsPath, 'utf8')) : { stables: [] };
+    const stables = ybsData.stables || [];
+    const vaultsPath = path.join(__dirname, '..', 'data', 'vaults.json');
+    const vaultsData = fs.existsSync(vaultsPath) ? JSON.parse(fs.readFileSync(vaultsPath, 'utf8')) : { vaults: [] };
+    const vaults = Array.isArray(vaultsData) ? vaultsData : (vaultsData.vaults || []);
     
     // Fetch Euler APYs
     try {
@@ -713,8 +792,10 @@ async function main() {
             } else if (pid === 'pendle2' || pid === 'arb_pendle2' || pid === 'plasma_pendle2') {
                 p.pendle_status = 'fallback';
                 p.source_type = 'fallback';
+                p.protocol_name = 'Pendle Fallback';
                 if (!p.asset_type) p.asset_type = 'Pendle Fallback';
             }
+            promoteCanonicalYieldRows(p, stables, vaults);
             finalizeSourceMeta(p);
         }
     }

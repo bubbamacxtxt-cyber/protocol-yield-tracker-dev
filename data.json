@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-21T09:36:29.229Z",
+  "generated_at": "2026-04-21T10:19:04.228Z",
   "summary": {
     "total_positions": 145,
     "total_value": 840922907.1887625,
@@ -23,14 +23,15 @@
     "protocols": [
       "Aave V3",
       "Ethena",
-      "cap",
+      "Cap",
       "Upshift",
-      "Pendle",
+      "Pendle Fallback",
       "Sky",
+      "Pendle",
       "Curve",
       "Yuzu Money",
       "Morpho",
-      "infiniFi",
+      "InfiniFi",
       "Convex",
       "Fasanara mGLOBAL (GDADF)",
       "Cap stcUSD",
@@ -426,8 +427,8 @@
           ],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "scanner",
-          "source_name": "aave-scanner",
+          "source_type": "protocol_api",
+          "source_name": "ybs-list",
           "protocol_canonical": "aave",
           "protocol_display": "Aave V3",
           "protocol_category": "lending",
@@ -439,10 +440,10 @@
           "leverage": 10.016905855275096,
           "apy_reward": null,
           "supply_tokens_display": "sUSDe",
-          "source_priority": 100,
           "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "id": 152,
@@ -680,8 +681,8 @@
           "borrow": [],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "debank",
-          "source_name": "fetch",
+          "source_type": "protocol_api",
+          "source_name": "canonical-yield-registry",
           "protocol_canonical": "ethena",
           "protocol_display": "Ethena",
           "protocol_category": "staking",
@@ -693,10 +694,10 @@
           "leverage": null,
           "apy_reward": null,
           "supply_tokens_display": "-",
-          "source_priority": 40,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "id": 153,
@@ -1452,8 +1453,8 @@
           "borrow": [],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "scanner",
-          "source_name": "aave-scanner",
+          "source_type": "protocol_api",
+          "source_name": "ybs-list",
           "protocol_canonical": "aave",
           "protocol_display": "Aave V3",
           "protocol_category": "lending",
@@ -1465,10 +1466,10 @@
           "leverage": 1,
           "apy_reward": null,
           "supply_tokens_display": "sUSDe",
-          "source_priority": 100,
           "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "id": 142,
@@ -1537,8 +1538,8 @@
           ],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "scanner",
-          "source_name": "aave-scanner",
+          "source_type": "protocol_api",
+          "source_name": "ybs-list",
           "protocol_canonical": "aave",
           "protocol_display": "Aave V3",
           "protocol_category": "lending",
@@ -1550,10 +1551,10 @@
           "leverage": 11.059138060284253,
           "apy_reward": null,
           "supply_tokens_display": "sUSDe, USDe",
-          "source_priority": 100,
           "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "id": 182,
@@ -1753,8 +1754,8 @@
           "borrow": [],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "scanner",
-          "source_name": "aave-scanner",
+          "source_type": "protocol_api",
+          "source_name": "ybs-list",
           "protocol_canonical": "aave",
           "protocol_display": "Aave V3",
           "protocol_category": "lending",
@@ -1766,10 +1767,10 @@
           "leverage": 1,
           "apy_reward": null,
           "supply_tokens_display": "sUSDe",
-          "source_priority": 100,
           "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "id": 192,
@@ -1892,8 +1893,8 @@
           ],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "scanner",
-          "source_name": "aave-scanner",
+          "source_type": "protocol_api",
+          "source_name": "ybs-list",
           "protocol_canonical": "aave",
           "protocol_display": "Aave V3",
           "protocol_category": "lending",
@@ -1905,10 +1906,10 @@
           "leverage": 4.562835453765864,
           "apy_reward": null,
           "supply_tokens_display": "sUSDe",
-          "source_priority": 100,
           "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "id": 26,
@@ -1984,8 +1985,8 @@
           "borrow": [],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "scanner",
-          "source_name": "aave-scanner",
+          "source_type": "protocol_api",
+          "source_name": "ybs-list",
           "protocol_canonical": "aave",
           "protocol_display": "Aave V3",
           "protocol_category": "lending",
@@ -1997,10 +1998,10 @@
           "leverage": 1,
           "apy_reward": null,
           "supply_tokens_display": "sUSDe",
-          "source_priority": 100,
           "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "id": 30,
@@ -2083,7 +2084,7 @@
           "wallet": "0x815f5BB257e88b67216a344C7C83a3eA4EE74748",
           "chain": "eth",
           "protocol_id": "capapp",
-          "protocol_name": "cap",
+          "protocol_name": "Cap",
           "position_type": "Yield",
           "strategy": "lend",
           "yield_source": "cap",
@@ -2098,8 +2099,8 @@
           "borrow": [],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "debank",
-          "source_name": "fetch",
+          "source_type": "protocol_api",
+          "source_name": "canonical-yield-registry",
           "protocol_canonical": "capapp",
           "protocol_display": "cap",
           "protocol_category": null,
@@ -2111,10 +2112,10 @@
           "leverage": null,
           "apy_reward": null,
           "supply_tokens_display": "-",
-          "source_priority": 40,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "id": 39,
@@ -2136,8 +2137,8 @@
           "borrow": [],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "debank",
-          "source_name": "fetch",
+          "source_type": "protocol_api",
+          "source_name": "canonical-vault-registry",
           "protocol_canonical": "upshift",
           "protocol_display": "Upshift",
           "protocol_category": null,
@@ -2149,10 +2150,10 @@
           "leverage": null,
           "apy_reward": null,
           "supply_tokens_display": "-",
-          "source_priority": 40,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "vault_position",
+          "source_priority": 80
         },
         {
           "id": 25,
@@ -2197,7 +2198,7 @@
           "wallet": "0x015CC48cC8bC37D80AAFf4e43061dbaF94192308",
           "chain": "eth",
           "protocol_id": "pendle2",
-          "protocol_name": "Pendle",
+          "protocol_name": "Pendle Fallback",
           "position_type": "Liquidity Pool",
           "strategy": "lend",
           "yield_source": "Pendle V2",
@@ -2445,8 +2446,8 @@
           ],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "scanner",
-          "source_name": "aave-scanner",
+          "source_type": "protocol_api",
+          "source_name": "ybs-list",
           "protocol_canonical": "aave",
           "protocol_display": "Aave V3",
           "protocol_category": "lending",
@@ -2458,10 +2459,10 @@
           "leverage": 9.754083887703915,
           "apy_reward": null,
           "supply_tokens_display": "sUSDe, USDe",
-          "source_priority": 100,
           "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "id": 124,
@@ -2521,8 +2522,8 @@
           "borrow": [],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "debank",
-          "source_name": "fetch",
+          "source_type": "protocol_api",
+          "source_name": "canonical-yield-registry",
           "protocol_canonical": "sky",
           "protocol_display": "Sky",
           "protocol_category": null,
@@ -2534,10 +2535,10 @@
           "leverage": null,
           "apy_reward": null,
           "supply_tokens_display": "-",
-          "source_priority": 40,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "id": 37,
@@ -2637,7 +2638,7 @@
           "wallet": "0xfAA7744b9Ed973290A36eE815b5AcC76856583a0",
           "chain": "eth",
           "protocol_id": "pendle2",
-          "protocol_name": "Pendle",
+          "protocol_name": "Pendle Fallback",
           "position_type": "Deposit",
           "strategy": "lend",
           "yield_source": "Pendle V2",
@@ -2762,8 +2763,8 @@
           ],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "scanner",
-          "source_name": "aave-scanner",
+          "source_type": "protocol_api",
+          "source_name": "ybs-list",
           "protocol_canonical": "aave",
           "protocol_display": "Aave V3",
           "protocol_category": "lending",
@@ -2775,10 +2776,10 @@
           "leverage": 12.11417625087742,
           "apy_reward": null,
           "supply_tokens_display": "sUSDe",
-          "source_priority": 100,
           "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "id": 162,
@@ -2994,8 +2995,8 @@
           ],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "scanner",
-          "source_name": "aave-scanner",
+          "source_type": "protocol_api",
+          "source_name": "ybs-list",
           "protocol_canonical": "aave",
           "protocol_display": "Aave V3",
           "protocol_category": "lending",
@@ -3007,10 +3008,10 @@
           "leverage": 9.233976519299189,
           "apy_reward": null,
           "supply_tokens_display": "sUSDe",
-          "source_priority": 100,
           "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "id": 160,
@@ -3239,7 +3240,7 @@
           "wallet": "0x09bfBC374C37c927909a0E7B278eE7Fdf47A380a",
           "chain": "plasma",
           "protocol_id": "plasma_pendle2",
-          "protocol_name": "Pendle",
+          "protocol_name": "Pendle Fallback",
           "position_type": "Liquidity Pool",
           "strategy": "lend",
           "yield_source": "Pendle V2",
@@ -3317,7 +3318,7 @@
           "wallet": "0x09bfBC374C37c927909a0E7B278eE7Fdf47A380a",
           "chain": "plasma",
           "protocol_id": "plasma_pendle2",
-          "protocol_name": "Pendle",
+          "protocol_name": "Pendle Fallback",
           "position_type": "Liquidity Pool",
           "strategy": "lend",
           "yield_source": "Pendle V2",
@@ -3443,8 +3444,8 @@
           "borrow": [],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "debank",
-          "source_name": "fetch",
+          "source_type": "protocol_api",
+          "source_name": "canonical-yield-registry",
           "protocol_canonical": "pendle",
           "protocol_display": "Pendle",
           "protocol_category": "yield-splitting",
@@ -3457,10 +3458,10 @@
           "apy_reward": null,
           "supply_tokens_display": "YT-sUSDE-7MAY2026",
           "pendle_status": "direct",
-          "source_priority": 40,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "id": 140,
@@ -4397,7 +4398,7 @@
           "wallet": "0xd1a1c248b253f1fc60eacd90777b9a63f8c8c1bc",
           "chain": "eth",
           "protocol_id": "infinifixyz",
-          "protocol_name": "infiniFi",
+          "protocol_name": "InfiniFi",
           "position_type": "Locked",
           "strategy": "lend",
           "yield_source": "infiniFi",
@@ -4412,8 +4413,8 @@
           "borrow": [],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "debank",
-          "source_name": "fetch",
+          "source_type": "protocol_api",
+          "source_name": "canonical-yield-registry",
           "protocol_canonical": "infinifixyz",
           "protocol_display": "infiniFi",
           "protocol_category": null,
@@ -4425,10 +4426,10 @@
           "leverage": null,
           "apy_reward": null,
           "supply_tokens_display": "-",
-          "source_priority": 40,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "indirect_strategy_exposure",
+          "source_priority": 80
         },
         {
           "id": 54,
@@ -4721,7 +4722,7 @@
               "wallet": "0xd1a1c248b253f1fc60eacd90777b9a63f8c8c1bc",
               "chain": "eth",
               "protocol_id": "infinifixyz",
-              "protocol_name": "infiniFi",
+              "protocol_name": "InfiniFi",
               "position_type": "Locked",
               "strategy": "lend",
               "yield_source": "infiniFi",
@@ -4736,8 +4737,8 @@
               "borrow": [],
               "rewards": [],
               "discovery_type": "onchain",
-              "source_type": "debank",
-              "source_name": "fetch",
+              "source_type": "protocol_api",
+              "source_name": "canonical-yield-registry",
               "protocol_canonical": "infinifixyz",
               "protocol_display": "infiniFi",
               "protocol_category": null,
@@ -4749,10 +4750,10 @@
               "leverage": null,
               "apy_reward": null,
               "supply_tokens_display": "-",
-              "source_priority": 40,
-              "confidence": "medium",
+              "confidence": "high",
               "normalization_status": "canonical",
-              "exposure_class": "direct_position"
+              "exposure_class": "indirect_strategy_exposure",
+              "source_priority": 80
             },
             {
               "id": 54,
@@ -5114,7 +5115,7 @@
           "apy_net": 8.5,
           "supply_tokens_display": "USDC",
           "source_priority": 80,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
           "exposure_class": "direct_position"
         },
@@ -5151,14 +5152,14 @@
           "paused": false,
           "manual": false,
           "source_type": "protocol_api",
-          "source_name": "fetch-infinifi",
+          "source_name": "ybs-list",
           "discovery_type": "onchain",
           "apy_net": 7.170000000000001,
           "supply_tokens_display": "stcUSD",
-          "source_priority": 80,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "wallet": "0xd880D7C5CaFdbE2AEc281250995abF612235e563",
@@ -5202,7 +5203,7 @@
           "apy_net": 3.77,
           "supply_tokens_display": "sUSDC",
           "source_priority": 80,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
           "exposure_class": "direct_position"
         },
@@ -5244,7 +5245,7 @@
           "apy_net": 5.53,
           "supply_tokens_display": "MPLhysUSDC1",
           "source_priority": 80,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
           "exposure_class": "direct_position"
         },
@@ -5286,7 +5287,7 @@
           "apy_net": 5,
           "supply_tokens_display": "USDC",
           "source_priority": 80,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
           "exposure_class": "direct_position"
         },
@@ -5323,14 +5324,14 @@
           "paused": false,
           "manual": false,
           "source_type": "protocol_api",
-          "source_name": "fetch-infinifi",
+          "source_name": "canonical-yield-registry",
           "discovery_type": "onchain",
           "apy_net": 8.15,
           "supply_tokens_display": "steakUSDCinfinifi",
-          "source_priority": 80,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "indirect_strategy_exposure",
+          "source_priority": 80
         },
         {
           "wallet": "0x817d93DbdFd8190bbef0a73fCf5Dd9DA5A87E032",
@@ -5370,7 +5371,7 @@
           "apy_net": 3.2700000000000005,
           "supply_tokens_display": "USDC",
           "source_priority": 80,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
           "exposure_class": "direct_position"
         },
@@ -5407,14 +5408,14 @@
           "paused": false,
           "manual": false,
           "source_type": "protocol_api",
-          "source_name": "fetch-infinifi",
+          "source_name": "canonical-yield-registry",
           "discovery_type": "onchain",
           "apy_net": 7.4,
           "supply_tokens_display": "infinifiUSD",
-          "source_priority": 80,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "indirect_strategy_exposure",
+          "source_priority": 80
         },
         {
           "wallet": "0x7E9AA426abC2D9006E8C9881754BAA00a392158d",
@@ -5454,7 +5455,7 @@
           "apy_net": 5.81,
           "supply_tokens_display": "sGHO",
           "source_priority": 80,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
           "exposure_class": "direct_position"
         },
@@ -5496,7 +5497,7 @@
           "apy_net": 3.13,
           "supply_tokens_display": "RLUSD",
           "source_priority": 80,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
           "exposure_class": "direct_position"
         }
@@ -5794,8 +5795,8 @@
           ],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "scanner",
-          "source_name": "aave-scanner",
+          "source_type": "protocol_api",
+          "source_name": "canonical-yield-registry",
           "protocol_canonical": "aave",
           "protocol_display": "Aave V3",
           "protocol_category": "lending",
@@ -5807,10 +5808,10 @@
           "leverage": 12.210939312853721,
           "apy_reward": null,
           "supply_tokens_display": "PT-sUSDE-18JUN2026",
-          "source_priority": 100,
           "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         }
       ],
       "is_multi_vault": true,
@@ -6124,8 +6125,8 @@
               ],
               "rewards": [],
               "discovery_type": "onchain",
-              "source_type": "scanner",
-              "source_name": "aave-scanner",
+              "source_type": "protocol_api",
+              "source_name": "canonical-yield-registry",
               "protocol_canonical": "aave",
               "protocol_display": "Aave V3",
               "protocol_category": "lending",
@@ -6137,10 +6138,10 @@
               "leverage": 12.210939312853721,
               "apy_reward": null,
               "supply_tokens_display": "PT-sUSDE-18JUN2026",
-              "source_priority": 100,
               "confidence": "high",
               "normalization_status": "canonical",
-              "exposure_class": "direct_position"
+              "exposure_class": "yield_bearing_stable",
+              "source_priority": 80
             }
           ],
           "slug": "upshift-singularv"
@@ -6234,8 +6235,8 @@
           "borrow": [],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "scanner",
-          "source_name": "aave-scanner",
+          "source_type": "protocol_api",
+          "source_name": "ybs-list",
           "protocol_canonical": "aave",
           "protocol_display": "Aave V3",
           "protocol_category": "lending",
@@ -6247,10 +6248,10 @@
           "leverage": 1,
           "apy_reward": null,
           "supply_tokens_display": "sUSDe",
-          "source_priority": 100,
           "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "id": 231,
@@ -6535,8 +6536,8 @@
           ],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "scanner",
-          "source_name": "aave-scanner",
+          "source_type": "protocol_api",
+          "source_name": "ybs-list",
           "protocol_canonical": "aave",
           "protocol_display": "Aave V3",
           "protocol_category": "lending",
@@ -6548,10 +6549,10 @@
           "leverage": 8.824462807132162,
           "apy_reward": null,
           "supply_tokens_display": "sUSDe, USDe, WMNT",
-          "source_priority": 100,
           "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "id": 104,
@@ -6643,8 +6644,8 @@
           "borrow": [],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "debank",
-          "source_name": "fetch",
+          "source_type": "protocol_api",
+          "source_name": "canonical-yield-registry",
           "protocol_canonical": "sky",
           "protocol_display": "Sky",
           "protocol_category": null,
@@ -6656,10 +6657,10 @@
           "leverage": null,
           "apy_reward": null,
           "supply_tokens_display": "-",
-          "source_priority": 40,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "id": 96,
@@ -6743,8 +6744,8 @@
           ],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "scanner",
-          "source_name": "aave-scanner",
+          "source_type": "protocol_api",
+          "source_name": "ybs-list",
           "protocol_canonical": "aave",
           "protocol_display": "Aave V3",
           "protocol_category": "lending",
@@ -6756,10 +6757,10 @@
           "leverage": 10.036184059515016,
           "apy_reward": null,
           "supply_tokens_display": "sUSDe, USDe, WMNT",
-          "source_priority": 100,
           "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "id": 115,
@@ -6965,8 +6966,8 @@
           ],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "scanner",
-          "source_name": "aave-scanner",
+          "source_type": "protocol_api",
+          "source_name": "ybs-list",
           "protocol_canonical": "aave",
           "protocol_display": "Aave V3",
           "protocol_category": "lending",
@@ -6978,10 +6979,10 @@
           "leverage": 11.19136744648456,
           "apy_reward": null,
           "supply_tokens_display": "sUSDe",
-          "source_priority": 100,
           "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "id": 228,
@@ -7166,8 +7167,8 @@
           ],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "scanner",
-          "source_name": "aave-scanner",
+          "source_type": "protocol_api",
+          "source_name": "ybs-list",
           "protocol_canonical": "aave",
           "protocol_display": "Aave V3",
           "protocol_category": "lending",
@@ -7179,10 +7180,10 @@
           "leverage": 12.484530894668099,
           "apy_reward": null,
           "supply_tokens_display": "sUSDe",
-          "source_priority": 100,
           "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "id": 224,
@@ -7549,8 +7550,8 @@
               ],
               "rewards": [],
               "discovery_type": "onchain",
-              "source_type": "scanner",
-              "source_name": "aave-scanner",
+              "source_type": "protocol_api",
+              "source_name": "ybs-list",
               "protocol_canonical": "aave",
               "protocol_display": "Aave V3",
               "protocol_category": "lending",
@@ -7562,10 +7563,10 @@
               "leverage": 8.824462807132162,
               "apy_reward": null,
               "supply_tokens_display": "sUSDe, USDe, WMNT",
-              "source_priority": 100,
               "confidence": "high",
               "normalization_status": "canonical",
-              "exposure_class": "direct_position"
+              "exposure_class": "yield_bearing_stable",
+              "source_priority": 80
             },
             {
               "id": 77,
@@ -7928,8 +7929,8 @@
               "borrow": [],
               "rewards": [],
               "discovery_type": "onchain",
-              "source_type": "scanner",
-              "source_name": "aave-scanner",
+              "source_type": "protocol_api",
+              "source_name": "ybs-list",
               "protocol_canonical": "aave",
               "protocol_display": "Aave V3",
               "protocol_category": "lending",
@@ -7941,10 +7942,10 @@
               "leverage": 1,
               "apy_reward": null,
               "supply_tokens_display": "sUSDe",
-              "source_priority": 100,
               "confidence": "high",
               "normalization_status": "canonical",
-              "exposure_class": "direct_position"
+              "exposure_class": "yield_bearing_stable",
+              "source_priority": 80
             },
             {
               "id": 94,
@@ -8074,8 +8075,8 @@
               "borrow": [],
               "rewards": [],
               "discovery_type": "onchain",
-              "source_type": "debank",
-              "source_name": "fetch",
+              "source_type": "protocol_api",
+              "source_name": "canonical-yield-registry",
               "protocol_canonical": "sky",
               "protocol_display": "Sky",
               "protocol_category": null,
@@ -8087,10 +8088,10 @@
               "leverage": null,
               "apy_reward": null,
               "supply_tokens_display": "-",
-              "source_priority": 40,
-              "confidence": "medium",
+              "confidence": "high",
               "normalization_status": "canonical",
-              "exposure_class": "direct_position"
+              "exposure_class": "yield_bearing_stable",
+              "source_priority": 80
             },
             {
               "id": 96,
@@ -8174,8 +8175,8 @@
               ],
               "rewards": [],
               "discovery_type": "onchain",
-              "source_type": "scanner",
-              "source_name": "aave-scanner",
+              "source_type": "protocol_api",
+              "source_name": "ybs-list",
               "protocol_canonical": "aave",
               "protocol_display": "Aave V3",
               "protocol_category": "lending",
@@ -8187,10 +8188,10 @@
               "leverage": 10.036184059515016,
               "apy_reward": null,
               "supply_tokens_display": "sUSDe, USDe, WMNT",
-              "source_priority": 100,
               "confidence": "high",
               "normalization_status": "canonical",
-              "exposure_class": "direct_position"
+              "exposure_class": "yield_bearing_stable",
+              "source_priority": 80
             },
             {
               "id": 115,
@@ -8320,8 +8321,8 @@
               ],
               "rewards": [],
               "discovery_type": "onchain",
-              "source_type": "scanner",
-              "source_name": "aave-scanner",
+              "source_type": "protocol_api",
+              "source_name": "ybs-list",
               "protocol_canonical": "aave",
               "protocol_display": "Aave V3",
               "protocol_category": "lending",
@@ -8333,10 +8334,10 @@
               "leverage": 11.19136744648456,
               "apy_reward": null,
               "supply_tokens_display": "sUSDe",
-              "source_priority": 100,
               "confidence": "high",
               "normalization_status": "canonical",
-              "exposure_class": "direct_position"
+              "exposure_class": "yield_bearing_stable",
+              "source_priority": 80
             },
             {
               "id": 116,
@@ -8390,8 +8391,8 @@
               ],
               "rewards": [],
               "discovery_type": "onchain",
-              "source_type": "scanner",
-              "source_name": "aave-scanner",
+              "source_type": "protocol_api",
+              "source_name": "ybs-list",
               "protocol_canonical": "aave",
               "protocol_display": "Aave V3",
               "protocol_category": "lending",
@@ -8403,10 +8404,10 @@
               "leverage": 12.484530894668099,
               "apy_reward": null,
               "supply_tokens_display": "sUSDe",
-              "source_priority": 100,
               "confidence": "high",
               "normalization_status": "canonical",
-              "exposure_class": "direct_position"
+              "exposure_class": "yield_bearing_stable",
+              "source_priority": 80
             },
             {
               "id": 200,
@@ -8716,8 +8717,8 @@
           "borrow": [],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "debank",
-          "source_name": "fetch",
+          "source_type": "protocol_api",
+          "source_name": "canonical-yield-registry",
           "protocol_canonical": "ethena",
           "protocol_display": "Ethena",
           "protocol_category": "staking",
@@ -8731,10 +8732,10 @@
           "asset_type": "Ethena",
           "apy_current": 4.53145,
           "supply_tokens_display": "-",
-          "source_priority": 40,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "id": 121,
@@ -8756,8 +8757,8 @@
           "borrow": [],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "debank",
-          "source_name": "fetch",
+          "source_type": "protocol_api",
+          "source_name": "canonical-yield-registry",
           "protocol_canonical": "ethena",
           "protocol_display": "Ethena",
           "protocol_category": "staking",
@@ -8771,10 +8772,10 @@
           "asset_type": "Ethena",
           "apy_current": 4.53145,
           "supply_tokens_display": "-",
-          "source_priority": 40,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "id": 122,
@@ -8796,8 +8797,8 @@
           "borrow": [],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "debank",
-          "source_name": "fetch",
+          "source_type": "protocol_api",
+          "source_name": "canonical-yield-registry",
           "protocol_canonical": "ethena",
           "protocol_display": "Ethena",
           "protocol_category": "staking",
@@ -8811,10 +8812,10 @@
           "asset_type": "Ethena",
           "apy_current": 4.53145,
           "supply_tokens_display": "-",
-          "source_priority": 40,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "id": 120,
@@ -8875,8 +8876,8 @@
           "borrow": [],
           "rewards": [],
           "discovery_type": "onchain",
-          "source_type": "debank",
-          "source_name": "fetch",
+          "source_type": "protocol_api",
+          "source_name": "canonical-yield-registry",
           "protocol_canonical": "ethena",
           "protocol_display": "Ethena",
           "protocol_category": "staking",
@@ -8890,10 +8891,10 @@
           "asset_type": "Ethena",
           "apy_current": 4.53145,
           "supply_tokens_display": "-",
-          "source_priority": 40,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "direct_position"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         },
         {
           "wallet": "off-chain",
@@ -8983,8 +8984,8 @@
               "borrow": [],
               "rewards": [],
               "discovery_type": "onchain",
-              "source_type": "debank",
-              "source_name": "fetch",
+              "source_type": "protocol_api",
+              "source_name": "canonical-yield-registry",
               "protocol_canonical": "ethena",
               "protocol_display": "Ethena",
               "protocol_category": "staking",
@@ -8998,10 +8999,10 @@
               "asset_type": "Ethena",
               "apy_current": 4.53145,
               "supply_tokens_display": "-",
-              "source_priority": 40,
-              "confidence": "medium",
+              "confidence": "high",
               "normalization_status": "canonical",
-              "exposure_class": "direct_position"
+              "exposure_class": "yield_bearing_stable",
+              "source_priority": 80
             },
             {
               "id": 121,
@@ -9023,8 +9024,8 @@
               "borrow": [],
               "rewards": [],
               "discovery_type": "onchain",
-              "source_type": "debank",
-              "source_name": "fetch",
+              "source_type": "protocol_api",
+              "source_name": "canonical-yield-registry",
               "protocol_canonical": "ethena",
               "protocol_display": "Ethena",
               "protocol_category": "staking",
@@ -9038,10 +9039,10 @@
               "asset_type": "Ethena",
               "apy_current": 4.53145,
               "supply_tokens_display": "-",
-              "source_priority": 40,
-              "confidence": "medium",
+              "confidence": "high",
               "normalization_status": "canonical",
-              "exposure_class": "direct_position"
+              "exposure_class": "yield_bearing_stable",
+              "source_priority": 80
             },
             {
               "id": 122,
@@ -9063,8 +9064,8 @@
               "borrow": [],
               "rewards": [],
               "discovery_type": "onchain",
-              "source_type": "debank",
-              "source_name": "fetch",
+              "source_type": "protocol_api",
+              "source_name": "canonical-yield-registry",
               "protocol_canonical": "ethena",
               "protocol_display": "Ethena",
               "protocol_category": "staking",
@@ -9078,10 +9079,10 @@
               "asset_type": "Ethena",
               "apy_current": 4.53145,
               "supply_tokens_display": "-",
-              "source_priority": 40,
-              "confidence": "medium",
+              "confidence": "high",
               "normalization_status": "canonical",
-              "exposure_class": "direct_position"
+              "exposure_class": "yield_bearing_stable",
+              "source_priority": 80
             },
             {
               "id": 120,
@@ -9142,8 +9143,8 @@
               "borrow": [],
               "rewards": [],
               "discovery_type": "onchain",
-              "source_type": "debank",
-              "source_name": "fetch",
+              "source_type": "protocol_api",
+              "source_name": "canonical-yield-registry",
               "protocol_canonical": "ethena",
               "protocol_display": "Ethena",
               "protocol_category": "staking",
@@ -9157,10 +9158,10 @@
               "asset_type": "Ethena",
               "apy_current": 4.53145,
               "supply_tokens_display": "-",
-              "source_priority": 40,
-              "confidence": "medium",
+              "confidence": "high",
               "normalization_status": "canonical",
-              "exposure_class": "direct_position"
+              "exposure_class": "yield_bearing_stable",
+              "source_priority": 80
             }
           ],
           "slug": "re-protocol"
@@ -9504,7 +9505,7 @@
           "apy_net": 0,
           "supply_tokens_display": "USDC",
           "source_priority": 80,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
           "exposure_class": "manual_offchain"
         },
@@ -9549,7 +9550,7 @@
           "apy_net": 0,
           "supply_tokens_display": "USDC",
           "source_priority": 80,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
           "exposure_class": "manual_offchain"
         },
@@ -9594,7 +9595,7 @@
           "apy_net": 0,
           "supply_tokens_display": "USDC",
           "source_priority": 80,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
           "exposure_class": "manual_offchain"
         },
@@ -9634,14 +9635,14 @@
           "manual": false,
           "asset_type": "DeFi",
           "source_type": "protocol_api",
-          "source_name": "fetch-pareto",
+          "source_name": "canonical-yield-registry",
           "discovery_type": "mixed",
           "apy_net": 0,
           "supply_tokens_display": "USDC",
-          "source_priority": 80,
-          "confidence": "medium",
+          "confidence": "high",
           "normalization_status": "canonical",
-          "exposure_class": "manual_offchain"
+          "exposure_class": "yield_bearing_stable",
+          "source_priority": 80
         }
       ],
       "is_multi_vault": false,

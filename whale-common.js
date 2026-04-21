@@ -10,8 +10,8 @@
 const COLUMNS = [
   { key: 'wallet',     label: 'Wallet',        field: 'wallet',          render: v => '<a href="https://debank.com/profile/' + v + '" target="_blank" style="color:var(--accent-blue);text-decoration:none">' + shortWallet(v) + '</a>', sortable: true },
   { key: 'chain',      label: 'Chain',         field: 'chain',           render: v => (v || '').toUpperCase() },
-  { key: 'protocol',   label: 'Protocol',      field: 'asset_type', fallback: 'protocol_name' },
-  { key: 'strategy',   label: 'Strategy',      field: 'strategy',        render: v => strategyBadge(v) },
+  { key: 'protocol',   label: 'Protocol',      field: 'protocol_name' },
+  { key: 'strategy',   label: 'Strategy',      field: 'strategy',        render: (v, p) => strategyBadge(v, p) },
   { key: 'supply',     label: 'Supply Tokens', field: 'supply_tokens_display' },
   { key: 'borrow',     label: 'Borrow Tokens', field: 'borrow',          render: v => (v || []).map(t => t.symbol).filter(Boolean).join(', ') || '-' },
   { key: 'supply_usd', label: 'Supply USD',    field: 'asset_usd',       format: 'usd_short', align: 'right' },
@@ -65,8 +65,8 @@ function fmtShort(n) {
   return '$' + n.toFixed(2);
 }
 
-function formatValue(val, format, render) {
-  if (render) return render(val);
+function formatValue(val, format, render, row) {
+  if (render) return render(val, row);
   switch (format) {
     case 'usd_short': return fmtShort(val);
     case 'usd': return fmt(val);
@@ -89,10 +89,16 @@ function hfClass(hf) {
   return 'hf-danger';
 }
 
-function strategyBadge(s) {
-  if (!s) return '';
-  const cls = { Loop: 'badge-loop', Lend: 'badge-lend', Farm: 'badge-farm', Stake: 'badge-stake', LP: 'badge-lp' }[s] || 'badge-illiquid';
-  return '<span class="badge ' + cls + '">' + s + '</span>';
+function strategyBadge(s, p) {
+  const label = s || '';
+  const cls = { Loop: 'badge-loop', Lend: 'badge-lend', Farm: 'badge-farm', Stake: 'badge-stake', LP: 'badge-lp' }[label] || 'badge-illiquid';
+  let html = label ? '<span class="badge ' + cls + '">' + label + '</span>' : '-';
+  if (p && p.source_type === 'fallback') {
+    html += ' <span class="badge badge-illiquid">Fallback</span>';
+  } else if (p && p.source_type === 'protocol_api') {
+    html += ' <span class="badge badge-liquid">Canonical</span>';
+  }
+  return html;
 }
 
 function shortWallet(addr) {
@@ -116,7 +122,7 @@ function renderTable(data) {
   body.innerHTML = data.map(p => {
     const cells = COLUMNS.map(c => {
       const val = getFieldValue(p, c);
-      const display = formatValue(val, c.format, c.render);
+      const display = formatValue(val, c.format, c.render, p);
       const style = [];
       if (c.bold) style.push('font-weight:600');
       if (c.color === 'green') style.push('color:var(--accent-green)');
@@ -307,6 +313,7 @@ function showDetail(p) {
     '<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:600px;margin:50px auto">' +
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">' +
       '<h3 style="margin:0">' + getFieldValue(p, protocolCol) + ' \u2014 ' + (p.supply ? p.supply.map(t => t.symbol).join('/') : (p.symbol || '')) + '</h3>' +
+      '<div style="font-size:12px;color:var(--text-secondary);margin-top:4px">' + (p.source_type || 'unknown') + ' · ' + (p.normalization_status || 'unknown') + '</div>' +
       '<button onclick="document.getElementById(&quot;detail-modal&quot;).style.display=&quot;none&quot; style="background:none;border:none;color:var(--text-secondary);font-size:20px;cursor:pointer;">\u00d7</button>' +
     '</div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">' +
