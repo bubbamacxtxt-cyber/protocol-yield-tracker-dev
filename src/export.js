@@ -10,6 +10,61 @@ const Database = require('better-sqlite3');
 const DB_PATH = path.join(__dirname, '..', 'yield-tracker.db');
 const https = require('https');
 const OUT_PATH = path.join(__dirname, '..', 'data.json');
+const PROTOCOL_REGISTRY_PATH = path.join(__dirname, '..', 'data', 'protocol-registry.json');
+
+function loadProtocolRegistry() {
+    try {
+        return JSON.parse(fs.readFileSync(PROTOCOL_REGISTRY_PATH, 'utf8')).protocols || {};
+    } catch {
+        return {};
+    }
+}
+
+function applyProtocolRegistry(position, registry) {
+    const p = position;
+    const pid = String(p.protocol_id || '').toLowerCase();
+    const pname = String(p.protocol_name || '');
+    for (const [key, entry] of Object.entries(registry || {})) {
+        if ((entry.aliases || []).includes(pid) || (entry.name_aliases || []).includes(pname)) {
+            p.protocol_canonical = key;
+            p.protocol_display = entry.display_name || p.protocol_name;
+            p.protocol_category = entry.category || null;
+            if (entry.display_name) p.protocol_name = entry.display_name;
+            return p;
+        }
+    }
+    p.protocol_canonical = pid || String(pname || '').toLowerCase().replace(/\s+/g, '-');
+    p.protocol_display = p.protocol_name;
+    p.protocol_category = null;
+    return p;
+}
+
+function finalizeSourceMeta(position) {
+    const p = position;
+    if (!p.source_priority) {
+        if (p.source_type === 'scanner') p.source_priority = 100;
+        else if (p.source_type === 'protocol_api') p.source_priority = 80;
+        else if (p.source_type === 'manual') p.source_priority = 70;
+        else if (p.source_type === 'debank' || p.source_type === 'fallback') p.source_priority = 40;
+        else p.source_priority = 50;
+    }
+    if (!p.confidence) {
+        if (p.pendle_status === 'fallback') p.confidence = 'low';
+        else if (p.source_type === 'scanner') p.confidence = 'high';
+        else if (p.source_type === 'manual') p.confidence = 'medium';
+        else p.confidence = 'medium';
+    }
+    if (!p.normalization_status) {
+        if (p.pendle_status === 'fallback') p.normalization_status = 'unresolved';
+        else p.normalization_status = 'canonical';
+    }
+    if (!p.exposure_class) {
+        if (p.pendle_status === 'fallback') p.exposure_class = 'bundled_protocol_fallback';
+        else if (p.wallet === 'off-chain') p.exposure_class = 'manual_offchain';
+        else p.exposure_class = 'direct_position';
+    }
+    return p;
+}
 
 function normalizeSourceMeta(position) {
     const p = position;
@@ -94,6 +149,7 @@ function fetchEulerAPYs() {
 async function main() {
     const db = new Database(DB_PATH, { readonly: true });
     let eulerApys = {};
+    const protocolRegistry = loadProtocolRegistry();
     
     // Fetch Euler APYs
     try {
@@ -157,6 +213,7 @@ async function main() {
         delete p.borrow_json;
         delete p.reward_json;
         normalizeSourceMeta(p);
+        applyProtocolRegistry(p, protocolRegistry);
 
         // Normalize chain names to lowercase
         const chainMap = { 1: 'eth', 8453: 'base', 42161: 'arb', 137: 'poly', 10: 'opt', 146: 'sonic', 9745: 'plasma', 5000: 'mnt', 130: 'uni', 143: 'monad', 999: 'ink', 2741: 'abstract', 747474: 'wct', 81457: 'blast' };
@@ -655,8 +712,10 @@ async function main() {
                 p.strategy = p.strategy || pid;
             } else if (pid === 'pendle2' || pid === 'arb_pendle2' || pid === 'plasma_pendle2') {
                 p.pendle_status = 'fallback';
+                p.source_type = 'fallback';
                 if (!p.asset_type) p.asset_type = 'Pendle Fallback';
             }
+            finalizeSourceMeta(p);
         }
     }
 

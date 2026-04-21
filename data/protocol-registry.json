@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "updated_at": "2026-04-21T06:13:00Z",
+  "protocols": {
+    "aave": {
+      "canonical_id": "aave-v3",
+      "display_name": "Aave V3",
+      "aliases": ["aave-v3", "aave3", "base_aave3", "plasma_aave3", "mnt_aave3", "ink_aave3"],
+      "name_aliases": ["Aave v3", "Aave V3"],
+      "category": "lending",
+      "preferred_source_type": "scanner"
+    },
+    "morpho": {
+      "canonical_id": "morpho",
+      "display_name": "Morpho",
+      "aliases": ["morpho"],
+      "name_aliases": ["Morpho"],
+      "category": "lending",
+      "preferred_source_type": "scanner"
+    },
+    "euler": {
+      "canonical_id": "euler2",
+      "display_name": "Euler",
+      "aliases": ["euler2"],
+      "name_aliases": ["Euler"],
+      "category": "lending",
+      "preferred_source_type": "scanner"
+    },
+    "spark": {
+      "canonical_id": "spark",
+      "display_name": "Spark",
+      "aliases": ["spark", "spark-savings", "spark-lend"],
+      "name_aliases": ["Spark", "Spark sUSDC"],
+      "category": "lending",
+      "preferred_source_type": "scanner"
+    },
+    "pendle": {
+      "canonical_id": "pendle",
+      "display_name": "Pendle",
+      "aliases": ["pendle-pt", "pendle-yt", "pendle-lp", "pendle2", "arb_pendle2", "plasma_pendle2"],
+      "name_aliases": ["Pendle", "Pendle V2"],
+      "category": "yield-splitting",
+      "preferred_source_type": "mixed"
+    },
+    "ethena": {
+      "canonical_id": "ethena",
+      "display_name": "Ethena",
+      "aliases": ["ethena"],
+      "name_aliases": ["Ethena"],
+      "category": "staking",
+      "preferred_source_type": "mixed"
+    },
+    "fluid": {
+      "canonical_id": "fluid",
+      "display_name": "Fluid",
+      "aliases": ["arb_fluid", "plasma_fluid", "fluid"],
+      "name_aliases": ["Fluid"],
+      "category": "lending",
+      "preferred_source_type": "scanner"
+    },
+    "curve": {
+      "canonical_id": "curve",
+      "display_name": "Curve",
+      "aliases": ["curve", "arb_curve", "plasma_curve"],
+      "name_aliases": ["Curve"],
+      "category": "lp",
+      "preferred_source_type": "mixed"
+    }
+  }
+}

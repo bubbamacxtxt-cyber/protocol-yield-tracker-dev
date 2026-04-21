@@ -84,6 +84,9 @@ jobs:
       - name: Export to data.json
         run: node src/export.js
 
+      - name: Build source audit
+        run: node src/source-audit.js
+
       - name: Validate data (5% threshold)
         id: validate
         run: node src/validate.js
@@ -102,4 +105,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Auto-update whale data ${{ github.run_number }}"
-          file_pattern: data/whales/ data/manual-positions.json data/total-history.json data.json yield-tracker.db
+          file_pattern: data/whales/ data/manual-positions.json data/total-history.json data/source-audit.json data/protocol-registry.json data.json yield-tracker.db
