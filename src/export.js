@@ -462,8 +462,8 @@ async function main() {
     // Dropping all DeBank Pendle per-wallet caused us to hide real LP / unmatched exposure.
     const filteredPositions = allPositions;
 
-    // Deduplicate: merge positions with same wallet + chain + protocol + first supply token symbol
-    // For positions with no supply tokens, use position_index as the key component
+    // Deduplicate: merge positions with same wallet + chain + protocol + first supply token symbol.
+    // Special handling: Aave lend+borrow slices for the same wallet/chain/market should collapse into one row.
     const posMap = new Map();
     // Vault → underlying mapping for Euler dedup
     const vaultToUnderlying = {
@@ -483,24 +483,43 @@ async function main() {
                 supplySymbol = sym.toLowerCase();
             }
         }
-        const key = `${p.wallet}|${p.chain}|${p.protocol_id}|${supplySymbol}`;
+        const isAave = String(p.protocol_name || '').includes('Aave');
+        const aaveBorrowOnly = isAave && (!p.supply || p.supply.length === 0) && (p.borrow && p.borrow.length > 0);
+        const aaveMergeKey = isAave && !aaveBorrowOnly && String(p.position_index || '').trim()
+            ? `${String(p.wallet || '').toLowerCase()}|${p.chain}|${p.protocol_id}|${String(p.position_index || '').toLowerCase()}`
+            : null;
+        const key = aaveMergeKey || `${String(p.wallet || '').toLowerCase()}|${p.chain}|${p.protocol_id}|${supplySymbol}`;
         
         if (posMap.has(key)) {
             const existing = posMap.get(key);
-            // Merge: prefer position with more data (scanner > DeBank)
-            if (p.asset_usd > 0 && (existing.asset_usd === 0 || existing.asset_usd == null)) existing.asset_usd = p.asset_usd;
-            if (p.debt_usd > 0 && (existing.debt_usd === 0 || existing.debt_usd == null)) existing.debt_usd = p.debt_usd;
-            if (Math.abs(p.net_usd) > 0 && (existing.net_usd === 0 || existing.net_usd == null)) existing.net_usd = p.net_usd;
+            // Merge: prefer row with more complete economic state
+            if ((p.asset_usd || 0) > 0 && ((existing.asset_usd || 0) === 0 || existing.asset_usd == null)) existing.asset_usd = p.asset_usd;
+            if ((p.debt_usd || 0) > 0 && ((existing.debt_usd || 0) === 0 || existing.debt_usd == null)) existing.debt_usd = p.debt_usd;
+            if (Math.abs(p.net_usd || 0) > Math.abs(existing.net_usd || 0)) existing.net_usd = p.net_usd;
             if (existing.apy_base == null && p.apy_base != null) existing.apy_base = p.apy_base;
             if (existing.bonus_supply == null && p.bonus_supply != null) existing.bonus_supply = p.bonus_supply;
             if (existing.apy_net == null && p.apy_net != null) existing.apy_net = p.apy_net;
-            // Prefer scanner positions (has supply tokens)
-            if (p.supply?.length > 0) existing.supply = p.supply;
-            if (p.borrow?.length > 0) existing.borrow = p.borrow;
-            // Prefer Pendle scanner strategy/type labels when available
+            if (existing.apy_cost == null && p.apy_cost != null) existing.apy_cost = p.apy_cost;
+            if (existing.health_rate == null && p.health_rate != null && p.health_rate < 1000) existing.health_rate = p.health_rate;
+
+            const mergeTokens = (target, incoming) => {
+                const out = [...(target || [])];
+                for (const t of (incoming || [])) {
+                    const tk = `${String(t.address || '').toLowerCase()}|${String(t.symbol || '').toLowerCase()}`;
+                    if (!out.some(x => `${String(x.address || '').toLowerCase()}|${String(x.symbol || '').toLowerCase()}` === tk)) out.push(t);
+                }
+                return out;
+            };
+            existing.supply = mergeTokens(existing.supply, p.supply);
+            existing.borrow = mergeTokens(existing.borrow, p.borrow);
+            existing.rewards = mergeTokens(existing.rewards, p.rewards);
+
+            // Strategy: if there is any borrow leg, keep row as lend (not separate borrow row) but preserve borrow tokens.
             if (String(p.protocol_name || '').toLowerCase() === 'pendle' && String(p.strategy || '').startsWith('pendle-')) {
                 existing.strategy = p.strategy;
-            } else if (p.strategy === 'lend' || p.strategy === 'borrow') {
+            } else if ((existing.borrow && existing.borrow.length > 0) || (p.borrow && p.borrow.length > 0)) {
+                existing.strategy = 'lend';
+            } else if (p.strategy) {
                 existing.strategy = p.strategy;
             }
         } else {
@@ -569,19 +588,30 @@ async function main() {
         }
     }
 
-    // Filter dust positions (< $100) and fix bogus health_factor
+    // Filter dust positions (< $100) and fix bogus health/health_factor values
     const filtered = deduped.filter(p => {
-        // Remove dust: tiny positions (scanner artifacts or DeBank junk)
-        // Keep genuinely small live positions like yoUSD, so use a softer floor.
         const totalUsd = Math.abs(p.asset_usd || 0) + Math.abs(p.debt_usd || 0);
         if (totalUsd < 50) return false;
         return true;
     });
     
-    // Fix bogus health_factor: DeBank returns 1e+59 for supply-only positions
     for (const p of filtered) {
-        if (p.health_factor > 1000 && (!p.borrow || p.borrow.length === 0)) {
-            p.health_factor = null;
+        // Normalize to health_rate only
+        if (p.health_rate == null && p.health_factor != null) p.health_rate = p.health_factor;
+
+        // Bogus giant health for supply-only rows
+        if (p.health_rate > 1000 && (!p.borrow || p.borrow.length === 0)) {
+            p.health_rate = null;
+        }
+
+        // If there is borrow exposure and no health value, suppress fake leftover huge/null artifacts only.
+        if (p.health_rate != null && p.health_rate > 1000) {
+            p.health_rate = null;
+        }
+
+        // Borrow rows should not survive separately for Aave after merge; if they do, keep only rows with either supply or borrow+health context.
+        if (String(p.protocol_name || '').includes('Aave') && (!p.supply || p.supply.length === 0) && (!p.borrow || p.borrow.length === 0)) {
+            p._drop = true;
         }
     }
 
@@ -600,7 +630,7 @@ async function main() {
         }
 
         const walletSet = new Set(walletList.map(w => w.toLowerCase()));
-        const positions = filtered.filter(p => walletSet.has(p.wallet.toLowerCase()));
+        const positions = filtered.filter(p => !p._drop && walletSet.has(p.wallet.toLowerCase()));
 
         // Fix Re Protocol on-chain positions
         // DeBank mislabels sUSDe as USDe and calls protocol "Ethena"
