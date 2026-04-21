@@ -330,7 +330,7 @@ function showDetail(p) {
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">' +
       '<h3 style="margin:0">' + getFieldValue(p, protocolCol) + ' \u2014 ' + (p.supply ? p.supply.map(t => t.symbol).join('/') : (p.symbol || '')) + '</h3>' +
       '<div style="font-size:12px;color:var(--text-secondary);margin-top:4px">' + (p.source_type || 'unknown') + ' · ' + (p.normalization_status || 'unknown') + (p.exposure_class ? ' · ' + p.exposure_class : '') + '</div>' +
-      '<button onclick="document.getElementById(&quot;detail-modal&quot;).style.display=&quot;none&quot; style="background:none;border:none;color:var(--text-secondary);font-size:20px;cursor:pointer;">\u00d7</button>' +
+      '<button onclick="document.getElementById(&quot;detail-modal&quot;).style.display=&quot;none&quot;" style="background:none;border:none;color:var(--text-secondary);font-size:20px;cursor:pointer;">\u00d7</button>' +
     '</div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">' +
       '<div><div style="color:var(--text-secondary);font-size:12px">Supply</div><div style="font-size:13px">' + (supplyDetail || '-') + '</div></div>' +
