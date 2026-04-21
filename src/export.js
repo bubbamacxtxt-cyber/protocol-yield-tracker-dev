@@ -221,13 +221,17 @@ function normalizeTokenCluster(tokens = []) {
 }
 
 function clusterKey(position) {
+    // For manual/protocol_api positions, include the position name/deal ID to avoid collapsing
+    // distinct investments (e.g., Anzen bonds, Pareto funds, InfiniFi strategies)
+    const isManualOrApi = ['manual', 'protocol_api'].includes(String(position.source_type || '').toLowerCase());
+    const nameSuffix = isManualOrApi ? '|' + String(position.protocol_name || position.position_index || '').toLowerCase() : '';
     return [
         String(position.wallet || '').toLowerCase(),
         String(position.chain || '').toLowerCase(),
         String(position.protocol_canonical || position.protocol_id || position.protocol_name || '').toLowerCase(),
         normalizeTokenCluster(position.supply || []),
         normalizeTokenCluster(position.borrow || []),
-    ].join('||');
+    ].join('||') + nameSuffix;
 }
 
 function sourceRank(position) {
@@ -582,7 +586,15 @@ async function main() {
         const aaveMergeKey = isAave && !aaveBorrowOnly && String(p.position_index || '').trim()
             ? `${String(p.wallet || '').toLowerCase()}|${p.chain}|${p.protocol_id}|${String(p.position_index || '').toLowerCase()}`
             : null;
-        const key = aaveMergeKey || `${String(p.wallet || '').toLowerCase()}|${p.chain}|${p.protocol_id}|${supplySymbol}`;
+        
+        // Morpho borrow-only fragments should merge with their collateral supply row on same wallet+chain
+        const isMorpho = String(p.protocol_name || '').toLowerCase() === 'morpho' || String(p.protocol_id || '').toLowerCase() === 'morpho';
+        const morphoBorrowOnly = isMorpho && (!p.supply || p.supply.length === 0 || p.asset_usd === 0) && (p.borrow && p.borrow.length > 0);
+        const morphoMergeKey = isMorpho && !morphoBorrowOnly && String(p.position_index || '').trim()
+            ? `${String(p.wallet || '').toLowerCase()}|${p.chain}|morpho|${String(p.position_index || '').toLowerCase()}`
+            : null;
+        
+        const key = aaveMergeKey || morphoMergeKey || `${String(p.wallet || '').toLowerCase()}|${p.chain}|${p.protocol_id}|${supplySymbol}`;
         
         if (posMap.has(key)) {
             const existing = posMap.get(key);
@@ -1042,6 +1054,13 @@ async function main() {
                 const symbols = (p.supply || []).map(t => t.symbol).filter(Boolean);
                 p.supply_tokens_display = symbols.join(', ') || '-';
             }
+
+            // Compute borrow_tokens_display
+            const borrowSymbols = (p.borrow || []).map(t => t.symbol).filter(Boolean);
+            p.borrow_tokens_display = borrowSymbols.join(', ') || '-';
+
+            // Ensure protocol field is populated for frontend display
+            p.protocol = p.protocol_name || p.protocol_id || p.protocol_canonical || p.protocol_display || '-';
 
             // Pendle V1: keep direct scanner rows and unresolved fallback rows clearly separated.
             const pid = String(p.protocol_id || '').toLowerCase();
