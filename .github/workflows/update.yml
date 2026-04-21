@@ -21,8 +21,9 @@ jobs:
 
       - run: npm ci
 
-      # DeBank-powered whales: Avant, yoUSD, Yuzu, Reservoir, Makina, Upshift, Midas, Superform
-      - name: Scan DeBank wallets
+      # Legacy DeBank-heavy path retained only as transitional compatibility.
+      # Do not treat as the target architecture; daily recon + hourly free scans are the preferred path.
+      - name: Legacy DeBank fetch (transitional)
         run: node src/fetch.js
         env:
           DEBANK_API_KEY: ${{ secrets.DEBANK_API_KEY }}

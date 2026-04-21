@@ -225,15 +225,18 @@ async function main() {
     const labelByWallet = new Map(loadWhaleWalletMap().map(w => [w.addr, w.label]));
     const seen = new Set();
     for (const row of active) {
-      if (seen.has(row.wallet)) continue;
-      seen.add(row.wallet);
-      walletMap.push({ addr: row.wallet, label: labelByWallet.get(row.wallet) || row.whale || 'Unknown' });
+      // Spark runtime cleanup: only keep wallet+chain pairs where Spark/Savings is plausibly relevant.
+      const chain = String(row.chain || '').toLowerCase();
+      if (!['eth', 'base', 'arb'].includes(chain)) continue;
+      if (seen.has(`${row.wallet}|${chain}`)) continue;
+      seen.add(`${row.wallet}|${chain}`);
+      walletMap.push({ addr: row.wallet, label: labelByWallet.get(row.wallet) || row.whale || 'Unknown', chain });
     }
   } else {
     const whales = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'whales.json'), 'utf8'));
     for (const [label, config] of Object.entries(whales)) {
       const addrs = Array.isArray(config) ? config : (config.vaults ? Object.values(config.vaults).flat() : []);
-      for (const addr of addrs) walletMap.push({ addr, label });
+      for (const addr of addrs) walletMap.push({ addr, label, chain: 'eth' });
     }
   }
 
@@ -248,7 +251,7 @@ async function main() {
     console.log(`${w.label} (${w.addr.slice(0,12)}...)`);
     const started = Date.now();
 
-    const lendPositions = await getSparkLendPositions(w.addr, w.label, provider);
+    const lendPositions = w.chain === 'eth' ? await getSparkLendPositions(w.addr, w.label, provider) : [];
     for (const p of lendPositions) {
       const usd = p.value_usd > 0 ? `$${p.value_usd.toLocaleString()}` : 'pending';
       const apy = p.apy_base?.toFixed(2) || '?';

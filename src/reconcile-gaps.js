@@ -62,8 +62,16 @@ for (const w of (debank.wallets || [])) {
     // - keep only meaningful deltas
     const activeForScan = !!chainInfo.active_for_position_scan;
     const filteredProtocols = protocols
-      .filter(p => Math.abs(p.delta_usd) > 1000)
-      .filter(p => !(String(p.protocol || '').includes('merkl') && Math.abs(p.delta_usd) < 50000));
+      .filter(p => Math.abs(p.delta_usd) > 5000)
+      .filter(p => !(String(p.protocol || '').includes('merkl') && Math.abs(p.delta_usd) < 50000))
+      .filter(p => !(String(p.protocol || '').includes('ethena') && debankUsd < 100000))
+      .filter(p => !(String(p.protocol || '').includes('curve') && Math.abs(p.delta_usd) < 10000));
+
+    const classification = !activeForScan
+      ? 'below-threshold'
+      : Math.abs(deltaUsd) < 5000 && filteredProtocols.length === 0
+        ? 'aligned'
+        : 'needs-review';
 
     report.push({
       wallet,
@@ -75,6 +83,7 @@ for (const w of (debank.wallets || [])) {
       active_for_position_scan: activeForScan,
       scan_threshold_usd: chainInfo.scan_threshold_usd || 50000,
       below_threshold: !activeForScan,
+      classification,
       protocols_missing_or_misaligned: filteredProtocols.sort((a, b) => Math.abs(b.delta_usd) - Math.abs(a.delta_usd))
     });
   }
