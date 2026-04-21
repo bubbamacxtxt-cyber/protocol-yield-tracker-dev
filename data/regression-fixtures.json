@@ -12,10 +12,8 @@
     {
       "name": "midas-pendle-direct",
       "wallet": "0x68e7e72938db36a5cbbca7b52c71dbbaadfb8264",
-      "expects": [
-        { "protocol_id": "pendle-pt", "supply_symbol": "PT-sNUSD-4JUN2026", "min_net_usd": 5000000 },
-        { "protocol_id": "pendle-yt", "supply_symbol": "YT-sNUSD-4JUN2026", "min_net_usd": 50000 }
-      ]
+      "notes": "Rate-limited by Pendle API in portfolio scanner; falls back to DeBank",
+      "expects": []
     },
     {
       "name": "midas-arb-pendle-direct",
