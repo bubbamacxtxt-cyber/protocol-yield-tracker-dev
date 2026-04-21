@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-04-21T10:43:57.767Z",
+  "generated_at": "2026-04-21T12:57:10.542Z",
   "summary": {
-    "total_positions": 157,
+    "total_positions": 245,
     "unresolved_fallback_positions": 4,
     "unresolved_fallback_usd": 6006157.989999999
   },
   "by_source_type": {
     "scanner": {
-      "positions": 127,
-      "net_usd": 497667090.7717431
+      "positions": 215,
+      "net_usd": 423329113.17635155
     },
     "fallback": {
       "positions": 30,
@@ -17,12 +17,12 @@
   },
   "by_protocol": {
     "aave": {
-      "positions": 92,
-      "net_usd": 409385082.8705072
+      "positions": 108,
+      "net_usd": 456780487.2140787
     },
     "pendle": {
-      "positions": 11,
-      "net_usd": 15700980.387497852
+      "positions": 20,
+      "net_usd": 18764723.879077982
     },
     "upshift": {
       "positions": 1,
@@ -93,11 +93,11 @@
       "net_usd": 5139255.79
     },
     "morpho": {
-      "positions": 16,
-      "net_usd": 65121660.043738276
+      "positions": 68,
+      "net_usd": -59675465.38680513
     },
     "euler": {
-      "positions": 9,
+      "positions": 20,
       "net_usd": 0
     }
   },
@@ -105,8 +105,8 @@
     {
       "protocol": "aave",
       "source_type": "scanner",
-      "positions": 92,
-      "net_usd": 409385082.8705072,
+      "positions": 108,
+      "net_usd": 456780487.2140787,
       "normalization_status": "canonical"
     },
     {
@@ -115,13 +115,6 @@
       "positions": 5,
       "net_usd": 94006169.64,
       "normalization_status": "partial"
-    },
-    {
-      "protocol": "morpho",
-      "source_type": "scanner",
-      "positions": 16,
-      "net_usd": 65121660.043738276,
-      "normalization_status": "canonical"
     },
     {
       "protocol": "fluid",
@@ -133,8 +126,8 @@
     {
       "protocol": "pendle",
       "source_type": "scanner",
-      "positions": 7,
-      "net_usd": 9694822.397497853,
+      "positions": 16,
+      "net_usd": 12758565.889077978,
       "normalization_status": "canonical"
     },
     {
@@ -252,8 +245,15 @@
     {
       "protocol": "euler",
       "source_type": "scanner",
-      "positions": 9,
+      "positions": 20,
       "net_usd": 0,
+      "normalization_status": "canonical"
+    },
+    {
+      "protocol": "morpho",
+      "source_type": "scanner",
+      "positions": 68,
+      "net_usd": -59675465.38680513,
       "normalization_status": "canonical"
     }
   ]

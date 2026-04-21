@@ -456,11 +456,29 @@ async function main() {
         p.apy_reward = null;
     }
 
-    // Pendle V1 policy:
-    // - scanner owns direct PT / YT
-    // - generic DeBank Pendle remains as LP / unmatched fallback for now
-    // Dropping all DeBank Pendle per-wallet caused us to hide real LP / unmatched exposure.
-    const filteredPositions = allPositions;
+    // Suppress legacy DeBank-heavy rows when scanner-owned protocol rows exist for the same wallet+chain+protocol family.
+    // This is critical while old fetch.js onchain rows still coexist with scanner-native rows.
+    const scannerCoveredFamilies = new Set(
+        allPositions
+            .filter(p => p.source_type === 'scanner')
+            .map(p => {
+                const wallet = String(p.wallet || '').toLowerCase();
+                const chain = String(p.chain || '').toLowerCase();
+                const family = String(p.protocol_canonical || p.protocol_name || p.protocol_id || '').toLowerCase();
+                return `${wallet}|${chain}|${family}`;
+            })
+    );
+
+    const filteredPositions = allPositions.filter(p => {
+        const wallet = String(p.wallet || '').toLowerCase();
+        const chain = String(p.chain || '').toLowerCase();
+        const family = String(p.protocol_canonical || p.protocol_name || p.protocol_id || '').toLowerCase();
+        const key = `${wallet}|${chain}|${family}`;
+        const isLegacyDebank = p.source_type === 'debank' || p.source_name === 'fetch';
+        const isScannerOwnedFamily = ['aave', 'morpho', 'euler', 'spark', 'pendle'].includes(family);
+        if (isLegacyDebank && isScannerOwnedFamily && scannerCoveredFamilies.has(key)) return false;
+        return true;
+    });
 
     // Deduplicate: merge positions with same wallet + chain + protocol + first supply token symbol.
     // Special handling: Aave lend+borrow slices for the same wallet/chain/market should collapse into one row.
@@ -632,6 +650,87 @@ async function main() {
         const walletSet = new Set(walletList.map(w => w.toLowerCase()));
         const positions = filtered.filter(p => !p._drop && walletSet.has(p.wallet.toLowerCase()));
 
+        // Entity-specific trust overrides where DeBank+scanner noise is known to be misleading.
+        if (name === 'Avant') {
+            for (const p of positions) {
+                const w = String(p.wallet || '').toLowerCase();
+                // Treat these chain exposures as out-of-scope noise for the tracked Avant view.
+                if ((w === '0xc468315a2df54f9c076bd5cfe5002ba211f74ca6' && ['plasma','mnt','ink'].includes(String(p.chain || '').toLowerCase()))
+                 || (w === '0x920eefbcf1f5756109952e6ff6da1cab950c64d7' && String(p.chain || '').toLowerCase() !== 'eth')
+                 || (w === '0x7bee8d37fba61a6251a08b957d502c56e2a50fab' && String(p.protocol_name || '') === 'Aave V3')) {
+                    p._drop = true;
+                }
+            }
+        }
+
+        // Remove standalone canonical issued-asset rows when a scanner-owned venue row already exists
+        // for the same wallet+chain and the issued asset is just part of that venue exposure.
+        const scannerContext = new Set(
+            positions
+                .filter(p => p.source_type === 'scanner')
+                .map(p => `${String(p.wallet || '').toLowerCase()}|${String(p.chain || '').toLowerCase()}`)
+        );
+        const cleanedPositions = positions.filter(p => !p._drop).filter(p => {
+            const walletChain = `${String(p.wallet || '').toLowerCase()}|${String(p.chain || '').toLowerCase()}`;
+            const scannerRowsSameWalletChain = positions.filter(x => `${String(x.wallet || '').toLowerCase()}|${String(x.chain || '').toLowerCase()}` === walletChain && x.source_type === 'scanner');
+            const scannerContextForSuppression = scannerRowsSameWalletChain.filter(x => (x.asset_usd || 0) > 0 || (x.debt_usd || 0) > 0);
+            const isCanonicalYieldRow = p.source_type === 'protocol_api'
+                && (p.exposure_class === 'yield_bearing_stable' || p.exposure_class === 'vault_position');
+            const isStandaloneCanonicalYield = isCanonicalYieldRow && (
+                    !p.supply || p.supply.length === 0 || p.supply_tokens_display === '-'
+                    || (p.supply || []).every(t => !t || !t.address)
+                    || (!p.position_index || /^0x[0-9a-f]{40}$/i.test(String(p.position_index || '')))
+                );
+            if (isStandaloneCanonicalYield && scannerContextForSuppression.length > 0) return false;
+
+            // Stronger suppression: if a canonical issued-asset row shares the same primary token address
+            // as a scanner-owned row on the same wallet+chain, it is enrichment, not standalone exposure.
+            if (isCanonicalYieldRow) {
+                const pAddr = String(p.position_index || '').toLowerCase();
+                const scannerSameToken = scannerContextForSuppression.some(x => {
+                    const tokenAddrs = [...(x.supply || []), ...(x.borrow || [])].map(t => String(t.address || '').toLowerCase()).filter(Boolean);
+                    return pAddr && tokenAddrs.includes(pAddr);
+                });
+                if (scannerSameToken) return false;
+
+                const issuedSymbols = ['susde','susds','siusd','stcusd','syrupusdt','syrupusdc','usde'];
+                const scannerHasIssuedAsset = scannerContextForSuppression.some(x =>
+                    [...(x.supply || []), ...(x.borrow || [])]
+                      .some(t => issuedSymbols.includes(String(t.symbol || '').toLowerCase()))
+                );
+                if (scannerHasIssuedAsset) return false;
+
+                // Explicit Ethena suppression: if the same wallet+chain already has scanner-owned Aave exposure
+                // carrying USDe/sUSDe, then the standalone Ethena issuer row is enrichment only, not exposure.
+                const isEthenaIssuerRow = String(p.protocol_id || '').toLowerCase() === 'ethena';
+                if (isEthenaIssuerRow) {
+                    const aaveHasUsde = scannerContextForSuppression.some(x =>
+                        String(x.protocol_name || '') === 'Aave V3' &&
+                        [...(x.supply || []), ...(x.borrow || [])].some(t => ['usde','susde'].includes(String(t.symbol || '').toLowerCase()))
+                    );
+                    if (aaveHasUsde) return false;
+                }
+            }
+
+            // Suppress pure borrow-only scanner fragments when a richer scanner row exists on same wallet+chain+protocol.
+            const isBorrowOnlyScanner = p.source_type === 'scanner'
+                && (!p.supply || p.supply.length === 0 || p.supply_tokens_display === '-')
+                && (p.borrow && p.borrow.length > 0);
+            if (isBorrowOnlyScanner) {
+                const hasRicher = scannerRowsSameWalletChain.some(x =>
+                    String(x.protocol_name || '') === String(p.protocol_name || '')
+                    && x !== p
+                    && (x.asset_usd || 0) > 0
+                );
+                // Also suppress scanner borrow-only rows when the wallet+chain has a cleaner venue row elsewhere.
+                const looksLikeMorphoBorrowResidue = String(p.protocol_name || '') === 'Morpho' && (p.borrow || []).length > 0 && (!p.supply || p.supply.length === 0);
+                if (looksLikeMorphoBorrowResidue) return false;
+                
+                if (hasRicher) return false;
+            }
+            return true;
+        });
+
         // Important rule: whale page entity identity must not overwrite row-level exposure venue.
         // Keep row protocol_name/protocol_canonical as the actual deployed venue (e.g. Morpho, Aave, etc.).
         // Fix Re Protocol on-chain positions
@@ -716,7 +815,7 @@ async function main() {
                     mp.strategy = mp.strategy || 'spark-strategy-indirect';
                     mp.yield_source = 'spark';
                 }
-                positions.push(mp);
+                cleanedPositions.push(mp);
             }
         }
 
@@ -726,7 +825,7 @@ async function main() {
             vaultData = {};
             for (const [vaultName, vaultWallets] of Object.entries(vaults)) {
                 const vWalletSet = new Set(vaultWallets.map(w => w.toLowerCase()));
-                const vPositions = positions.filter(p => vWalletSet.has(p.wallet.toLowerCase()));
+                const vPositions = cleanedPositions.filter(p => vWalletSet.has(p.wallet.toLowerCase()));
                 vaultData[vaultName] = {
                     name: vaultName,
                     wallets: vaultWallets,
@@ -742,8 +841,8 @@ async function main() {
             name,
             wallets: walletList,
             total_wallets: walletList.length,
-            active_wallets: [...new Set(positions.map(p => p.wallet))].length,
-            positions,
+            active_wallets: [...new Set(cleanedPositions.map(p => p.wallet))].length,
+            positions: cleanedPositions,
             is_multi_vault: !!vaults,
             vaults: vaultData
         };
