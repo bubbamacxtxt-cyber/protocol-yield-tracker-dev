@@ -23,11 +23,15 @@ jobs:
           ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
       - name: Build canonical token matches
         run: node src/build-canonical-token-matches.js
+      - name: Token discovery (Layer 2: vault / YBS / wallet-held)
+        run: node src/token-discovery.js
+        env:
+          ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
       - name: Scan Aave positions
         run: node src/aave-scanner.js
       - name: Scan Morpho positions
         run: node src/morpho-scanner.js
-      - name: Scan Euler positions
+      - name: Scan Euler positions (sub-account aware)
         run: node src/euler-scanner.js
         env:
           ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
@@ -35,6 +39,13 @@ jobs:
         run: node src/spark-scanner.js
         env:
           ALCHEMY_RPC_URL: ${{ secrets.ALCHEMY_RPC_URL }}
+          BASE_RPC_URL: ${{ secrets.BASE_RPC_URL }}
+          ARB_RPC_URL: ${{ secrets.ARB_RPC_URL }}
+      - name: Scan Fluid positions (lending)
+        run: node src/fluid-scanner.js
+        env:
+          ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
+          ALCHEMY_PLASMA_RPC_URL: ${{ secrets.ALCHEMY_PLASMA_RPC_URL }}
       - name: Scan Pendle positions
         run: node src/pendle-scanner.js
       - name: Enrich positions with market/vault info
