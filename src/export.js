@@ -20,8 +20,42 @@ function loadProtocolRegistry() {
     }
 }
 
+// Project-wide canonical names (see docs/TOKEN-RULES.md).
+// Any protocol that might arrive with variant casing / spacing gets normalized
+// before registry lookup so Aave V3 / Aave v3 / aave-v3 all resolve to the
+// same canonical row.
+const CANONICAL_PROTOCOL_NAMES = {
+    'aave v3': 'Aave V3',
+    'aave-v3': 'Aave V3',
+    'aave_v3': 'Aave V3',
+    'aavev3': 'Aave V3',
+    'aave': 'Aave V3',
+    'aave v2': 'Aave V2',
+    'pendle v2': 'Pendle V2',
+    'pendle-v2': 'Pendle V2',
+    'pendle2': 'Pendle V2',
+    'morpho v2': 'Morpho',
+    'morpho-v2': 'Morpho',
+    'spark lend': 'Spark',
+    'sparklend': 'Spark',
+    'fluid lend': 'Fluid',
+    'fluid lending': 'Fluid',
+    'euler v2': 'Euler',
+    'euler-v2': 'Euler',
+    'euler2': 'Euler',
+};
+
+function canonicalizeProtocolName(name) {
+    if (!name) return name;
+    const lc = String(name).trim().toLowerCase();
+    return CANONICAL_PROTOCOL_NAMES[lc] || name;
+}
+
 function applyProtocolRegistry(position, registry) {
     const p = position;
+    // Normalize protocol_name first to stop casing/spacing variants from
+    // creating phantom duplicates downstream.
+    if (p.protocol_name) p.protocol_name = canonicalizeProtocolName(p.protocol_name);
     const pid = String(p.protocol_id || '').toLowerCase();
     const pname = String(p.protocol_name || '');
     for (const [key, entry] of Object.entries(registry || {})) {

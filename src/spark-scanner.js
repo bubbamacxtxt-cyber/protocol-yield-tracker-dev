@@ -198,9 +198,55 @@ function savePositions(db, allPositions) {
   transaction();
 }
 
+// DeFiLlama chain slugs for price lookup
+const DL_CHAIN_FOR_SPARK = { eth: 'ethereum', base: 'base', arb: 'arbitrum' };
+
+async function priceFromDefiLlama(chain, underlyingSymbol) {
+  // For Spark Savings, the underlying is always USDS/USDC/USDT/WETH/PYUSD
+  // — all well-known tokens. Price them via the underlying on DefiLlama.
+  const addresses = {
+    USDC: { eth: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', base: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', arb: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' },
+    USDT: { eth: '0xdAC17F958D2ee523a2206206994597C13D831ec7', base: '0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2', arb: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9' },
+    USDS: { eth: '0xdC035D45d973E3EC169d2276DDab16f1e407384F' },
+    WETH: { eth: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', base: '0x4200000000000000000000000000000000000006', arb: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1' },
+    PYUSD: { eth: '0x6c3ea9036406852006290770BEdFcAbA0e23A0e8' },
+  };
+  const addr = addresses[underlyingSymbol]?.[chain];
+  if (!addr) return null;
+  const dlChain = DL_CHAIN_FOR_SPARK[chain] || chain;
+  const url = `https://coins.llama.fi/prices/current/${dlChain}:${addr.toLowerCase()}`;
+  try {
+    const r = await fetch(url);
+    const d = await r.json();
+    const key = `${dlChain}:${addr.toLowerCase()}`;
+    return d?.coins?.[key]?.price || null;
+  } catch { return null; }
+}
+
 async function enrichSavingsAPY(positions) {
   for (const pos of positions) {
     if (pos.protocol_id !== 'spark-savings' && pos.protocol_id !== 'spark-savings-legacy') continue;
+
+    // Always price the underlying so value_usd is set regardless of blockanalitica success.
+    if (pos.value_usd === 0 && pos.amount > 0) {
+      // The savings token's underlying is what we care about. Look up the underlying
+      // from the savings config (savings scanner stores it implicitly through symbol).
+      // For sUSDS/stUSDS → USDS, sUSDC → USDC, spUSDT → USDT, spETH → WETH, spPYUSD → PYUSD.
+      const sym = String(pos.symbol || '').toLowerCase();
+      let underlying = null;
+      if (sym.includes('usds')) underlying = 'USDS';
+      else if (sym.includes('usdc')) underlying = 'USDC';
+      else if (sym.includes('usdt')) underlying = 'USDT';
+      else if (sym.includes('eth')) underlying = 'WETH';
+      else if (sym.includes('pyusd')) underlying = 'PYUSD';
+      if (underlying) {
+        const price = await priceFromDefiLlama(pos.chain, underlying);
+        if (price) {
+          pos.value_usd = pos.amount * price;
+          pos.price_usd = price;
+        }
+      }
+    }
 
     try {
       const chainid = pos.chainId || 1;
