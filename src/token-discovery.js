@@ -49,6 +49,16 @@ const RPCS = {
   poly: `https://polygon-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`,
   blast: `https://blast-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`,
   scroll: `https://scroll-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`,
+  zksync: `https://zksync-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`,
+  linea: `https://linea-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`,
+  bera: `https://berachain-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`,
+  abstract: `https://abstract-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`,
+  metis: `https://metis-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`,
+  gnosis: `https://gnosis-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`,
+  celo: `https://celo-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`,
+  polygonzkevm: `https://polygonzkevm-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`,
+  hyperliquid: '', // No Alchemy RPC yet - custom chain
+  hyperevm: '', // No Alchemy RPC yet
 };
 
 // Tokens that are explicitly NOT $1 stables (these have real market prices)
