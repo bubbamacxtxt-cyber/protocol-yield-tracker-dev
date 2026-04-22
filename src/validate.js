@@ -70,6 +70,38 @@ async function main() {
     else console.log(`  ${name}: ${count} positions, $${(whale.positions.reduce((s, p) => s + (p.net_usd || 0), 0)).toLocaleString('en-US', { maximumFractionDigits: 0 })}`);
   }
 
+  // --- Token classification rules (project-wide, see docs/TOKEN-RULES.md) ---
+  // Rule: wallet-held positions MUST NOT carry an APY.
+  // APY only comes from scanner / vault / YBS lanes.
+  console.log('\n--- Token Classification Rules ---');
+  let apyViolations = 0;
+  for (const [name, whale] of Object.entries(data.whales || {})) {
+    for (const p of (whale.positions || [])) {
+      const isWallet = p.source_type === 'wallet' ||
+        String(p.protocol_id || '').toLowerCase() === 'wallet-held';
+      const hasApy = (p.apy_base != null && p.apy_base !== 0) ||
+        (p.apy_net != null && p.apy_net !== 0);
+      if (isWallet && hasApy) {
+        errors.push(`${name} ${p.wallet?.slice(0,10)} ${p.chain} ${p.supply_tokens_display}: wallet-held position has APY (apy_base=${p.apy_base}). Wallet holdings must not carry APY.`);
+        apyViolations++;
+      }
+    }
+  }
+  if (apyViolations === 0) console.log('  ✅ No wallet-held APY contamination');
+  else console.log(`  ❌ ${apyViolations} wallet-held rows have APY (rule violation)`);
+
+  // Rule: YBS list must not contain protocol-specific wrappers (Fluid/Aave aTokens, etc.)
+  try {
+    const stablesPath = path.join(__dirname, '..', 'data', 'stables.json');
+    const stables = loadJson(stablesPath, { stables: [] }).stables || [];
+    const forbidden = ['fUSDC', 'fUSDT', 'aUSDC', 'aUSDT', 'aUSDe', 'eUSDC', 'eUSDT'];
+    const found = stables.filter(s => forbidden.includes(s.name));
+    if (found.length === 0) console.log('  ✅ YBS list contains no protocol wrappers');
+    else errors.push(`YBS list contains protocol-specific wrappers: ${found.map(s => s.name).join(', ')}. These belong to their respective scanner.`);
+  } catch (e) {
+    warnings.push('Could not verify stables.json: ' + e.message);
+  }
+
   // --- Protocol/API validations that remain independently meaningful ---
   console.log('\n--- API Checks ---');
 

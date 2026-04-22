@@ -161,6 +161,10 @@ function normalizeSourceMeta(position) {
         const protocolId = String(p.protocol_id || '').toLowerCase();
         if (protocolId === 'wallet-held' || protocol === 'wallet') {
             p.source_type = 'wallet';
+        } else if (protocolId === 'vault') {
+            p.source_type = 'vault';
+        } else if (protocolId === 'ybs') {
+            p.source_type = 'ybs';
         } else if (protocol.includes('aave') || protocol.includes('morpho') || protocol.includes('euler') || protocol.includes('fluid') || protocolId.includes('aave') || protocolId.includes('morpho') || protocolId.includes('euler') || protocolId.includes('fluid')) {
             p.source_type = 'scanner';
         } else {
@@ -182,8 +186,25 @@ function normalizeSourceMeta(position) {
             p.source_name = 'manual';
         } else if (p.source_type === 'wallet') {
             p.source_name = 'wallet-scan';
+        } else if (p.source_type === 'vault') {
+            p.source_name = 'token-discovery';
+        } else if (p.source_type === 'ybs') {
+            p.source_name = 'token-discovery';
         } else if (p.source_type === 'protocol_api') {
             p.source_name = 'protocol_api';
+        }
+    }
+
+    // Project-wide rule: wallet-held positions MUST NOT carry an APY.
+    // APY only comes from: protocol scanners, vault list, or YBS list.
+    // A plain token holding is not yield — it's a hold.
+    if (p.source_type === 'wallet' || String(p.protocol_id || '').toLowerCase() === 'wallet-held') {
+        p.apy_base = null;
+        p.apy_net = null;
+        p.apy_current = null;
+        for (const t of (p.supply || [])) {
+            t.apy_base = null;
+            t.apy_bonus = null;
         }
     }
 
@@ -885,50 +906,15 @@ async function main() {
             return true;
         });
 
-        // Important rule: whale page entity identity must not overwrite row-level exposure venue.
-        // Keep row protocol_name/protocol_canonical as the actual deployed venue (e.g. Morpho, Aave, etc.).
-        // Fix Re Protocol on-chain positions
-        // DeBank mislabels sUSDe as USDe and calls protocol "Ethena"
-        // Re Protocol holds sUSDe as idle treasury, not as active Ethena deposit
-        if (name === 'Re Protocol') {
-            for (const p of positions) {
-                // Relabel Ethena sUSDe holdings
-                if (p.protocol_name === 'Ethena') {
-                    p.strategy = 'Stake';
-                    p.asset_type = 'Ethena';
-                    // Fix token symbol: DeBank shows USDe but these are sUSDe holdings
-                    for (const t of (p.supply || [])) {
-                        if (t.symbol === 'USDe' && t.real_symbol === 'USDe') {
-                            t.symbol = 'sUSDe';
-                            t.real_symbol = 'sUSDe';
-                        }
-                    }
-                    // Fix APY: sUSDe yields from Ethena staking
-                    // Read from stables.json (YBS list)
-                    let susdeApy = null;
-                    try {
-                        const stablesPath = path.join(__dirname, '..', 'data', 'stables.json');
-                        if (fs.existsSync(stablesPath)) {
-                            const stablesData = JSON.parse(fs.readFileSync(stablesPath, 'utf8'));
-                            const susdeEntry = findYbsToken(stablesData.stables || [], 'sUSDe', '0x9D39A5DE30e57443BfF2A8307A4256c8797A3497');
-                            if (susdeEntry && susdeEntry.aprValue) susdeApy = susdeEntry.aprValue;
-                        }
-                    } catch(e) {}
-                    if (susdeApy !== null) {
-                        p.apy_base = susdeApy;
-                        // Don't overwrite apy_net if bonus was already applied
-                        if (p.bonus_supply == null) p.apy_net = susdeApy;
-                        p.apy_current = susdeApy;
-                    }
-                }
-                // Fix Curve position
-                if (p.protocol_name === 'Curve') {
-                    p.strategy = 'LP';
-                    p.asset_type = 'Curve';
-                    p.strategy = 'LP';
-                }
-            }
-        }
+        // REMOVED (2026-04-22): Re-Protocol-specific USDe→sUSDe relabel hack.
+        //
+        // Replaced by Layer 2 token discovery v3: sUSDe is now detected
+        // directly by ticker match against the YBS list, with canonical APY
+        // from data/stables.json. Stale Ethena rows that referenced this
+        // relabel path are removed from the DB.
+        //
+        // Any new per-whale fixes must be added to the project-wide rules
+        // (docs/TOKEN-RULES.md), not as case-by-case patches here.
 
         // Merge manual positions if they exist for this whale
         if (manualPositions[name]) {

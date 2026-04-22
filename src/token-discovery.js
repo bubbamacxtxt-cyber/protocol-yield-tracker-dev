@@ -687,8 +687,41 @@ async function scanWalletChain(db, registry, vaultIndex, ybsIndex, wallet, whale
 // CLEANUP
 // ═══════════════════════════════════════════════════════════════
 
-function cleanupStale(db, activePairs) {
-  // Remove vault/ybs/wallet-held rows not refreshed in this run
+function cleanupStale(db, activePairs, runStartIso) {
+  // Project rule: every Layer 2 run is a full refresh. Any vault/ybs/wallet-held
+  // row for a wallet+chain pair that we scanned but didn't re-touch must be
+  // deleted, otherwise stale rows poison the whale page.
+  //
+  // Scope: only delete rows for the wallet+chain pairs we actually scanned.
+  // This protects positions on chains we had no RPC for.
+  const kinds = ['vault', 'ybs', 'wallet-held'];
+  let removed = 0;
+
+  // Build the set of (wallet, chain) pairs we scanned
+  const scannedKeys = new Set(activePairs.map(p => `${p.wallet.toLowerCase()}|${p.chain.toLowerCase()}`));
+
+  for (const kind of kinds) {
+    const rows = db.prepare(`
+      SELECT id, wallet, chain FROM positions
+      WHERE protocol_id = ? AND (scanned_at IS NULL OR scanned_at < ?)
+    `).all(kind, runStartIso);
+
+    const idsToDelete = rows
+      .filter(r => scannedKeys.has(`${String(r.wallet).toLowerCase()}|${String(r.chain).toLowerCase()}`))
+      .map(r => r.id);
+
+    if (idsToDelete.length === 0) continue;
+    const ph = idsToDelete.map(() => '?').join(',');
+    db.prepare(`DELETE FROM position_tokens WHERE position_id IN (${ph})`).run(...idsToDelete);
+    const result2 = db.prepare(`DELETE FROM positions WHERE id IN (${ph})`).run(...idsToDelete);
+    removed += result2.changes;
+  }
+  if (removed > 0) console.log(`\nCleaned ${removed} stale ${kinds.join('/')} rows for scanned wallet+chain pairs`);
+  return removed;
+}
+
+// Keep legacy signature for backward compat, but never called now.
+function _legacyCleanupStale(db) {
   const kinds = ['vault', 'ybs', 'wallet-held'];
   let removed = 0;
   for (const kind of kinds) {
@@ -748,6 +781,9 @@ async function main() {
 
   const db = new Database(DB_PATH);
 
+  // Record the run start so cleanup can drop any row not refreshed this run.
+  const runStartIso = new Date(Date.now() - 5000).toISOString().slice(0, 19).replace('T', ' ');
+
   const totals = { vault: 0, ybs: 0, wallet: 0, skipped: 0 };
 
   for (const pair of scanPairs) {
@@ -763,7 +799,7 @@ async function main() {
     await new Promise(r => setTimeout(r, 100));
   }
 
-  cleanupStale(db, scanPairs);
+  cleanupStale(db, scanPairs, runStartIso);
 
   console.log(`\n=== Token Discovery v3 Complete ===`);
   console.log(`  🟡 Vault positions:  ${totals.vault}`);

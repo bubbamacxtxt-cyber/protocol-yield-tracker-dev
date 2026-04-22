@@ -267,25 +267,6 @@
       ]
     },
     {
-      "name": "fUSDT",
-      "protocol": "fluid-lending",
-      "apr": "7.71%",
-      "aprValue": 7.71,
-      "apy_1d": 7.71,
-      "apy_7d": 7.83,
-      "apy_30d": 5.66438,
-      "chain": "Ethereum",
-      "tvl": "$115M",
-      "tvlNum": 114571214,
-      "source": "defillama",
-      "addresses": [
-        "0xdAC17F958D2ee523a2206206994597C13D831ec7"
-      ],
-      "aliases": [
-        "fUSDT"
-      ]
-    },
-    {
       "name": "sUSDai",
       "protocol": "usd-ai",
       "apr": "7.12%",
@@ -473,25 +454,6 @@
       ],
       "aliases": [
         "sfrxUSD"
-      ]
-    },
-    {
-      "name": "fUSDC",
-      "protocol": "merkl",
-      "apr": "0.39%",
-      "aprValue": 0.3898,
-      "apy_1d": 0.3898,
-      "apy_7d": 0.3194823076923077,
-      "apy_30d": 0.1319,
-      "chain": "Ethereum",
-      "tvl": "$3M",
-      "tvlNum": 2734069,
-      "source": "defillama",
-      "addresses": [
-        "0x58D97B57BB95320F9a05dC918Aef65434969c2B2"
-      ],
-      "aliases": [
-        "fUSDC"
       ]
     },
     {
