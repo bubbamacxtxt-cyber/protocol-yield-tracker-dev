@@ -131,10 +131,13 @@ async function scanVault(chain, vault, prices) {
 }
 
 function savePositions(db, results) {
-  const yoWallet = '0x0000000f2eb9f69274678c76222b35eec7588a65';
+  // Each YO vault contract is its own "wallet" in our tracker. The vault
+  // ADDRESS is the wallet, and its totalAssets() is a single yo-protocol
+  // position on that chain. This mirrors how DefiLlama values the protocol
+  // and matches DeBank's view of each individual vault address.
 
-  // Clean existing YO-protocol rows for this wallet first (FK-safe order)
-  const oldIds = db.prepare(`SELECT id FROM positions WHERE lower(wallet) = ? AND protocol_id = 'yo-protocol'`).all(yoWallet);
+  // Clean all existing YO-protocol rows first (FK-safe order)
+  const oldIds = db.prepare(`SELECT id FROM positions WHERE protocol_id = 'yo-protocol'`).all();
   const delTok = db.prepare(`DELETE FROM position_tokens WHERE position_id = ?`);
   const delMkt = db.prepare(`DELETE FROM position_markets WHERE position_id = ?`);
   const delPos = db.prepare(`DELETE FROM positions WHERE id = ?`);
@@ -153,9 +156,10 @@ function savePositions(db, results) {
   `);
 
   for (const r of results) {
-    const idx = `${r.chain}|${r.vault_name}|${r.vault_address}`;
-    upsertPos.run(yoWallet, r.chain, r.value_usd, r.value_usd, idx);
-    const pos = findPos.get(yoWallet, r.chain, idx);
+    const wallet = r.vault_address.toLowerCase();
+    const idx = `${r.chain}|${r.vault_name}|totalAssets`;
+    upsertPos.run(wallet, r.chain, r.value_usd, r.value_usd, idx);
+    const pos = findPos.get(wallet, r.chain, idx);
     if (pos?.id) {
       insertToken.run(pos.id, r.underlying_symbol, r.underlying_address, r.amount, r.value_usd);
     }
