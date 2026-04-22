@@ -273,7 +273,11 @@ async function main() {
     const labelByWallet = new Map(loadWhaleWalletMap().map(w => [w.addr, w.label]));
     const grouped = new Map();
     for (const row of active) {
-      if (!hasProtocolHint(row, ['morphoblue', 'monad_morphoblue', 'morpho'])) continue;
+      // Removed hasProtocolHint gate (2026-04-22 audit GAP 1).
+      // Scan every active wallet — Morpho REST returns empty for wallets
+      // with no position, so no cost penalty. Relying on DeBank's protocol
+      // detection was making coverage dependent on their crawler being
+      // perfect, which caused us to miss positions in practice.
       const k = row.wallet;
       if (!grouped.has(k)) grouped.set(k, { addr: row.wallet, label: labelByWallet.get(row.wallet) || row.whale || 'Unknown', chains: [] });
       grouped.get(k).chains.push(Number({ eth:1, base:8453, arb:42161, poly:137, uni:130, wct:747474, ink:999, opt:10, monad:143 }[row.chain] || 0));

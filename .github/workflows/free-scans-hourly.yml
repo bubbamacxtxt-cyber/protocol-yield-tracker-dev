@@ -18,36 +18,46 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - name: Build Alchemy recon from active wallet+chain pairs
-        run: node src/build-alchemy-recon.js
+        run: node src/build-alchemy-recon.js || node src/build-alchemy-recon.js
         env:
           ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
+          ALCHEMY_MNT_RPC_URL: ${{ secrets.ALCHEMY_MNT_RPC_URL }}
+          ALCHEMY_PLASMA_RPC_URL: ${{ secrets.ALCHEMY_PLASMA_RPC_URL }}
+          ALCHEMY_MONAD_RPC_URL: ${{ secrets.ALCHEMY_MONAD_RPC_URL }}
+          ALCHEMY_SONIC_RPC_URL: ${{ secrets.ALCHEMY_SONIC_RPC_URL }}
+          ALCHEMY_INK_RPC_URL: ${{ secrets.ALCHEMY_INK_RPC_URL }}
       - name: Build canonical token matches
         run: node src/build-canonical-token-matches.js
-      - name: Token discovery (Layer 2: vault / YBS / wallet-held)
-        run: node src/token-discovery.js
+      - name: Token discovery (Layer 2 — vault / YBS / wallet-held)
+        run: node src/token-discovery.js || node src/token-discovery.js
         env:
           ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
+          ALCHEMY_MNT_RPC_URL: ${{ secrets.ALCHEMY_MNT_RPC_URL }}
+          ALCHEMY_PLASMA_RPC_URL: ${{ secrets.ALCHEMY_PLASMA_RPC_URL }}
+          ALCHEMY_MONAD_RPC_URL: ${{ secrets.ALCHEMY_MONAD_RPC_URL }}
+          ALCHEMY_SONIC_RPC_URL: ${{ secrets.ALCHEMY_SONIC_RPC_URL }}
+          ALCHEMY_INK_RPC_URL: ${{ secrets.ALCHEMY_INK_RPC_URL }}
       - name: Scan Aave positions
-        run: node src/aave-scanner.js
+        run: node src/aave-scanner.js || node src/aave-scanner.js
       - name: Scan Morpho positions
-        run: node src/morpho-scanner.js
+        run: node src/morpho-scanner.js || node src/morpho-scanner.js
       - name: Scan Euler positions (sub-account aware)
-        run: node src/euler-scanner.js
+        run: node src/euler-scanner.js || node src/euler-scanner.js
         env:
           ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
       - name: Scan Spark positions
-        run: node src/spark-scanner.js
+        run: node src/spark-scanner.js || node src/spark-scanner.js
         env:
           ALCHEMY_RPC_URL: ${{ secrets.ALCHEMY_RPC_URL }}
           BASE_RPC_URL: ${{ secrets.BASE_RPC_URL }}
           ARB_RPC_URL: ${{ secrets.ARB_RPC_URL }}
-      - name: Scan Fluid positions (lending)
-        run: node src/fluid-scanner.js
+      - name: Scan Fluid positions (lending + vault NFTs)
+        run: node src/fluid-scanner.js || node src/fluid-scanner.js
         env:
           ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
           ALCHEMY_PLASMA_RPC_URL: ${{ secrets.ALCHEMY_PLASMA_RPC_URL }}
       - name: Scan Pendle positions
-        run: node src/pendle-scanner.js
+        run: node src/pendle-scanner.js || node src/pendle-scanner.js
       - name: Enrich positions with market/vault info
         run: node src/enrich-markets.js
       - name: Fetch base APY rates

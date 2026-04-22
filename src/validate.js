@@ -90,6 +90,35 @@ async function main() {
   if (apyViolations === 0) console.log('  ✅ No wallet-held APY contamination');
   else console.log(`  ❌ ${apyViolations} wallet-held rows have APY (rule violation)`);
 
+  // --- Scanner staleness check ---
+  // Every scanner should write fresh rows every hour. If any scanner's
+  // newest row is > 2 hours old, flag it — the scanner probably failed.
+  console.log('\n--- Scanner Staleness ---');
+  const dbPath = path.join(__dirname, '..', 'yield-tracker.db');
+  if (fs.existsSync(dbPath)) {
+    try {
+      const Database = require('better-sqlite3');
+      const db = new Database(dbPath, { readonly: true });
+      const scanners = ['aave-v3', 'morpho', 'euler2', 'fluid-lending', 'fluid-vault', 'spark-savings', 'spark-lend', 'pendle-pt', 'pendle-yt', 'pendle-lp', 'vault', 'ybs', 'wallet-held'];
+      const STALE_HOURS = 3; // grace window for one missed hourly run
+      for (const protocolId of scanners) {
+        const row = db.prepare("SELECT MAX(scanned_at) as last, COUNT(*) as n FROM positions WHERE protocol_id = ?").get(protocolId);
+        if (!row.n) continue;
+        const lastMs = new Date(row.last + 'Z').getTime();
+        const ageHr = (Date.now() - lastMs) / 3600000;
+        if (ageHr > STALE_HOURS) {
+          warnings.push(`Scanner ${protocolId}: newest row ${ageHr.toFixed(1)}h old (${row.n} rows, last at ${row.last} UTC)`);
+          console.log(`  ⚠️ ${protocolId.padEnd(18)} ${ageHr.toFixed(1)}h stale (${row.n} rows)`);
+        } else {
+          console.log(`  ✅ ${protocolId.padEnd(18)} fresh (${ageHr.toFixed(1)}h, ${row.n} rows)`);
+        }
+      }
+      db.close();
+    } catch (e) {
+      warnings.push('Staleness check failed: ' + e.message);
+    }
+  }
+
   // Rule: YBS list must not contain protocol-specific wrappers (Fluid/Aave aTokens, etc.)
   try {
     const stablesPath = path.join(__dirname, '..', 'data', 'stables.json');

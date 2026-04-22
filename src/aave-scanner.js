@@ -239,7 +239,11 @@ async function main() {
     const labelByWallet = new Map(loadWhaleWalletMap().map(w => [w.addr, w.label]));
     const seen = new Set();
     for (const row of active) {
-      if (!hasProtocolHint(row, ['aave3', 'aave-v3', 'base_aave3', 'plasma_aave3', 'mnt_aave3', 'ink_aave3'])) continue;
+      // Removed hasProtocolHint gate (2026-04-22 audit GAP 1).
+      // We used to skip wallets where DeBank didn't mention Aave, but that
+      // makes coverage depend on DeBank's protocol detection being perfect.
+      // Instead: scan every active wallet+chain where Aave V3 is deployed.
+      // Aave GraphQL returns empty for wallets with no position — no cost.
       if (!allowedAaveChainFromRecon(row)) continue;
       const chainId = CHAIN_IDS[String(row.chain || '').toLowerCase()];
       if (!chainId) continue;
