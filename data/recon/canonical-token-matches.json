@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-22T16:55:06.100Z",
+  "generated_at": "2026-04-22T17:14:52.601Z",
   "matches": [
     {
       "wallet": "0x3207363359ca0c11d11073ad48301e8c958b7910",
@@ -454,6 +454,30 @@
         ],
         "aliases": [
           "srUSDe"
+        ]
+      }
+    },
+    {
+      "wallet": "0x289c204b35859bfb924b9c0759a4fe80f610671c",
+      "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+      "kind": "ybs",
+      "match": {
+        "name": "USD3",
+        "protocol": "3jane-lending",
+        "apr": "7.21%",
+        "aprValue": 7.21241,
+        "apy_1d": 7.21241,
+        "apy_7d": 3.4433184615384613,
+        "apy_30d": 2.61799,
+        "chain": "Ethereum",
+        "tvl": "$11M",
+        "tvlNum": 11108919,
+        "source": "defillama",
+        "addresses": [
+          "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+        ],
+        "aliases": [
+          "USD3"
         ]
       }
     },
