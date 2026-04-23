@@ -1,11 +1,203 @@
 {
-  "generated_at": "2026-04-22T18:14:41.657Z",
+  "generated_at": "2026-04-23T10:31:59.991Z",
   "wallets": [
+    {
+      "whale": "Avant",
+      "wallet": "0x887fd380c1e4cc28e119917015fe7fb0062c5d67",
+      "chain": "eth",
+      "total_usd": 19025005.881669708,
+      "tokens": [
+        {
+          "address": "0x059b2051bc369a52dfa4bcbaa77388483279320c",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000004563918244f40000"
+        },
+        {
+          "address": "0x161a4682a69a0cf35713268f1348a068d745a5d2",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000001bc16d674ec80000"
+        },
+        {
+          "address": "0x1ff22cb1c7804b3529a005ddcf9bde6e7c9d6d90",
+          "tokenBalance": "0x000000000000000000000000000000000000000000000000000000012a05f200"
+        },
+        {
+          "address": "0x203ebc772001890a6cc04da475e38368bdbd32dc",
+          "tokenBalance": "0x000000000000000000000000000000000000000000000000257853b1dd8e0000"
+        },
+        {
+          "address": "0x204ba7f61133f1cd88b59762336a9b5f790cfc10",
+          "tokenBalance": "0x0000000000000000000000000000000000000001431e0fae6d7217caa0000000"
+        },
+        {
+          "address": "0x2088933e4242cc7020fb8fb18481c7d22f3e8a55",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000001bc16d674ec80000"
+        },
+        {
+          "address": "0x26ca7aefbc73cb20364df9bba4fdf642c52a60e4",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000004563918244f40000"
+        },
+        {
+          "address": "0x2b591e99afe9f32eaa6214f7b7629768c40eeb39",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000000005f5e100"
+        },
+        {
+          "address": "0x2e9555c4d34b96b0e76b641457293d5a9fbe4d03",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000001bc16d674ec80000"
+        },
+        {
+          "address": "0x3a9b127e87295d90ac0136eba0aaa39db185d341",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000001bc16d674ec80000"
+        },
+        {
+          "address": "0x3ab281cfad326e4e93c16d99ea51cb9db27fb198",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000001bc16d674ec80000"
+        },
+        {
+          "address": "0x3b10d974439b7124c1bf124e1764bb3cc59cf04f",
+          "tokenBalance": "0x00000000000000000000000000000000000000000000000053444835ec580000"
+        },
+        {
+          "address": "0x4add9ee147deb9452da4726d21b4885896081c1d",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000001bc16d674ec80000"
+        },
+        {
+          "address": "0x4c9edd5852cd905f086c759e8383e09bff1e68b3",
+          "tokenBalance": "0x00000000000000000000000000000000000000000000000000168f4a99b2df98"
+        },
+        {
+          "address": "0x5cfd2f9c803b363f240988fea1424e38d09ac155",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000001bc16d674ec80000"
+        },
+        {
+          "address": "0x6114b3a7cc3e891e2f7ded71e98430a91700d7ea",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000001bc16d674ec80000"
+        },
+        {
+          "address": "0x66a3c2fa3e467aa586e90912f977e648589cabaf",
+          "tokenBalance": "0x000000000000000000000000000000000000000000000000000001977420dc00"
+        },
+        {
+          "address": "0x692cd1cce74bfb88947a3e02f6993ce677d54638",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000008ac7230489e80000"
+        },
+        {
+          "address": "0x6b175474e89094c44da98b954eedeac495271d0f",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000000000000001"
+        },
+        {
+          "address": "0x70fffd5ab47c36db7c85f771068497033d5523fd",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000001bc16d674ec80000"
+        },
+        {
+          "address": "0x73f7d02d546025843f952a22abd92050650cc3d4",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000001bc16d674ec80000"
+        },
+        {
+          "address": "0x7701996420a116f25bd414c02381f6db698bf2eb",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000004563918244f40000"
+        },
+        {
+          "address": "0x7969d3be53e289a5a2a65c80210a89fa29c53da9",
+          "tokenBalance": "0x000000000000000000000000000000000000000000000000000000012a05f200"
+        },
+        {
+          "address": "0x7f9acaddfe815921b1228ea3e6eee098ab8e2cb7",
+          "tokenBalance": "0x00000000000000000000000000000000000000000000000053444835ec580000"
+        },
+        {
+          "address": "0x7fe24f1a024d33506966cb7ca48bab8c65fb632d",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000044433bc9b1e597814"
+        },
+        {
+          "address": "0x8d67054b8adc8c8bf0b7eac9386030e699c434c7",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000004563918244f40000"
+        },
+        {
+          "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000000000000239"
+        },
+        {
+          "address": "0xa62c5ef5dc67b6b38b3d14c79efca2c27eca8518",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000008ac7230489e80000"
+        },
+        {
+          "address": "0xafc628ae96e4d964222a3c7c4fad92bac72c26cd",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000008ac7230489e80000"
+        },
+        {
+          "address": "0xb5ff0b0f9c2972801860d9ed823d648ace067aef",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000001bc16d674ec80000"
+        },
+        {
+          "address": "0xbb057b406adfbf0930d71f8bac0413132e30bbc3",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000001bc16d674ec80000"
+        },
+        {
+          "address": "0xbfb5d3e6d835bef660fee47877ad07ff780c88f3",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000006f05b59d3b200000"
+        },
+        {
+          "address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+          "tokenBalance": "0x00000000000000000000000000000000000000000000000000038d7a578a010c"
+        },
+        {
+          "address": "0xc1789999e3a80f71cdaad44aa8521a0f5829d55b",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000004563918244f40000"
+        },
+        {
+          "address": "0xc26cdfca6999d2aa45ab09ae2e4e9458b2fa18a2",
+          "tokenBalance": "0x00000000000000000000000000000000000000000000000053444835ec580000"
+        },
+        {
+          "address": "0xd83c7fdf9d76dec865a0501016439344b6a938f1",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000001bc16d674ec80000"
+        },
+        {
+          "address": "0xd8f1200650fb2e28b8a068d4bc4d53c4d8984990",
+          "tokenBalance": "0x00000000000000000000000000000000000000000000000053444835ec580000"
+        },
+        {
+          "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000000000000064"
+        },
+        {
+          "address": "0xdc5cb57711ac6ea18bc9e07404a3fa2a9b4913e9",
+          "tokenBalance": "0x000000000000000000000000000000000000000000000001158e460913d00000"
+        },
+        {
+          "address": "0xdd0d0781fd0045ccb8c4f56ab4229a37f8e86e42",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000008ac7230489e80000"
+        },
+        {
+          "address": "0xe4ca21f564da03b06a8527400975a4821c1f6d3e",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000000000000001"
+        },
+        {
+          "address": "0xed467e125e1c56a14d49c13ad98cef7195b6e185",
+          "tokenBalance": "0x000000000000000000000000000000000000000000000222b57d736146740000"
+        },
+        {
+          "address": "0xf28ccd4e6a2faad9ab050e181273ccf24bc36a70",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000001bc16d674ec80000"
+        },
+        {
+          "address": "0xf8fb55139b9acac7bb72e3d6de9ab412e01d2528",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000001bc16d674ec80000"
+        },
+        {
+          "address": "0xfa6d07fb903fe51f1a3a6357791f1de49deeb2e3",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000001bc16d674ec80000"
+        },
+        {
+          "address": "0xfffc1fd463d953422ef7b3e4f39ac8fcb6a93825",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000008ac7230489e80000"
+        }
+      ]
+    },
     {
       "whale": "Avant",
       "wallet": "0x3207363359ca0c11d11073ad48301e8c958b7910",
       "chain": "eth",
-      "total_usd": 14336324.197663462,
+      "total_usd": 20528254.394986995,
       "tokens": [
         {
           "address": "0x161a4682a69a0cf35713268f1348a068d745a5d2",
@@ -14,10 +206,6 @@
         {
           "address": "0x2088933e4242cc7020fb8fb18481c7d22f3e8a55",
           "tokenBalance": "0x0000000000000000000000000000000000000000000000001bc16d674ec80000"
-        },
-        {
-          "address": "0x356b8d89c1e1239cbbb9de4815c39a1474d5ba7d",
-          "tokenBalance": "0x00000000000000000000000000000000000000000000000000000b5e620f4800"
         },
         {
           "address": "0x3b10d974439b7124c1bf124e1764bb3cc59cf04f",
@@ -81,7 +269,7 @@
         },
         {
           "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
-          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000015d2ebb6925"
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000000000000095"
         },
         {
           "address": "0xf3e621395fc714b90da337aa9108771597b4e696",
@@ -97,21 +285,21 @@
       "whale": "Avant",
       "wallet": "0x3207363359ca0c11d11073ad48301e8c958b7910",
       "chain": "mnt",
-      "total_usd": 1469782.4805538934,
+      "total_usd": 6230013.818211347,
       "tokens": []
     },
     {
       "whale": "Avant",
       "wallet": "0x3207363359ca0c11d11073ad48301e8c958b7910",
       "chain": "plasma",
-      "total_usd": 5515907.475631878,
+      "total_usd": 2268367.1581653543,
       "tokens": []
     },
     {
       "whale": "Avant",
       "wallet": "0x7bee8d37fba61a6251a08b957d502c56e2a50fab",
       "chain": "eth",
-      "total_usd": 3573491.9121721024,
+      "total_usd": 3579127.291521578,
       "tokens": [
         {
           "address": "0x00000000efe302beaa2b3e6e1b18d08d69a9012a",
@@ -243,7 +431,7 @@
       "whale": "Avant",
       "wallet": "0x920eefbcf1f5756109952e6ff6da1cab950c64d7",
       "chain": "eth",
-      "total_usd": 14722850.73190086,
+      "total_usd": 14727273.21625546,
       "tokens": [
         {
           "address": "0x059b2051bc369a52dfa4bcbaa77388483279320c",
@@ -379,7 +567,7 @@
         },
         {
           "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
-          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000000000000268"
+          "tokenBalance": "0x00000000000000000000000000000000000000000000000000000000000019d8"
         },
         {
           "address": "0xdc5cb57711ac6ea18bc9e07404a3fa2a9b4913e9",
@@ -423,14 +611,14 @@
       "whale": "Avant",
       "wallet": "0x920eefbcf1f5756109952e6ff6da1cab950c64d7",
       "chain": "mnt",
-      "total_usd": 10954274.302437209,
+      "total_usd": 7788047.7464948,
       "tokens": []
     },
     {
       "whale": "Avant",
       "wallet": "0xc468315a2df54f9c076bd5cfe5002ba211f74ca6",
       "chain": "eth",
-      "total_usd": 28936174.339965522,
+      "total_usd": 25259386.824944627,
       "tokens": [
         {
           "address": "0x0346243fee34cfef97d8ac305b416295e99c2203",
@@ -506,11 +694,11 @@
         },
         {
           "address": "0x4c9edd5852cd905f086c759e8383e09bff1e68b3",
-          "tokenBalance": "0x0000000000000000000000000000000000000000000a833a82514c39e49622b8"
+          "tokenBalance": "0x00000000000000000000000000000000000000000000000000000000000212b8"
         },
         {
           "address": "0x4f5923fc5fd4a93352581b38b7cd26943012decf",
-          "tokenBalance": "0x00000000000000000000000000000000000000000089d5fd07e9561a3725d96e"
+          "tokenBalance": "0x000000000000000000000000000000000000000000580b7265ab9fdd7252b67a"
         },
         {
           "address": "0x5c3fa1f5dddc102b7f734a92bd5a7c6665bd7279",
@@ -554,7 +742,7 @@
         },
         {
           "address": "0x6df1c1e379bc5a00a7b4c6e67a203333772f45a8",
-          "tokenBalance": "0x00000000000000000000000000000000000000000000000000008a071a78e4bb"
+          "tokenBalance": "0x000000000000000000000000000000000000000000000000000056be73ebd9b7"
         },
         {
           "address": "0x6fb1b08a39601303a466de1815fd1a70f9fc65f5",
@@ -609,10 +797,6 @@
           "tokenBalance": "0x0000000000000000000000000000000000000000000000000036c1e752046000"
         },
         {
-          "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-          "tokenBalance": "0x000000000000000000000000000000000000000000000000000002b9bf227024"
-        },
-        {
           "address": "0xa62c5ef5dc67b6b38b3d14c79efca2c27eca8518",
           "tokenBalance": "0x0000000000000000000000000000000000000000000000008ac7230489e80000"
         },
@@ -629,35 +813,15 @@
     {
       "whale": "Avant",
       "wallet": "0xc468315a2df54f9c076bd5cfe5002ba211f74ca6",
-      "chain": "ink",
-      "total_usd": 68654.76210865797,
-      "tokens": [
-        {
-          "address": "0x5d3a1ff2b6bab83b63cd9ad0787074081a52ef34",
-          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000000c0fef3600"
-        },
-        {
-          "address": "0x726d965f0d759a0489d178365f00b4c3c3207bb7",
-          "tokenBalance": "0x00000000000000000000000000000000000000000000b9b191c62faec4af0217"
-        },
-        {
-          "address": "0xa5d61ef3d06234371507e54fb709f401e590719a",
-          "tokenBalance": "0x000000000000000000000000000000000000000000000000000000bbe296d7c7"
-        }
-      ]
-    },
-    {
-      "whale": "Avant",
-      "wallet": "0xc468315a2df54f9c076bd5cfe5002ba211f74ca6",
       "chain": "plasma",
-      "total_usd": 9650377.222873941,
+      "total_usd": 6117383.429141924,
       "tokens": []
     },
     {
       "whale": "yoUSD",
       "wallet": "0x0000000f2eb9f69274678c76222b35eec7588a65",
       "chain": "eth",
-      "total_usd": 11961893.36230212,
+      "total_usd": 11963022.311332291,
       "tokens": [
         {
           "address": "0x00e2b6d170740c15bf9fb01d0b6e77c0d4510e32",
@@ -737,7 +901,7 @@
         },
         {
           "address": "0x7c0477d085ecb607cf8429f3ec91ae5e1e460f4f",
-          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000000000029d83"
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000000000029da2"
         },
         {
           "address": "0x7c280dbdef569e96c7919251bd2b0edf0734c5a8",
@@ -753,7 +917,7 @@
         },
         {
           "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-          "tokenBalance": "0x000000000000000000000000000000000000000000000000000000eaf2be7d4c"
+          "tokenBalance": "0x000000000000000000000000000000000000000000000000000000ea52c927a3"
         },
         {
           "address": "0xa484ab92fe32b143aee7019fc1502b1daa522d31",
@@ -817,7 +981,7 @@
         },
         {
           "address": "0xfa82580c16a31d0c1bc632a36f82e83efef3eec0",
-          "tokenBalance": "0x000000000000000000000000000000000000000000000004732afd7597f8333d"
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000047332399538924427"
         }
       ]
     },
@@ -825,7 +989,7 @@
       "whale": "Yuzu",
       "wallet": "0x815f5bb257e88b67216a344c7c83a3ea4ee74748",
       "chain": "eth",
-      "total_usd": 11742933.45809096,
+      "total_usd": 15630793.823383575,
       "tokens": [
         {
           "address": "0x00e2b6d170740c15bf9fb01d0b6e77c0d4510e32",
@@ -965,7 +1129,7 @@
       "whale": "Yuzu",
       "wallet": "0x815f5bb257e88b67216a344c7c83a3ea4ee74748",
       "chain": "arb",
-      "total_usd": 226822.48626789474,
+      "total_usd": 348220.99574967055,
       "tokens": [
         {
           "address": "0x277498b8d0c8c681a5fd2f1d52c946dcf2ad5dfd",
@@ -981,7 +1145,7 @@
       "whale": "Yuzu",
       "wallet": "0x815f5bb257e88b67216a344c7c83a3ea4ee74748",
       "chain": "base",
-      "total_usd": 704209.4931266904,
+      "total_usd": 703671.8560818247,
       "tokens": [
         {
           "address": "0x0467659ab956c74cfc8ef273d117ec0a3ca19972",
@@ -1097,7 +1261,7 @@
         },
         {
           "address": "0x59dca05b6c26dbd64b5381374aaac5cd05644c28",
-          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000053250681779"
+          "tokenBalance": "0x000000000000000000000000000000000000000000000000000005326fd8d425"
         },
         {
           "address": "0x5b1a31fa5fa14b776b88da8024f89ad149c13938",
@@ -1373,7 +1537,7 @@
       "whale": "Yuzu",
       "wallet": "0x015cc48cc8bc37d80aaff4e43061dbaf94192308",
       "chain": "eth",
-      "total_usd": 13158669.974392835,
+      "total_usd": 16737010.154334435,
       "tokens": [
         {
           "address": "0x00e2b6d170740c15bf9fb01d0b6e77c0d4510e32",
@@ -1386,6 +1550,10 @@
         {
           "address": "0x1ff22cb1c7804b3529a005ddcf9bde6e7c9d6d90",
           "tokenBalance": "0x000000000000000000000000000000000000000000000000000000012a05f200"
+        },
+        {
+          "address": "0x23f5e9c35820f4bab695ac1f19c203cc3f8e1e11",
+          "tokenBalance": "0x0000000000000000000000000000000000000000000736f606155c774cc12618"
         },
         {
           "address": "0x279edc963595eb192f679bfc76c3a34e7cf1c297",
@@ -1425,7 +1593,7 @@
         },
         {
           "address": "0x6c3ea9036406852006290770bedfcaba0e23a0e8",
-          "tokenBalance": "0x000000000000000000000000000000000000000000000000000000000000012c"
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000000000000064"
         },
         {
           "address": "0x6cd62ece6442d3b989f8cd1b3201727964c6fc26",
@@ -1461,7 +1629,7 @@
         },
         {
           "address": "0xb576765fb15505433af24fee2c0325895c559fb2",
-          "tokenBalance": "0x000000000000000000000000000000000000000000056efb480db0ba0b113a59"
+          "tokenBalance": "0x000000000000000000000000000000000000000000051686e3d31e416ffafe3c"
         },
         {
           "address": "0xc26cdfca6999d2aa45ab09ae2e4e9458b2fa18a2",
@@ -1481,7 +1649,7 @@
         },
         {
           "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
-          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000000000001770"
+          "tokenBalance": "0x000000000000000000000000000000000000000000000000000000000002c9de"
         },
         {
           "address": "0xe3323b077aa613bd182cd0242dad8420bf69fcf3",
@@ -1497,14 +1665,21 @@
       "whale": "Yuzu",
       "wallet": "0x015cc48cc8bc37d80aaff4e43061dbaf94192308",
       "chain": "mnt",
-      "total_usd": 486995.0094173835,
+      "total_usd": 485422.5337142284,
+      "tokens": []
+    },
+    {
+      "whale": "Yuzu",
+      "wallet": "0x015cc48cc8bc37d80aaff4e43061dbaf94192308",
+      "chain": "plasma",
+      "total_usd": 3995170.8399621695,
       "tokens": []
     },
     {
       "whale": "Yuzu",
       "wallet": "0x502d222e8e4daef69032f55f0c1a999effd78fb3",
       "chain": "eth",
-      "total_usd": 17487335.46523755,
+      "total_usd": 4623497.408257129,
       "tokens": [
         {
           "address": "0x00e2b6d170740c15bf9fb01d0b6e77c0d4510e32",
@@ -1543,6 +1718,10 @@
           "tokenBalance": "0x0000000000000000000000000000000000000000000000008ac7230489e80000"
         },
         {
+          "address": "0x4c9edd5852cd905f086c759e8383e09bff1e68b3",
+          "tokenBalance": "0x000000000000000000000000000000000000000000000000000000a454d53258"
+        },
+        {
           "address": "0x5141a5c936bc48c0d91c0ff12c5e634f18a64936",
           "tokenBalance": "0x000000000000000000000000000000000000000000000000000000012a05f200"
         },
@@ -1556,7 +1735,7 @@
         },
         {
           "address": "0x6c3ea9036406852006290770bedfcaba0e23a0e8",
-          "tokenBalance": "0x00000000000000000000000000000000000000000000000000000000000004eb"
+          "tokenBalance": "0x00000000000000000000000000000000000000000000000000000000000000d8"
         },
         {
           "address": "0x6fb1b08a39601303a466de1815fd1a70f9fc65f5",
@@ -1579,12 +1758,8 @@
           "tokenBalance": "0x000000000000000000000000000000000000000000000001f16cc90b9f470512"
         },
         {
-          "address": "0x9d39a5de30e57443bff2a8307a4256c8797a3497",
-          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000006d21bea324"
-        },
-        {
           "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000000000005ba3"
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000000000005ca4"
         },
         {
           "address": "0xa6c5ec3f4b31e37770afe102540cac1b2ab004bc",
@@ -1603,6 +1778,10 @@
           "tokenBalance": "0x00000000000000000000000000000000000000000000001811bcdf9651700000"
         },
         {
+          "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+          "tokenBalance": "0x00000000000000000000000000000000000000000000000000000000000003e8"
+        },
+        {
           "address": "0xe3323b077aa613bd182cd0242dad8420bf69fcf3",
           "tokenBalance": "0x00000000000000000000000000000000000000000000000000000c419cb1fbba"
         },
@@ -1616,14 +1795,21 @@
       "whale": "Yuzu",
       "wallet": "0x502d222e8e4daef69032f55f0c1a999effd78fb3",
       "chain": "mnt",
-      "total_usd": 2798500.9913425515,
+      "total_usd": 3309769.184088757,
+      "tokens": []
+    },
+    {
+      "whale": "Yuzu",
+      "wallet": "0x502d222e8e4daef69032f55f0c1a999effd78fb3",
+      "chain": "plasma",
+      "total_usd": 1251485.2034563515,
       "tokens": []
     },
     {
       "whale": "Yuzu",
       "wallet": "0xcf0a12cbd8088fc5f84ad431e71787157041cd69",
       "chain": "eth",
-      "total_usd": 1684496.8233487036,
+      "total_usd": 1389625.5076735136,
       "tokens": [
         {
           "address": "0x05d26df93ba55a8e9e60693291213a5a835764bb",
@@ -1687,7 +1873,7 @@
       "whale": "Yuzu",
       "wallet": "0xb6cbe8b123392ef6aa72897bb85bd6515d2e8db7",
       "chain": "eth",
-      "total_usd": 4621774.365831424,
+      "total_usd": 4972887.533697676,
       "tokens": [
         {
           "address": "0x05d26df93ba55a8e9e60693291213a5a835764bb",
@@ -1698,12 +1884,16 @@
           "tokenBalance": "0x000000000000000000000000000000000000000000000000000000012a05f200"
         },
         {
+          "address": "0x204ba7f61133f1cd88b59762336a9b5f790cfc10",
+          "tokenBalance": "0x0000000000000000000000000000000000000001431e0fae6d7217caa0000000"
+        },
+        {
           "address": "0x2b591e99afe9f32eaa6214f7b7629768c40eeb39",
           "tokenBalance": "0x0000000000000000000000000000000000000000000000000000000005f5e100"
         },
         {
           "address": "0x4579a27af00a62c0eb156349f31b345c08386419",
-          "tokenBalance": "0x0000000000000000000000000000000000000000000bac83220511d9d9f80227"
+          "tokenBalance": "0x0000000000000000000000000000000000000000000dfe1dd4c5cea6c2441ce9"
         },
         {
           "address": "0x4c9edd5852cd905f086c759e8383e09bff1e68b3",
@@ -1731,7 +1921,7 @@
         },
         {
           "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-          "tokenBalance": "0x000000000000000000000000000000000000000000000000000000000000385c"
+          "tokenBalance": "0x00000000000000000000000000000000000000000000000000000000000047fc"
         },
         {
           "address": "0xa6c5ec3f4b31e37770afe102540cac1b2ab004bc",
@@ -1739,11 +1929,15 @@
         },
         {
           "address": "0xace8a1c0ec12ae81814377491265b47f4ee5d3dd",
-          "tokenBalance": "0x000000000000000000000000000000000000000000101ed7437ac85a6da0cb30"
+          "tokenBalance": "0x000000000000000000000000000000000000000000101f0b1425a853394fe03f"
         },
         {
           "address": "0xc26cdfca6999d2aa45ab09ae2e4e9458b2fa18a2",
           "tokenBalance": "0x00000000000000000000000000000000000000000000000053444835ec580000"
+        },
+        {
+          "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+          "tokenBalance": "0x000000000000000000000000000000000000000000000000000000000000083d"
         },
         {
           "address": "0xe1cfd16b8e4b1c86bb5b7a104cfefbc7b09326dd",
@@ -1755,7 +1949,7 @@
         },
         {
           "address": "0xea85a065f87fe28aa8fbf0d6c7dec472b106252c",
-          "tokenBalance": "0x0000000000000000000000000000000000000000000cb83126d1cf7d60004d76"
+          "tokenBalance": "0x0000000000000000000000000000000000000000000f48e3b64b0f879c2ba984"
         },
         {
           "address": "0xef70241b3ceeb61f437d30816734bfc2c506ab81",
@@ -1767,7 +1961,7 @@
       "whale": "Yuzu",
       "wallet": "0xfaa7744b9ed973290a36ee815b5acc76856583a0",
       "chain": "eth",
-      "total_usd": 6031199.866887187,
+      "total_usd": 6029972.5667472575,
       "tokens": [
         {
           "address": "0x00e2b6d170740c15bf9fb01d0b6e77c0d4510e32",
@@ -1799,7 +1993,7 @@
         },
         {
           "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000000000002f87"
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000000000003f27"
         },
         {
           "address": "0xc26cdfca6999d2aa45ab09ae2e4e9458b2fa18a2",
@@ -1811,15 +2005,15 @@
         },
         {
           "address": "0xdec2401c9b0b2e480e627e2a712c11addbf46e3e",
-          "tokenBalance": "0x000000000000000000000000000000000000000000072595e0a77d7bbc0bc5f7"
+          "tokenBalance": "0x0000000000000000000000000000000000000000000725add487e07835228aa5"
         },
         {
           "address": "0xec4ef66d4fceeba34abb4de69db391bc5476ccc8",
-          "tokenBalance": "0x00000000000000000000000000000000000000000000000000000274a5085186"
+          "tokenBalance": "0x00000000000000000000000000000000000000000000000000000274abd9761c"
         },
         {
           "address": "0xfa82580c16a31d0c1bc632a36f82e83efef3eec0",
-          "tokenBalance": "0x000000000000000000000000000000000000000000000000000000bb5b5ebe27"
+          "tokenBalance": "0x000000000000000000000000000000000000000000000000000000bb5c8f5bb5"
         }
       ]
     },
@@ -1827,21 +2021,21 @@
       "whale": "Yuzu",
       "wallet": "0x6695c0f8706c5ace3bdf8995073179cca47926dc",
       "chain": "plasma",
-      "total_usd": 11016055.29110465,
+      "total_usd": 11015174.394275967,
       "tokens": []
     },
     {
       "whale": "Yuzu",
       "wallet": "0x09bfbc374c37c927909a0e7b278ee7fdf47a380a",
       "chain": "plasma",
-      "total_usd": 1051376.4122523905,
+      "total_usd": 1051254.7613370798,
       "tokens": []
     },
     {
       "whale": "Reservoir",
       "wallet": "0x99a95a9e38e927486fc878f41ff8b118eb632b10",
       "chain": "eth",
-      "total_usd": 28916761.015022993,
+      "total_usd": 27414540.353541583,
       "tokens": [
         {
           "address": "0x0f96d2bd20c834418a4e0123ef067b5062a60f7a",
@@ -1853,11 +2047,11 @@
         },
         {
           "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-          "tokenBalance": "0x000000000000000000000000000000000000000000000000000000019061ffbc"
+          "tokenBalance": "0x00000000000000000000000000000000000000000000000000000001a5df4cfa"
         },
         {
           "address": "0xbeef01735c132ada46aa9aa4c54623caa92a64cb",
-          "tokenBalance": "0x000000000000000000000000000000000000000000154b93d3128bc9a4a1f66a"
+          "tokenBalance": "0x000000000000000000000000000000000000000000142fd10128385537eee964"
         },
         {
           "address": "0xc6d3d201530a6d4ad9dfbaad39c5f68a9a470a69",
@@ -1869,7 +2063,7 @@
       "whale": "Reservoir",
       "wallet": "0x3063c5907faa10c01b242181aa689beb23d2bd65",
       "chain": "eth",
-      "total_usd": 4470195.756548184,
+      "total_usd": 37461033.882042706,
       "tokens": [
         {
           "address": "0x00000000efe302beaa2b3e6e1b18d08d69a9012a",
@@ -2081,7 +2275,7 @@
         },
         {
           "address": "0xfa82580c16a31d0c1bc632a36f82e83efef3eec0",
-          "tokenBalance": "0x0000000000000000000000000000000000000000000000000001d42fadd3c855"
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000000001d432a707e9c8"
         },
         {
           "address": "0xfdb7941769e292d3f0b9cc356c9e054cb3f2c729",
@@ -2093,7 +2287,7 @@
       "whale": "Reservoir",
       "wallet": "0x289c204b35859bfb924b9c0759a4fe80f610671c",
       "chain": "base",
-      "total_usd": 6999024.781728309,
+      "total_usd": 5000225.004039384,
       "tokens": [
         {
           "address": "0x0467659ab956c74cfc8ef273d117ec0a3ca19972",
@@ -2489,7 +2683,7 @@
       "whale": "Reservoir",
       "wallet": "0x289c204b35859bfb924b9c0759a4fe80f610671c",
       "chain": "eth",
-      "total_usd": 80942130.19498006,
+      "total_usd": 42949850.91457104,
       "tokens": [
         {
           "address": "0x00e2b6d170740c15bf9fb01d0b6e77c0d4510e32",
@@ -2684,10 +2878,6 @@
           "tokenBalance": "0x000000000000000000000000000000000000000000000000000000012a05f200"
         },
         {
-          "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-          "tokenBalance": "0x00000000000000000000000000000000000000000000000000000000000f4240"
-        },
-        {
           "address": "0xa6c5ec3f4b31e37770afe102540cac1b2ab004bc",
           "tokenBalance": "0x000000000000000000000000000000000000000000000000000000012a05f200"
         },
@@ -2705,22 +2895,22 @@
       "whale": "Reservoir",
       "wallet": "0x289c204b35859bfb924b9c0759a4fe80f610671c",
       "chain": "monad",
-      "total_usd": 5995404.346094474,
+      "total_usd": 7998147.0770064965,
       "tokens": []
     },
     {
       "whale": "Makina",
       "wallet": "0xd1a1c248b253f1fc60eacd90777b9a63f8c8c1bc",
       "chain": "eth",
-      "total_usd": 5113394.59407288,
+      "total_usd": 5112935.554372601,
       "tokens": [
         {
           "address": "0x0fedba9178b70e8b54e2af08ebffcf28a1e5a43b",
-          "tokenBalance": "0x00000000000000000000000000000000000000000000000d2338149b457380af"
+          "tokenBalance": "0x00000000000000000000000000000000000000000000000ea14f3bef9a4a5a0b"
         },
         {
           "address": "0x23878914efe38d27c4d67ab83ed1b93a74d4086a",
-          "tokenBalance": "0x00000000000000000000000000000000000000000000000000000000000f0474"
+          "tokenBalance": "0x000000000000000000000000000000000000000000000000000000eb7f13ff6f"
         },
         {
           "address": "0x2b591e99afe9f32eaa6214f7b7629768c40eeb39",
@@ -2748,7 +2938,7 @@
         },
         {
           "address": "0x8292bb45bf1ee4d140127049757c2e0ff06317ed",
-          "tokenBalance": "0x000000000000000000000000000000000000000000000f57402973f10dbab7d4"
+          "tokenBalance": "0x000000000000000000000000000000000000000000000f593d95150b17db6c38"
         },
         {
           "address": "0x94f31ac896c9823d81cf9c2c93feceed4923218f",
@@ -2756,11 +2946,7 @@
         },
         {
           "address": "0x98c23e9d8f34fefb1b7bd6a91b7ff122f4e16f5c",
-          "tokenBalance": "0x00000000000000000000000000000000000000000000000000000000000ca6e5"
-        },
-        {
-          "address": "0xa484ab92fe32b143aee7019fc1502b1daa522d31",
-          "tokenBalance": "0x000000000000000000000000000000000000000000000000000000cad643b8da"
+          "tokenBalance": "0x00000000000000000000000000000000000000000000000000000000000ca792"
         },
         {
           "address": "0xbeef346d7099865208ff331e4f648f4154ddaa05",
@@ -2784,7 +2970,7 @@
       "whale": "Makina",
       "wallet": "0xbeef123217647014429b7670329782e210884e89",
       "chain": "base",
-      "total_usd": 1507466.8341563374,
+      "total_usd": 1507530.3971941224,
       "tokens": [
         {
           "address": "0x3dc1c485cac5ba5a4674aa53e031fe5ff61cf3eb",
@@ -2828,7 +3014,7 @@
       "whale": "Makina",
       "wallet": "0xbeef123217647014429b7670329782e210884e89",
       "chain": "eth",
-      "total_usd": 6324684.307356388,
+      "total_usd": 6325447.716369464,
       "tokens": [
         {
           "address": "0x2b591e99afe9f32eaa6214f7b7629768c40eeb39",
@@ -2848,7 +3034,7 @@
         },
         {
           "address": "0xbeeff2c5bf38f90e3482a8b19f12e5a6d2fca757",
-          "tokenBalance": "0x000000000000000000000000000000000000000000021bf1028b5ed51ed6477f"
+          "tokenBalance": "0x000000000000000000000000000000000000000000021c14de35f8598e095082"
         },
         {
           "address": "0xbeefff4716a49418d69c251cab8759bb107e57c8",
@@ -2868,7 +3054,7 @@
       "whale": "InfiniFi",
       "wallet": "0x76d2e84009dae457f8667d823c7c96e9a7c35b78",
       "chain": "eth",
-      "total_usd": 4010141.417112155,
+      "total_usd": 4010789.3293282688,
       "tokens": [
         {
           "address": "0x58d97b57bb95320f9a05dc918aef65434969c2b2",
@@ -2884,11 +3070,11 @@
       "whale": "InfiniFi",
       "wallet": "0xd880d7c5cafdbe2aec281250995abf612235e563",
       "chain": "eth",
-      "total_usd": 3579963.290919632,
+      "total_usd": 3869110.6731187524,
       "tokens": [
         {
           "address": "0xbc65ad17c5c0a2a4d159fa5a503f4992c7b545fe",
-          "tokenBalance": "0x00000000000000000000000000000000000000000002b52a449de974844057f2"
+          "tokenBalance": "0x00000000000000000000000000000000000000000002ed1a5614ed52116792ab"
         }
       ]
     },
@@ -2896,11 +3082,11 @@
       "whale": "InfiniFi",
       "wallet": "0x817d93dbdfd8190bbef0a73fcf5dd9da5a87e032",
       "chain": "eth",
-      "total_usd": 290991.05591263494,
+      "total_usd": 2442065.8247361057,
       "tokens": [
         {
           "address": "0x68215b6533c47ff9f7125ac95adf00fe4a62f79e",
-          "tokenBalance": "0x00000000000000000000000000000000000000000000000000000043e6a4d666"
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000022693bbfdc1"
         }
       ]
     },
@@ -2908,7 +3094,7 @@
       "whale": "Upshift",
       "wallet": "0xf014ef13a3e0372582f44a667e144a4f2e439ea7",
       "chain": "eth",
-      "total_usd": 10995421.454291932,
+      "total_usd": 10994181.363011966,
       "tokens": [
         {
           "address": "0x2b591e99afe9f32eaa6214f7b7629768c40eeb39",
@@ -2932,7 +3118,7 @@
         },
         {
           "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-          "tokenBalance": "0x00000000000000000000000000000000000000000000000000000065e99ccf84"
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000000023c443c4"
         },
         {
           "address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
@@ -2948,7 +3134,7 @@
       "whale": "Upshift",
       "wallet": "0x9f1a1479191af103ff82fead23e950b6b3b2bd1a",
       "chain": "eth",
-      "total_usd": 23736577.268949565,
+      "total_usd": 23768522.350257833,
       "tokens": [
         {
           "address": "0x00e2b6d170740c15bf9fb01d0b6e77c0d4510e32",
@@ -3100,14 +3286,14 @@
       "whale": "Upshift",
       "wallet": "0x9f1a1479191af103ff82fead23e950b6b3b2bd1a",
       "chain": "monad",
-      "total_usd": 12467238.306471877,
+      "total_usd": 12367768.162023803,
       "tokens": []
     },
     {
       "whale": "Upshift",
       "wallet": "0x6f64630a0c12c60813a80a215fb9a31e52528820",
       "chain": "eth",
-      "total_usd": 1967150.6003442327,
+      "total_usd": 1967280.0702087982,
       "tokens": [
         {
           "address": "0x00e2b6d170740c15bf9fb01d0b6e77c0d4510e32",
@@ -3175,21 +3361,21 @@
       "whale": "Upshift",
       "wallet": "0x6f64630a0c12c60813a80a215fb9a31e52528820",
       "chain": "monad",
-      "total_usd": 832765.8701475422,
+      "total_usd": 832961.3642712749,
       "tokens": []
     },
     {
       "whale": "Upshift",
       "wallet": "0x6f64630a0c12c60813a80a215fb9a31e52528820",
       "chain": "plasma",
-      "total_usd": 557512.6082651385,
+      "total_usd": 556020.4473228083,
       "tokens": []
     },
     {
       "whale": "Midas",
       "wallet": "0x68e7e72938db36a5cbbca7b52c71dbbaadfb8264",
       "chain": "eth",
-      "total_usd": 10781506.034437764,
+      "total_usd": 26735729.956104007,
       "tokens": [
         {
           "address": "0x0000000000085d4780b73119b644ae5ecd22b376",
@@ -3312,10 +3498,6 @@
           "tokenBalance": "0x0000000000000000000000000000000000000000000000001bc16d674ec80000"
         },
         {
-          "address": "0x4c9edd5852cd905f086c759e8383e09bff1e68b3",
-          "tokenBalance": "0x00000000000000000000000000000000000000000002e607132b0fd459ab174b"
-        },
-        {
           "address": "0x4fd6b7af49597ad1103bba25694de772ee44db7e",
           "tokenBalance": "0x0000000000000000000000000000000000000000000000000000ddd541b2a800"
         },
@@ -3349,7 +3531,7 @@
       "whale": "Midas",
       "wallet": "0x68e7e72938db36a5cbbca7b52c71dbbaadfb8264",
       "chain": "arb",
-      "total_usd": 3634415.6142379194,
+      "total_usd": 10848100.489549419,
       "tokens": [
         {
           "address": "0x00df20f0fba762b7ad46db94c7911f72e0d69fbd",
@@ -3361,7 +3543,7 @@
         },
         {
           "address": "0x0b2b2b2076d95dda7817e785989fe353fe955ef9",
-          "tokenBalance": "0x00000000000000000000000000000000000000000001c224bc1c2ac579472000"
+          "tokenBalance": "0x00000000000000000000000000000000000000000008161810d6fdac22872000"
         },
         {
           "address": "0x24e48d7113623e6ea2c4345487fc374897fddfe1",
@@ -3425,21 +3607,21 @@
       "whale": "Midas",
       "wallet": "0x68e7e72938db36a5cbbca7b52c71dbbaadfb8264",
       "chain": "monad",
-      "total_usd": 2150579.0913160085,
+      "total_usd": 2150764.687580283,
       "tokens": []
     },
     {
       "whale": "Midas",
       "wallet": "0x68e7e72938db36a5cbbca7b52c71dbbaadfb8264",
       "chain": "plasma",
-      "total_usd": 5028043.8096311465,
+      "total_usd": 5028226.265139908,
       "tokens": []
     },
     {
       "whale": "Midas",
       "wallet": "0x70ac345ab736ce145e0d4b5deced7a8bcb0e4033",
       "chain": "arb",
-      "total_usd": 4802980.165223407,
+      "total_usd": 4796452.591389754,
       "tokens": [
         {
           "address": "0xa7cf5543a27badc3a74d51ea0a02e84799140e4e",
@@ -3459,7 +3641,7 @@
       "whale": "Midas",
       "wallet": "0x70ac345ab736ce145e0d4b5deced7a8bcb0e4033",
       "chain": "base",
-      "total_usd": 1000703.5722032881,
+      "total_usd": 1000699.7619692606,
       "tokens": [
         {
           "address": "0x0e8eef6b9b9fc299c0e79464dc3f4485bfbfc5aa",
@@ -3491,7 +3673,7 @@
       "whale": "Midas",
       "wallet": "0x70ac345ab736ce145e0d4b5deced7a8bcb0e4033",
       "chain": "eth",
-      "total_usd": 10398790.998373603,
+      "total_usd": 10399747.153566886,
       "tokens": [
         {
           "address": "0x01ba69727e2860b37bc1a2bd56999c1afb4c15d8",
@@ -3575,65 +3757,21 @@
       "whale": "Midas",
       "wallet": "0x70ac345ab736ce145e0d4b5deced7a8bcb0e4033",
       "chain": "monad",
-      "total_usd": 1652482.8507023512,
+      "total_usd": 1652966.170253409,
       "tokens": []
     },
     {
       "whale": "Midas",
       "wallet": "0x70ac345ab736ce145e0d4b5deced7a8bcb0e4033",
       "chain": "plasma",
-      "total_usd": 1013482.8071701779,
+      "total_usd": 1013490.3608438213,
       "tokens": []
-    },
-    {
-      "whale": "Midas",
-      "wallet": "0x0e9550b1e31d323af15eb615f95bb16d25d5456f",
-      "chain": "eth",
-      "total_usd": 6236517.499481961,
-      "tokens": [
-        {
-          "address": "0x09fc4ad164ff8986bb1bc11c6c2e8212940bd32a",
-          "tokenBalance": "0x000000000000000000000000000000000000000000000000000000012a05f200"
-        },
-        {
-          "address": "0x276cea2c682f16a9c2a455338bdb075134669dd8",
-          "tokenBalance": "0x0000000000000000000000000000000000000000000000000de0b6b3a7640000"
-        },
-        {
-          "address": "0x58d97b57bb95320f9a05dc918aef65434969c2b2",
-          "tokenBalance": "0x00000000000000000000000000000000000000000000000163e8497339be40d4"
-        },
-        {
-          "address": "0x7bd37be1823af946e2ab17498c524fa503abfda3",
-          "tokenBalance": "0x000000000000000000000000000000000000000000000000000000012a05f200"
-        },
-        {
-          "address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-          "tokenBalance": "0x000000000000000000000000000000000000000000000000000001d1a94a2000"
-        },
-        {
-          "address": "0xd4419c2d3daa986dc30444fa333a846be44fd1eb",
-          "tokenBalance": "0x0000000000000000000000000000000000000000000000302379bf2ca2e00000"
-        },
-        {
-          "address": "0xd8f1200650fb2e28b8a068d4bc4d53c4d8984990",
-          "tokenBalance": "0x00000000000000000000000000000000000000000000000053444835ec580000"
-        },
-        {
-          "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
-          "tokenBalance": "0x000000000000000000000000000000000000000000000000000000000003b240"
-        },
-        {
-          "address": "0xe39ed28180b9ef6b211e2334a0e56162cc1f844e",
-          "tokenBalance": "0x000000000000000000000000000000000000000000000000000000012a05f200"
-        }
-      ]
     },
     {
       "whale": "Midas",
       "wallet": "0x0fe15b65136ab92a3f9ce83cceb9e0663f1efaa6",
       "chain": "eth",
-      "total_usd": 1201046.039725748,
+      "total_usd": 5051536.36459617,
       "tokens": [
         {
           "address": "0x00e2b6d170740c15bf9fb01d0b6e77c0d4510e32",
@@ -3709,7 +3847,7 @@
         },
         {
           "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000000000000282"
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000000000034004"
         },
         {
           "address": "0xbb9a3d650959386d40e52e6e9e5f242738b1ac76",
@@ -3725,14 +3863,14 @@
       "whale": "Midas",
       "wallet": "0x0fe15b65136ab92a3f9ce83cceb9e0663f1efaa6",
       "chain": "mnt",
-      "total_usd": 274599.81195403915,
+      "total_usd": 278148.60402645235,
       "tokens": []
     },
     {
       "whale": "Midas",
       "wallet": "0xd6c757043e7d59088969b188923c62fa960afe9b",
       "chain": "eth",
-      "total_usd": 3497061.0421959963,
+      "total_usd": 6290136.39352504,
       "tokens": [
         {
           "address": "0x00e2b6d170740c15bf9fb01d0b6e77c0d4510e32",
@@ -3851,10 +3989,6 @@
           "tokenBalance": "0x0000000000000000000000000000000000000000000000001bc16d674ec80000"
         },
         {
-          "address": "0x4c9edd5852cd905f086c759e8383e09bff1e68b3",
-          "tokenBalance": "0x000000000000000000000000000000000000000000000000000000bbe124ecab"
-        },
-        {
           "address": "0x522a8f36e23fe1c5018e28764fea161c5f951cad",
           "tokenBalance": "0x0000000000000000000000000000000000000000000000000de0b6b3a7640000"
         },
@@ -3897,17 +4031,10 @@
       ]
     },
     {
-      "whale": "Midas",
-      "wallet": "0xd6c757043e7d59088969b188923c62fa960afe9b",
-      "chain": "plasma",
-      "total_usd": 403877.89186924393,
-      "tokens": []
-    },
-    {
       "whale": "Superform",
       "wallet": "0x41a9eb398518d2487301c61d2b33e4e966a9f1dd",
       "chain": "eth",
-      "total_usd": 14095015.300292404,
+      "total_usd": 14222015.131124206,
       "tokens": [
         {
           "address": "0x0229db3921de71cfa43cfe9fb6a87b403647a9ae",
@@ -3939,7 +4066,7 @@
         },
         {
           "address": "0x8c106eedad96553e64287a5a6839c3cc78afa3d0",
-          "tokenBalance": "0x0000000000000000000000000000000000000000000604f992846ba6924475a4"
+          "tokenBalance": "0x0000000000000000000000000000000000000000000612acae78e29afe769c5f"
         },
         {
           "address": "0x9a1d6bd5b8642c41f25e0958129b85f8e1176f3e",
@@ -3947,11 +4074,11 @@
         },
         {
           "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-          "tokenBalance": "0x000000000000000000000000000000000000000000000000000000a7c5e68f7a"
+          "tokenBalance": "0x000000000000000000000000000000000000000000000000000000a856f59a2a"
         },
         {
           "address": "0xbeef01735c132ada46aa9aa4c54623caa92a64cb",
-          "tokenBalance": "0x000000000000000000000000000000000000000000041000a4c192295de575aa"
+          "tokenBalance": "0x000000000000000000000000000000000000000000041b2c6bfd529b483eaa0e"
         },
         {
           "address": "0xbeeff047c03714965a54b671a37c18bef6b96210",
@@ -3967,7 +4094,7 @@
       "whale": "Re Protocol",
       "wallet": "0x9ea38e09f41a9de53972a68268ba0dcc6d2fadf8",
       "chain": "eth",
-      "total_usd": 41425207.29660509,
+      "total_usd": 41442106.46940931,
       "tokens": [
         {
           "address": "0x2b591e99afe9f32eaa6214f7b7629768c40eeb39",
@@ -3983,7 +4110,7 @@
       "whale": "Re Protocol",
       "wallet": "0x295f67fdb21255a3db82964445628a706fbe689e",
       "chain": "eth",
-      "total_usd": 22028358.38526923,
+      "total_usd": 22037061.193975117,
       "tokens": [
         {
           "address": "0x00e2b6d170740c15bf9fb01d0b6e77c0d4510e32",
@@ -4103,7 +4230,7 @@
         },
         {
           "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-          "tokenBalance": "0x000000000000000000000000000000000000000000000000000009609b2bc42f"
+          "tokenBalance": "0x0000000000000000000000000000000000000000000000000000098603fbe163"
         },
         {
           "address": "0xa62c5ef5dc67b6b38b3d14c79efca2c27eca8518",
@@ -4127,7 +4254,7 @@
       "whale": "Re Protocol",
       "wallet": "0x5c454f5526e41fbe917b63475cd8ca7e4631b147",
       "chain": "eth",
-      "total_usd": 4336443.759804752,
+      "total_usd": 4079815.137654005,
       "tokens": [
         {
           "address": "0x2b591e99afe9f32eaa6214f7b7629768c40eeb39",
@@ -4135,7 +4262,7 @@
         },
         {
           "address": "0x9d39a5de30e57443bff2a8307a4256c8797a3497",
-          "tokenBalance": "0x00000000000000000000000000000000000000000002ec73806f61c109469f89"
+          "tokenBalance": "0x00000000000000000000000000000000000000000002bfeab46d03d45b25772b"
         }
       ]
     },
@@ -4143,7 +4270,7 @@
       "whale": "Re Protocol",
       "wallet": "0xd4374008c88321eb2e59abd311156c44b25831e9",
       "chain": "eth",
-      "total_usd": 1624176.9790672858,
+      "total_usd": 1624875.4736108638,
       "tokens": [
         {
           "address": "0x00e2b6d170740c15bf9fb01d0b6e77c0d4510e32",
