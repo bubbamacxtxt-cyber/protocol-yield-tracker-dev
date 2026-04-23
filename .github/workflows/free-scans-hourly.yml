@@ -62,10 +62,16 @@ jobs:
           ALCHEMY_PLASMA_RPC_URL: ${{ secrets.ALCHEMY_PLASMA_RPC_URL }}
       - name: Scan Pendle positions
         run: node src/pendle-scanner.js || node src/pendle-scanner.js
+        env:
+          ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
       - name: Scan Ethena cooldowns (Locked USDe)
         run: node src/ethena-scanner.js || node src/ethena-scanner.js
+        env:
+          ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
       - name: Scan YO Protocol (vault totalAssets)
         run: node src/yo-scanner.js || node src/yo-scanner.js
+        env:
+          ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
       - name: Purge stale scanner-protocol positions (>6h, >$1K)
         run: node scripts/purge-stale-positions.js
         env:
