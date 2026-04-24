@@ -107,13 +107,38 @@ jobs:
         run: node src/validate.js
       - name: Pull latest from remote (avoids push race with Vaults workflow)
         # Both the scan and vaults workflows can commit at the same time.
-        # Rebase any new upstream commits onto our local data changes before
-        # the commit step tries to push.
+        # Our scan pipeline has already regenerated the tracked output files
+        # (data.json, recon files, DB) on disk. We need to get any upstream
+        # commits from main without losing those regenerated files.
+        #
+        # Approach: stash THEM (the tracked regen outputs), fast-forward-only
+        # pull (which won't conflict because they're stashed), then restore
+        # our versions by force (since they're freshly generated from the
+        # scan run, they're authoritative for this commit).
         run: |
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          OUT_FILES="data.json data/recon/alchemy-token-discovery.json data/recon/canonical-token-matches.json data/source-audit.json data/total-history.json yield-tracker.db"
+          # Save our regenerated outputs outside the repo so rebase can't touch them
+          mkdir -p /tmp/scan-output
+          for f in $OUT_FILES; do
+            if [ -f "$f" ]; then
+              mkdir -p "/tmp/scan-output/$(dirname $f)"
+              cp "$f" "/tmp/scan-output/$f"
+            fi
+          done
+          # Discard working-tree changes to those files and any untracked cruft
+          git checkout -- $OUT_FILES 2>/dev/null || true
+          # Fetch + fast-forward main
           git fetch origin main
-          git stash --include-untracked -m 'pre-rebase' || true
-          git rebase origin/main || git rebase --abort
-          git stash pop || true
+          git reset --hard origin/main
+          # Restore our regenerated outputs over the top
+          for f in $OUT_FILES; do
+            if [ -f "/tmp/scan-output/$f" ]; then
+              mkdir -p "$(dirname $f)"
+              cp "/tmp/scan-output/$f" "$f"
+            fi
+          done
       - name: Commit updated data
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
