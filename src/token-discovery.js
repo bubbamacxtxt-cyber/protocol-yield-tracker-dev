@@ -42,6 +42,15 @@ const MIN_POSITION_USD = 50000;
 // $50K minimum per-chain threshold (Layer 1 filter)
 const MIN_CHAIN_USD = 50000;
 
+// dRPC fallback URLs for chains where Alchemy doesn't support Enhanced APIs
+// or where the method isn't available (e.g. Plasma).
+const DRPC_KEY = process.env.DRPC_API_KEY || '';
+const DRPC_URLS = DRPC_KEY ? {
+  mnt:    `https://lb.drpc.live/mantle/${DRPC_KEY}`,
+  plasma: `https://lb.drpc.live/plasma/${DRPC_KEY}`,
+  monad:  `https://lb.drpc.live/monad-mainnet/${DRPC_KEY}`,
+} : {};
+
 // Alchemy RPC endpoints
 const RPCS = {
   eth: `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`,
@@ -232,22 +241,72 @@ function loadMorphoVaultSet(db) {
 // ═══════════════════════════════════════════════════════════════
 
 async function alchemyRpc(chain, method, params) {
-  const url = RPCS[chain];
+  // Alchemy-specific methods (alchemy_*) can't be routed to dRPC.
+  // Standard methods (eth_call etc.) route to dRPC for chains Alchemy doesn't
+  // cover or where Enhanced APIs aren't enabled.
+  const isAlchemyMethod = method.startsWith('alchemy_');
+  const drpcUrl = DRPC_URLS[chain];
+  const alchUrl = RPCS[chain];
+  const url = isAlchemyMethod ? alchUrl : (alchUrl || drpcUrl);
+
   if (!url) return null;
   try {
-    const res = await fetchJSON(url, {
+    // Use raw fetch so JSON-RPC error bodies survive HTTP 4xx.
+    const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params })
-    }, 2);
-    return res?.result || null;
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+    });
+    let body;
+    try { body = await res.json(); } catch { return null; }
+    if (body?.error) {
+      // Retry on dRPC for non-alchemy methods if the Alchemy side rejected.
+      if (!isAlchemyMethod && drpcUrl && url !== drpcUrl) {
+        const res2 = await fetch(drpcUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+        });
+        try {
+          const body2 = await res2.json();
+          return body2?.result || null;
+        } catch { return null; }
+      }
+      return null;
+    }
+    return body?.result || null;
   } catch (e) {
-    console.error(`  Alchemy ${chain} ${method} failed:`, e.message);
     return null;
   }
 }
 
+// Pre-computed recon from build-alchemy-recon.js. Covers both alchemy-enhanced
+// chains and dRPC-fallback chains (Plasma/Monad/Mantle) with the same shape.
+let _reconCache = null;
+function loadRecon() {
+  if (_reconCache) return _reconCache;
+  const reconPath = path.join(__dirname, '..', 'data', 'recon', 'alchemy-token-discovery.json');
+  try {
+    const data = JSON.parse(fs.readFileSync(reconPath, 'utf8'));
+    _reconCache = new Map();
+    for (const w of (data.wallets || [])) {
+      const key = `${w.wallet.toLowerCase()}|${w.chain}`;
+      _reconCache.set(key, w.tokens || []);
+    }
+  } catch (e) {
+    console.warn('Could not load alchemy-token-discovery.json:', e.message);
+    _reconCache = new Map();
+  }
+  return _reconCache;
+}
+
 async function getTokenBalances(wallet, chain) {
+  // Prefer the pre-computed recon file — it already handles dRPC-fallback chains.
+  const cached = loadRecon().get(`${wallet.toLowerCase()}|${chain}`);
+  if (cached) {
+    return cached.map(t => ({ contractAddress: t.address, tokenBalance: t.tokenBalance }));
+  }
+  // Fallback to live call (legacy path — only hit if recon is stale/missing).
   const result = await alchemyRpc(chain, 'alchemy_getTokenBalances', [wallet]);
   if (!result?.tokenBalances) return [];
   return result.tokenBalances.filter(t => {
@@ -256,8 +315,47 @@ async function getTokenBalances(wallet, chain) {
   });
 }
 
+const _metadataCache = new Map();
 async function getTokenMetadata(chain, address) {
-  return await alchemyRpc(chain, 'alchemy_getTokenMetadata', [address]);
+  const key = `${chain}:${address.toLowerCase()}`;
+  if (_metadataCache.has(key)) return _metadataCache.get(key);
+
+  // Prefer Alchemy's enhanced method (gives logo/website/etc. for free).
+  if (RPCS[chain]) {
+    const meta = await alchemyRpc(chain, 'alchemy_getTokenMetadata', [address]);
+    if (meta && meta.decimals != null) {
+      _metadataCache.set(key, meta);
+      return meta;
+    }
+  }
+
+  // Fallback: standard ERC-20 calls via whichever RPC we have.
+  // symbol() = 0x95d89b41, decimals() = 0x313ce567, name() = 0x06fdde03
+  const [symRes, decRes, nameRes] = await Promise.all([
+    alchemyRpc(chain, 'eth_call', [{ to: address, data: '0x95d89b41' }, 'latest']),
+    alchemyRpc(chain, 'eth_call', [{ to: address, data: '0x313ce567' }, 'latest']),
+    alchemyRpc(chain, 'eth_call', [{ to: address, data: '0x06fdde03' }, 'latest']),
+  ]);
+
+  function decodeString(hex) {
+    if (!hex || hex === '0x') return null;
+    const s = hex.slice(2);
+    if (s.length < 128) return null;
+    try {
+      const offset = parseInt(s.slice(0, 64), 16) * 2;
+      const length = parseInt(s.slice(offset, offset + 64), 16) * 2;
+      const data = s.slice(offset + 64, offset + 64 + length);
+      return Buffer.from(data, 'hex').toString('utf8').replace(/\0+$/, '').trim();
+    } catch { return null; }
+  }
+
+  const meta = {
+    symbol: decodeString(symRes),
+    name: decodeString(nameRes),
+    decimals: decRes ? parseInt(decRes, 16) : null,
+  };
+  _metadataCache.set(key, meta);
+  return meta;
 }
 
 function hexToDecimal(hex) {
@@ -676,7 +774,7 @@ function writeWalletHeldPosition(db, wallet, chain, token, valueUsd) {
 // ═══════════════════════════════════════════════════════════════
 
 async function scanWalletChain(db, registry, vaultIndex, ybsIndex, morphoVaultSet, wallet, whale, chain) {
-  const rpc = RPCS[chain];
+  const rpc = RPCS[chain] || DRPC_URLS[chain];
   if (!rpc) {
     console.log(`  ⚠️ No RPC for ${chain}, skipping`);
     return { vault: 0, ybs: 0, wallet: 0, skipped: 0 };
@@ -905,12 +1003,12 @@ async function main() {
     process.exit(1);
   }
 
-  // Normalize chain names and filter to chains we have RPCs for
+  // Normalize chain names and filter to chains we have RPCs for (Alchemy OR dRPC)
   const scanPairs = [];
   const skippedByChain = {};
   for (const p of activePairs) {
     const chain = normalizeChain(p.chain);
-    if (!RPCS[chain]) {
+    if (!RPCS[chain] && !DRPC_URLS[chain]) {
       skippedByChain[p.chain] = (skippedByChain[p.chain] || 0) + 1;
       continue;
     }

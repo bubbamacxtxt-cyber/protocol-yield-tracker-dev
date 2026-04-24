@@ -26,6 +26,7 @@ jobs:
           ALCHEMY_MONAD_RPC_URL: ${{ secrets.ALCHEMY_MONAD_RPC_URL }}
           ALCHEMY_SONIC_RPC_URL: ${{ secrets.ALCHEMY_SONIC_RPC_URL }}
           ALCHEMY_INK_RPC_URL: ${{ secrets.ALCHEMY_INK_RPC_URL }}
+          DRPC_API_KEY: ${{ secrets.DRPC_API_KEY }}
       - name: Build canonical token matches
         run: node src/build-canonical-token-matches.js
       - name: Fetch Morpho vault registry (skip-list for token discovery)
@@ -45,6 +46,7 @@ jobs:
           ALCHEMY_MONAD_RPC_URL: ${{ secrets.ALCHEMY_MONAD_RPC_URL }}
           ALCHEMY_SONIC_RPC_URL: ${{ secrets.ALCHEMY_SONIC_RPC_URL }}
           ALCHEMY_INK_RPC_URL: ${{ secrets.ALCHEMY_INK_RPC_URL }}
+          DRPC_API_KEY: ${{ secrets.DRPC_API_KEY }}
       - name: Scan Euler positions (sub-account aware)
         run: node src/euler-scanner.js || node src/euler-scanner.js
         env:
