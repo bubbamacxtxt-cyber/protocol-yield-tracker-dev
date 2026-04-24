@@ -33,6 +33,8 @@ const RECON = path.join(__dirname, '..', 'data', 'recon', 'debank-wallet-summary
 const REGISTRY = path.join(__dirname, '..', 'data', 'token-registry.json');
 const YBS_PATH = path.join(__dirname, '..', 'data', 'stables.json');
 const VAULTS_PATH = path.join(__dirname, '..', 'data', 'vaults.json');
+const DEBANK_POSITIONS_PATH = path.join(__dirname, '..', 'data', 'recon', 'debank-wallet-positions.json');
+const DB_PATH = path.join(__dirname, '..', 'yield-tracker.db');
 const OUT = path.join(__dirname, '..', 'data', 'recon', 'alchemy-token-discovery.json');
 
 // Chain configuration. `alchemy` is the enhanced endpoint (uses
@@ -208,6 +210,23 @@ function loadCuratedAddresses() {
     }
   } catch (e) { /* optional */ }
 
+  // DeBank-sourced pool addresses — catches Curve / LP / liquidity
+  // deployments on chains that official registries don't cover (e.g.
+  // Plasma Curve). We ONLY take addresses DeBank already reported for our
+  // whales, not every pool on every chain — keeps the augmentation budget
+  // tight (a few dozen addresses, not thousands).
+  try {
+    const debankData = JSON.parse(fs.readFileSync(DEBANK_POSITIONS_PATH, 'utf8')).positions || [];
+    for (const p of debankData) {
+      const adapter = p.raw?.pool?.adapter_id || '';
+      if (!/curve|liquidity|convex|gauge/i.test(adapter)) continue;
+      const poolId = p.raw?.pool?.id;
+      const chain = p.chain;
+      if (!poolId || !chain || !poolId.startsWith('0x')) continue;
+      (byChain[chain] = byChain[chain] || new Set()).add(poolId.toLowerCase());
+    }
+  } catch (e) { /* optional */ }
+
   // Convert sets to arrays
   const out = {};
   for (const [ch, set] of Object.entries(byChain)) out[ch] = [...set];
@@ -336,11 +355,21 @@ async function main() {
     // dRPC fallback (or primary, if no alchemy configured)
     if (tokens === null && cfg.drpc) {
       path = 'drpc';
-      const tokenList = tokensByChain[w.chain] || [];
-      if (tokenList.length === 0) {
-        error = { message: `no registry tokens for chain ${w.chain}, dRPC scan would find nothing` };
+      // Base scan list: CoinGecko registry tokens for this chain.
+      // Augment with curated addresses (YBS + vaults + DeBank-sourced Curve
+      // pools) so niche tokens not in CoinGecko still get probed.
+      const registryList = tokensByChain[w.chain] || [];
+      const curated = curatedByChain[w.chain] || [];
+      const seen = new Set(registryList.map(t => t.addr.toLowerCase()));
+      const mergedList = registryList.slice();
+      for (const addr of curated) {
+        const a = addr.toLowerCase();
+        if (!seen.has(a)) { mergedList.push({ addr: a, sym: '?' }); seen.add(a); }
+      }
+      if (mergedList.length === 0) {
+        error = { message: `no registry/curated tokens for chain ${w.chain}, dRPC scan would find nothing` };
       } else {
-        const r = await scanViaDrpc(cfg.drpc, w.wallet, tokenList);
+        const r = await scanViaDrpc(cfg.drpc, w.wallet, mergedList);
         if (r.error && !r.tokens?.length) error = r.error;
         else tokens = r.tokens || [];
       }

@@ -901,7 +901,58 @@ async function scanWalletChain(db, registry, vaultIndex, ybsIndex, morphoVaultSe
         }
       }
     } catch (e) {
-      // Probe failed — fall through to plain wallet-held.
+      // Probe failed — fall through.
+    }
+
+    // ─── PRIORITY 2.6: Generic Curve pool probe ─────────────
+    // Curve pools share a stable ABI: coins(uint256), balances(uint256),
+    // get_virtual_price(), totalSupply(). If all four answer, this is
+    // a Curve LP token. We value it as balance * virtual_price * base_price
+    // where base_price is the USD price of coin0 (sufficient for stable-ng
+    // and stableswap pools).
+    //
+    // Catches Curve deployments that Curve's official API doesn't cover
+    // (Plasma right now). For chains Curve DOES cover, we skip the probe
+    // because curve-scanner.js already handled it with richer metadata
+    // (pool name, underlying coins, CRV APY).
+    try {
+      // Skip if curve-scanner already knows this pool.
+      const inCurveTable = (() => {
+        try {
+          const row = db.prepare('SELECT 1 FROM curve_pools WHERE chain = ? AND (lp_token = ? OR gauge = ?) LIMIT 1')
+            .get(chain, address, address);
+          return !!row;
+        } catch { return false; }
+      })();
+      if (!inCurveTable) {
+        // get_virtual_price() selector = 0xbb7b8b80
+        const vpRes = await alchemyRpc(chain, 'eth_call', [{ to: address, data: '0xbb7b8b80' }, 'latest']);
+        if (vpRes && vpRes !== '0x') {
+          // coins(0) selector = 0xc6610657 with uint256(0) arg
+          const coin0Res = await alchemyRpc(chain, 'eth_call', [
+            { to: address, data: '0xc6610657' + '0'.repeat(64) }, 'latest']);
+          if (coin0Res && coin0Res !== '0x' && coin0Res.length >= 66) {
+            const coin0Addr = '0x' + coin0Res.slice(-40);
+            if (coin0Addr !== '0x0000000000000000000000000000000000000000') {
+              const virtualPrice = Number(BigInt(vpRes)) / 1e18; // always 1e18-scaled
+              const baseValue = amount * virtualPrice;
+              const base0Price = await getDefiLlamaPrice(chain, coin0Addr);
+              if (base0Price) {
+                const valueUsd = baseValue * base0Price;
+                if (valueUsd >= MIN_POSITION_USD) {
+                  const token = { symbol, address, amount, price: base0Price * virtualPrice };
+                  writeVaultProbedPosition(db, wallet, chain, token, 'Curve LP', valueUsd, 'curve-lp');
+                  console.log(`  🟣 CURVE  ${symbol.padEnd(15)} ${amount.toFixed(4).padStart(12)} → $${(valueUsd / 1e6).toFixed(2)}M (vp=${virtualPrice.toFixed(4)}, coin0=${coin0Addr.slice(0, 10)})`);
+                  counts.vault = (counts.vault || 0) + 1;
+                  continue;
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // Not a Curve pool — fall through.
     }
 
     // ─── PRIORITY 3: Plain token from registry ───────────────
