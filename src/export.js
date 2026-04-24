@@ -197,6 +197,8 @@ function normalizeSourceMeta(position) {
             p.source_type = 'wallet';
         } else if (protocolId === 'vault') {
             p.source_type = 'vault';
+        } else if (protocolId === 'vault-probed') {
+            p.source_type = 'vault-probed';
         } else if (protocolId === 'ybs') {
             p.source_type = 'ybs';
         } else if (protocol.includes('aave') || protocol.includes('morpho') || protocol.includes('euler') || protocol.includes('fluid') || protocolId.includes('aave') || protocolId.includes('morpho') || protocolId.includes('euler') || protocolId.includes('fluid')) {
@@ -222,6 +224,8 @@ function normalizeSourceMeta(position) {
             p.source_name = 'wallet-scan';
         } else if (p.source_type === 'vault') {
             p.source_name = 'token-discovery';
+        } else if (p.source_type === 'vault-probed') {
+            p.source_name = 'token-discovery-probe';
         } else if (p.source_type === 'ybs') {
             p.source_name = 'token-discovery';
         } else if (p.source_type === 'protocol_api') {

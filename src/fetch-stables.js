@@ -44,6 +44,12 @@ const POOLS = [
   { name: 'alUSD', pool: '7565527d-6925-4e8d-8678-794999db45a5' },
   { name: 'sFRAX', pool: '55de30c3-bf9f-4d4e-9e0b-536a8ef5ab35' },
   { name: 'USTB', pool: '1910847a-f8b5-40ce-a1ab-1dafdded5fbb' },
+  // InfiniFi Locked iUSD tranches — each tranche has its own address + APY.
+  // Matched by address in token-discovery so tranches don't collide on ticker.
+  { name: 'LIUSD-1W', pool: 'fef01bce-008a-43b0-85f9-5377a56411c4' },
+  { name: 'LIUSD-4W', pool: 'a83398f6-9f44-4046-8e30-12bae393e54d' },
+  { name: 'LIUSD-8W', pool: 'cda362c2-3822-4d0f-bc56-383bdc5ed3fc' },
+  { name: 'LIUSD-13W', pool: '01def518-e633-4f6f-a497-e1e29deedd2b' },
 ];
 
 // Optional token metadata for address-first matching in downstream enrichment.
@@ -134,6 +140,27 @@ const TOKEN_META = {
   siUSD: {
     addresses: ['0x48f9e38f3070AD8945DFEae3FA70987722E3D89c'],
     aliases: ['siUSD'],
+    protocol: 'infinifi',
+  },
+  'LIUSD-1W': {
+    addresses: ['0x12b004719fb632f1e7c010c6f5d6009fb4258442'],
+    aliases: ['liUSD-1W'],
+    protocol: 'infinifi',
+  },
+  'LIUSD-4W': {
+    addresses: ['0x66bcf6151d5558afb47c38b20663589843156078'],
+    aliases: ['liUSD-4W'],
+    protocol: 'infinifi',
+  },
+  'LIUSD-8W': {
+    addresses: ['0xf68b95b7e851170c0e5123a3249dd1ca46215085'],
+    aliases: ['liUSD-8W'],
+    protocol: 'infinifi',
+  },
+  'LIUSD-13W': {
+    // Address not in CoinGecko registry yet. Apply once known.
+    addresses: [],
+    aliases: ['liUSD-13W'],
     protocol: 'infinifi',
   },
   sUSDf: {

@@ -99,7 +99,7 @@ async function main() {
     try {
       const Database = require('better-sqlite3');
       const db = new Database(dbPath, { readonly: true });
-      const scanners = ['aave-v3', 'morpho', 'euler2', 'fluid-lending', 'fluid-vault', 'spark-savings', 'spark-lend', 'pendle-pt', 'pendle-yt', 'pendle-lp', 'vault', 'ybs', 'wallet-held'];
+      const scanners = ['aave-v3', 'morpho', 'euler2', 'fluid-lending', 'fluid-vault', 'spark-savings', 'spark-lend', 'pendle-pt', 'pendle-yt', 'pendle-lp', 'vault', 'vault-probed', 'ybs', 'wallet-held', 'ethena-cooldown', 'yo-protocol'];
       const STALE_HOURS = 3; // grace window for one missed hourly run
       for (const protocolId of scanners) {
         const row = db.prepare("SELECT MAX(scanned_at) as last, COUNT(*) as n FROM positions WHERE protocol_id = ?").get(protocolId);

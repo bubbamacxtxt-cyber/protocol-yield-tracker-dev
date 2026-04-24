@@ -560,6 +560,51 @@ function writeVaultPosition(db, wallet, chain, vault, token, valueUsd, apy) {
   return posId;
 }
 
+/**
+ * Probed vault position: an ERC-4626 vault the wallet holds shares of,
+ * where we identified it generically (not via curated vaults.json or YBS list).
+ *
+ * Stored under protocol_id = 'vault-probed' so we can distinguish these from
+ * curated vault matches. APY is null — we don't know the yield without a
+ * trusted APY source. The value_usd comes from convertToAssets() × underlying
+ * price, so the dollar figure is correct; it just has no yield metadata.
+ */
+function writeVaultProbedPosition(db, wallet, chain, token, underlyingSymbol, valueUsd, method) {
+  const positionIndex = `${chain}:probed:${token.address}`;
+  const existing = db.prepare(`
+    SELECT id FROM positions
+    WHERE wallet = ? AND chain = ? AND protocol_id = 'vault-probed' AND position_index = ?
+  `).get(wallet, chain, positionIndex);
+
+  const protoName = token.symbol || 'ERC-4626 Vault';
+  const yieldSource = `probe:${method}:${underlyingSymbol || '?'}`;
+
+  let posId;
+  if (existing) {
+    db.prepare(`
+      UPDATE positions
+      SET asset_usd = ?, net_usd = ?, protocol_name = ?, yield_source = ?, scanned_at = datetime('now')
+      WHERE id = ?
+    `).run(valueUsd, valueUsd, protoName, yieldSource, existing.id);
+    posId = existing.id;
+    db.prepare(`DELETE FROM position_tokens WHERE position_id = ?`).run(posId);
+  } else {
+    const result = db.prepare(`
+      INSERT INTO positions (wallet, chain, protocol_id, protocol_name, position_type, strategy,
+        net_usd, asset_usd, debt_usd, position_index, yield_source, scanned_at)
+      VALUES (?, ?, 'vault-probed', ?, 'supply', 'vault', ?, ?, 0, ?, ?, datetime('now'))
+    `).run(wallet, chain, protoName, valueUsd, valueUsd, positionIndex, yieldSource);
+    posId = result.lastInsertRowid;
+  }
+
+  db.prepare(`
+    INSERT INTO position_tokens (position_id, role, symbol, address, amount, price_usd, value_usd, apy_base)
+    VALUES (?, 'supply', ?, ?, ?, ?, ?, NULL)
+  `).run(posId, token.symbol, token.address, token.amount, token.price || 0, valueUsd);
+
+  return posId;
+}
+
 function writeYbsPosition(db, wallet, chain, ybs, token, valueUsd, apy) {
   const positionIndex = `${chain}:ybs:${token.address}`;
   const existing = db.prepare(`
@@ -685,30 +730,26 @@ async function scanWalletChain(db, registry, vaultIndex, ybsIndex, morphoVaultSe
       continue;
     }
 
-    // ─── PRIORITY 2: YBS match (ticker-based via local CoinGecko registry)
+    // ─── PRIORITY 2: YBS match
     //
-    // Per user spec: YBS tokens have multiple bridged addresses with the
-    // same yield. We use our local CoinGecko-built token registry
-    // (data/token-registry.json) as the canonical source for tickers —
-    // this is effectively an offline snapshot of CoinGecko's ticker data.
-    //
-    // The registry stores the same CG symbol for every bridged chain of a
-    // token, so sUSDe on Arb resolves to the same 'SUSDE' ticker as on ETH.
-    //
-    // Matching strategy:
-    //   1. Look up chain:address in registry → get CG ticker
-    //   2. If ticker not found, fall back to on-chain symbol from metadata
-    //   3. Match ticker against YBS list
+    // Two match paths, in priority order:
+    //   1. Direct ADDRESS match (handles multi-tranche tokens like LIUSD-1W/
+    //      4W/8W that share a ticker but have different addresses + APYs).
+    //   2. TICKER match via local CoinGecko registry (handles bridged
+    //      tokens like sUSDe on ETH/Arb sharing the same yield).
     //
     // APY comes from YBS list. Price comes from DeFiLlama.
     const registryEntryForYbs = registry.by_address[lookupKey];
     const metadataTicker = metadata?.symbol ? metadata.symbol.toUpperCase() : null;
     const registryTicker = registryEntryForYbs?.symbol ? registryEntryForYbs.symbol.toUpperCase() : null;
 
-    // Prefer registry ticker (canonical across bridged chains),
-    // fall back to on-chain metadata symbol for tokens not yet in CG.
     const candidateTicker = registryTicker || metadataTicker;
-    const ybs = candidateTicker ? ybsIndex.bySymbol[candidateTicker] : null;
+
+    // Address-first match — beats ticker collisions between tranches.
+    const ybsByAddr = ybsIndex.byAddress[lookupKey];
+    const ybsByTicker = candidateTicker ? ybsIndex.bySymbol[candidateTicker] : null;
+    const ybs = ybsByAddr || ybsByTicker;
+    const ybsMatchSource = ybsByAddr ? 'address' : (ybsByTicker ? 'ticker' : null);
 
     if (ybs) {
       const price = await getDefiLlamaPrice(chain, address);
@@ -718,15 +759,51 @@ async function scanWalletChain(db, registry, vaultIndex, ybsIndex, morphoVaultSe
           const token = { symbol: ybs.name || candidateTicker, address, amount, price };
           const apy = ybs.apy_30d || ybs.apy_7d || ybs.apy_1d || 0;
           writeYbsPosition(db, wallet, chain, ybs, token, valueUsd, apy);
-          const tickerSource = registryTicker ? 'registry' : 'onchain';
-          console.log(`  🔵 YBS    ${(ybs.name || candidateTicker).padEnd(15)} ${amount.toFixed(4).padStart(12)} @ $${price.toFixed(4)} = $${(valueUsd / 1e6).toFixed(2)}M APY ${apy.toFixed(2)}% (${tickerSource}:${candidateTicker})`);
+          console.log(`  🔵 YBS    ${(ybs.name || candidateTicker).padEnd(15)} ${amount.toFixed(4).padStart(12)} @ $${price.toFixed(4)} = $${(valueUsd / 1e6).toFixed(2)}M APY ${apy.toFixed(2)}% (${ybsMatchSource}:${candidateTicker || address.slice(0,10)})`);
           counts.ybs++;
         }
       } else {
-        console.log(`  ⚠️ YBS    ${ybs.name} (${candidateTicker}) no DeFiLlama price on ${chain}`);
+        console.log(`  ⚠️ YBS    ${ybs.name} (${candidateTicker || address.slice(0,10)}) no DeFiLlama price on ${chain}`);
         counts.skipped++;
       }
       continue;
+    }
+
+    // ─── PRIORITY 2.5: Generic ERC-4626 probe ──────────────
+    // For any token we can't match to a curated vault or YBS entry, try
+    // probing it as ERC-4626: if asset() + convertToAssets() both work,
+    // it's a vault. Value the position via convertToAssets × underlying
+    // price — this catches share tokens from protocols we don't yet have
+    // in vaults.json (new Upshift launches, Cap stcUSD variants, etc.)
+    // without per-protocol scanners.
+    //
+    // APY is null — the probe gives correct value but no yield metadata.
+    try {
+      const rawShares = BigInt(Math.floor(amount * Math.pow(10, decimals)));
+      if (rawShares > 0n) {
+        const underlyingAddr = await getVaultAsset(chain, address);
+        if (underlyingAddr && underlyingAddr !== '0x0000000000000000000000000000000000000000') {
+          const underlyingRaw = await convertToAssets(chain, address, Number(rawShares));
+          if (underlyingRaw) {
+            const uMeta = await getTokenMetadata(chain, underlyingAddr);
+            const uDecimals = uMeta?.decimals ?? 18;
+            const underlyingAmount = Number(BigInt(underlyingRaw)) / Math.pow(10, uDecimals);
+            const underlyingPrice = await getDefiLlamaPrice(chain, underlyingAddr);
+            if (underlyingPrice) {
+              const valueUsd = underlyingAmount * underlyingPrice;
+              if (valueUsd >= MIN_POSITION_USD) {
+                const token = { symbol, address, amount, price: underlyingPrice };
+                writeVaultProbedPosition(db, wallet, chain, token, uMeta?.symbol || '?', valueUsd, 'erc4626');
+                console.log(`  🟠 PROBE  ${symbol.padEnd(15)} ${amount.toFixed(4).padStart(12)} → ${uMeta?.symbol || '?'} = $${(valueUsd / 1e6).toFixed(2)}M (erc4626)`);
+                counts.vault = (counts.vault || 0) + 1;
+                continue;
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // Probe failed — fall through to plain wallet-held.
     }
 
     // ─── PRIORITY 3: Plain token from registry ───────────────
@@ -760,7 +837,7 @@ function cleanupStale(db, activePairs, runStartIso) {
   //
   // Scope: only delete rows for the wallet+chain pairs we actually scanned.
   // This protects positions on chains we had no RPC for.
-  const kinds = ['vault', 'ybs', 'wallet-held'];
+  const kinds = ['vault', 'vault-probed', 'ybs', 'wallet-held'];
   let removed = 0;
 
   // Build the set of (wallet, chain) pairs we scanned
@@ -788,7 +865,7 @@ function cleanupStale(db, activePairs, runStartIso) {
 
 // Keep legacy signature for backward compat, but never called now.
 function _legacyCleanupStale(db) {
-  const kinds = ['vault', 'ybs', 'wallet-held'];
+  const kinds = ['vault', 'vault-probed', 'ybs', 'wallet-held'];
   let removed = 0;
   for (const kind of kinds) {
     const result = db.prepare(`
