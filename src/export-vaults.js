@@ -10,9 +10,17 @@ const SOURCE_NAMES = { ipor:'IPOR', upshift:'Upshift' };
 
 function main() {
   const db = new Database(DB_PATH, { readonly: true });
+  // Only export vaults whose declared address is a real ERC-20 share token.
+  // Proxies / admin contracts (address_valid=0) would cause token-discovery
+  // to match the wrong address. NULL = unverified (e.g. chain with no RPC)
+  // — include those until we can verify them.
   const vaults = db.prepare(`SELECT address, symbol, name, chain, chain_name, vault_type, status,
-    tvl_usd, apy_1d, apy_7d, apy_30d, source, max_drawdown, rating, fetched_at
-    FROM vaults WHERE tvl_usd >= 1000 ORDER BY tvl_usd DESC`).all();
+    tvl_usd, apy_1d, apy_7d, apy_30d, source, max_drawdown, rating, fetched_at,
+    address_valid, onchain_symbol
+    FROM vaults
+    WHERE tvl_usd >= 1000
+      AND (address_valid IS NULL OR address_valid = 1)
+    ORDER BY tvl_usd DESC`).all();
 
   const output = {
     fetched_at: new Date().toISOString(),

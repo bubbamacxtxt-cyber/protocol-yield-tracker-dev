@@ -10,10 +10,68 @@
 
 const Database = require('better-sqlite3');
 const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const DB_PATH = path.join(__dirname, '..', 'yield-tracker.db');
 const IPOR_API = 'https://api.ipor.io/dapp/plasma-vaults-list';
 const AUGUST_API = 'https://api.augustdigital.io/api/v1/tokenized_vault';
+
+const ALCHEMY_KEY = process.env.ALCHEMY_API_KEY || '';
+const DRPC_KEY = process.env.DRPC_API_KEY || '';
+
+// Per-chain RPC endpoints used only for vault address verification (symbol()).
+// Mirrors the layout in build-alchemy-recon.js.
+const CHAIN_RPCS = {
+  1: ALCHEMY_KEY ? `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}` : '',
+  8453: ALCHEMY_KEY ? `https://base-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}` : '',
+  42161: ALCHEMY_KEY ? `https://arb-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}` : '',
+  56: ALCHEMY_KEY ? `https://bnb-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}` : '',
+  43114: ALCHEMY_KEY ? `https://avax-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}` : '',
+  5000: DRPC_KEY ? `https://lb.drpc.live/mantle/${DRPC_KEY}` : '',
+  9745: DRPC_KEY ? `https://lb.drpc.live/plasma/${DRPC_KEY}` : '',
+  143:  DRPC_KEY ? `https://lb.drpc.live/monad-mainnet/${DRPC_KEY}` : '',
+};
+
+/**
+ * Verify that a vault's declared address is actually an ERC-20 share token.
+ * Proxy / admin contracts (common in Upshift's setup) revert on symbol() —
+ * they're not the share token wallets actually hold. We flag those vaults
+ * with an `address_valid: false` column so downstream matching skips them
+ * instead of wrongly pairing wallets to the proxy.
+ *
+ * Returns { valid: boolean, onChainSymbol: string | null }.
+ */
+async function verifyVaultAddress(chainId, address) {
+  const url = CHAIN_RPCS[chainId];
+  if (!url || !address) return { valid: null, onChainSymbol: null };
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_call',
+        params: [{ to: address, data: '0x95d89b41' }, 'latest'] }),
+    });
+    const body = await res.json();
+    if (body.error || !body.result || body.result === '0x') {
+      return { valid: false, onChainSymbol: null };
+    }
+    const hex = body.result.slice(2);
+    let symbol = null;
+    try {
+      if (hex.length < 128) {
+        symbol = Buffer.from(hex.replace(/00+$/, ''), 'hex').toString('utf8').trim() || null;
+      } else {
+        const offset = parseInt(hex.slice(0, 64), 16) * 2;
+        const length = parseInt(hex.slice(offset, offset + 64), 16) * 2;
+        symbol = Buffer.from(hex.slice(offset + 64, offset + 64 + length), 'hex')
+          .toString('utf8').replace(/\0+$/, '').trim();
+      }
+    } catch { symbol = null; }
+    return { valid: !!symbol, onChainSymbol: symbol };
+  } catch {
+    return { valid: null, onChainSymbol: null };
+  }
+}
 
 // Upshift's `chain` field is a chain ID (not a string name).
 const CHAIN_MAP = {
@@ -126,6 +184,22 @@ async function main() {
     vault_address TEXT NOT NULL, source TEXT NOT NULL, timestamp TEXT NOT NULL,
     apy REAL, tvl_usd REAL, PRIMARY KEY (vault_address, timestamp))`);
   try { db.exec('ALTER TABLE vaults ADD COLUMN rating TEXT'); } catch (e) {}
+  try { db.exec('ALTER TABLE vaults ADD COLUMN address_valid INTEGER'); } catch (e) {}
+  try { db.exec('ALTER TABLE vaults ADD COLUMN onchain_symbol TEXT'); } catch (e) {}
+
+  // One-time cleanup: prior runs inserted Upshift addresses with mixed case,
+  // then later runs inserted lowercased copies. Kill the mixed-case variants
+  // so we only have one row per (lowercased) address.
+  const dupes = db.prepare(`
+    SELECT address FROM vaults
+    WHERE address != LOWER(address)
+      AND LOWER(address) IN (SELECT address FROM vaults WHERE address = LOWER(address))
+  `).all();
+  if (dupes.length) {
+    const del = db.prepare('DELETE FROM vaults WHERE address = ?');
+    for (const d of dupes) del.run(d.address);
+    console.log(`Cleaned ${dupes.length} mixed-case duplicate vault rows`);
+  }
 
   const now = new Date().toISOString();
   const iporVaults = await fetchIpor();
@@ -179,6 +253,34 @@ async function main() {
     upCount++;
   }
   console.log(`Wrote ${upCount} Upshift vaults`);
+
+  // On-chain address verification pass.
+  // For every vault whose chain we can reach, call symbol() on the declared
+  // address. Proxies / admin contracts revert — flag them as address_valid=0
+  // so downstream matching (token-discovery's vaultIndex + export's vault
+  // lookups) can skip them. We don't auto-discover the real share token:
+  // that requires event-log scanning which is out of scope here. The flag
+  // at least stops us from wrongly pairing wallets to proxy addresses.
+  console.log('\nVerifying vault addresses on-chain...');
+  const toVerify = db.prepare(`SELECT address, chain FROM vaults`).all();
+  const setValid = db.prepare('UPDATE vaults SET address_valid = ?, onchain_symbol = ? WHERE address = ?');
+  let verifiedOk = 0, verifiedBad = 0, skipped = 0;
+  for (const row of toVerify) {
+    const { valid, onChainSymbol } = await verifyVaultAddress(row.chain, row.address);
+    if (valid === null) { skipped++; continue; }
+    setValid.run(valid ? 1 : 0, onChainSymbol, row.address);
+    if (valid) verifiedOk++; else verifiedBad++;
+    // light throttle to avoid bursting the same RPC
+    await new Promise(r => setTimeout(r, 25));
+  }
+  console.log(`  verified: ${verifiedOk} ok, ${verifiedBad} proxy/invalid, ${skipped} skipped (no RPC)`);
+
+  // Report bad entries so we can hand-fix over time.
+  const bad = db.prepare(`SELECT symbol, name, address, chain, source FROM vaults WHERE address_valid = 0 ORDER BY tvl_usd DESC LIMIT 20`).all();
+  if (bad.length) {
+    console.log('\n  Top invalid entries (proxy/admin contracts):');
+    for (const b of bad) console.log(`    ${(b.symbol || b.name || '?').padEnd(35).slice(0, 35)} chain=${b.chain}  ${b.address}  (${b.source})`);
+  }
 
   db.close();
   console.log('Done!');

@@ -78,7 +78,10 @@ const TOKEN_META = {
     protocol: 'ondo-yield-assets',
   },
   reUSD: {
-    addresses: ['0x3eaa0f0f0a5d3d595ae4e4b0d27f439d01c3e7b2'],
+    // Re Protocol reUSD (share token). Previous value was the Pendle PT for this
+    // token which has a maturity and is NOT a yield-bearing stable. Corrected
+    // via CoinGecko (id=re-protocol-reusd).
+    addresses: ['0x5086bf358635b81d8c47c66d1c8b9e567db70c72'],
     aliases: ['reUSD'],
     protocol: 're-protocol',
   },
@@ -103,22 +106,30 @@ const TOKEN_META = {
     protocol: 'apex-finance',
   },
   srUSDe: {
-    addresses: ['0x4c9EDD5852cd905f086C759E8383e09bff1E68B3'],
+    // Strata Senior USDe share token. Previous value was USDe (the underlying).
+    // Corrected via CoinGecko (id=strata-senior-usde).
+    addresses: ['0x3d7d6fdf07ee548b939a80edbc9b2256d0cdc003'],
     aliases: ['srUSDe'],
     protocol: 'strata-markets',
   },
   jrNUSD: {
-    addresses: ['0xE556ABa6fe6036275Ec1f87eda296BE72C811BCE'],
+    // Strata Junior NUSD share token. Previous value was NUSD (the underlying).
+    // Corrected via CoinGecko (id=strata-junior-nusd).
+    addresses: ['0xfc807058a352b61aeef6a38e2d0fc3990225e772'],
     aliases: ['jrNUSD'],
     protocol: 'strata-markets',
   },
   sNUSD: {
-    addresses: ['0x6c65db1d88c8eda1e3debf2b2ef3d0ece8600466'],
+    // Nucleus sNUSD share token. Previous value was a Pendle PT maturity token.
+    // Corrected via CoinGecko (id=snusd).
+    addresses: ['0x08efcc2f3e61185d0ea7f8830b3fec9bfa2ee313'],
     aliases: ['sNUSD'],
     protocol: 'nucleus',
   },
   USD3: {
-    addresses: ['0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'],
+    // Web 3 Dollar (USD3) share token. Previous value was USDC. Corrected via
+    // CoinGecko (id=web-3-dollar).
+    addresses: ['0x0d86883faf4ffd7aeb116390af37746f45b6f378'],
     aliases: ['USD3'],
     protocol: '3jane-lending',
   },
@@ -138,7 +149,9 @@ const TOKEN_META = {
     protocol: 'usd-ai',
   },
   siUSD: {
-    addresses: ['0x48f9e38f3070AD8945DFEae3FA70987722E3D89c'],
+    // InfiniFi Staked iUSD share token. Previous value was iUSD (the underlying).
+    // Corrected via CoinGecko (id=infinifi-staked-iusd).
+    addresses: ['0xdbdc1ef57537e34680b898e1febd3d68c7389bcb'],
     aliases: ['siUSD'],
     protocol: 'infinifi',
   },
@@ -164,7 +177,10 @@ const TOKEN_META = {
     protocol: 'infinifi',
   },
   sUSDf: {
-    addresses: ['0xFa2B947eEc368f42195f24F36d2aF29f7c24CeC2'],
+    // Falcon Finance staked USDf. DeFiLlama returns USDf (underlying) as the
+    // pool's underlyingTokens. CoinGecko does not yet list sUSDf separately.
+    // Leave empty so address-first match doesn't mis-tag USDf holders as sUSDf.
+    addresses: [],
     aliases: ['sUSDf'],
     protocol: 'falcon-finance',
   },
@@ -179,27 +195,40 @@ const TOKEN_META = {
     protocol: 'yieldnest',
   },
   WOUSD: {
-    addresses: ['0x457842d6de59fa460da58bd2712532b7c27dc579'],
+    // Wrapped OUSD share token. Previous value was the Pendle PT maturity token.
+    // Corrected via CoinGecko (id=wrapped-ousd).
+    addresses: ['0xd2af830e8cbdfed6cc11bab697bb25496ed6fa62'],
     aliases: ['WOUSD'],
     protocol: 'spectra-v2',
   },
   wsrUSD: {
-    addresses: ['0x09D4214C03D01F49544C0448DBE3A27f768F2b34'],
+    // Wrapped Savings rUSD share token. Previous value was rUSD (the underlying).
+    // Corrected via CoinGecko (id=wrapped-savings-rusd).
+    addresses: ['0xd3fd63209fa2d55b07a0f6db36c2f43900be3094'],
     aliases: ['wsrUSD'],
     protocol: 'reservoir-protocol',
   },
   stcUSD: {
-    addresses: ['0xcCcc62962d17b8914c62D74FfB843d73B2a3cccC'],
+    // Staked Cap USD (stcUSD) share token. Previous value was cUSD (the underlying).
+    // Corrected via CoinGecko (id=staked-cap-usd) and verified on-chain:
+    // asset() on 0x88887be4... returns 0xcccc... (cUSD), confirming it's the 4626 vault.
+    addresses: ['0x88887be419578051ff9f4eb6c858a951921d8888'],
     aliases: ['stcUSD'],
     protocol: 'cap',
   },
   sUSDa: {
-    addresses: ['0x118078288f681389070a9d89d6832b302216ace3'],
+    // DeFiLlama pool 282c70ef... is actually a Pendle LP for sUSDa, not the
+    // sUSDa share token itself. No CoinGecko entry for the real sUSDa yet.
+    // Leaving addresses empty — address-first match won't fire, ticker match
+    // would wrongly grab anything with symbol sUSDa. Revisit when CG lists it.
+    addresses: [],
     aliases: ['sUSDa'],
     protocol: 'avantis',
   },
   sfrxUSD: {
-    addresses: ['0xCAcd6fd266aF91b8AeD52aCCc382b4e165586E29'],
+    // Frax Staked frxUSD share token. Previous value was frxUSD (the underlying).
+    // Corrected via CoinGecko (id=staked-frax-usd).
+    addresses: ['0xcf62f905562626cfcdd2261162a51fd02fc9c5b6'],
     aliases: ['sfrxUSD'],
     protocol: 'frax',
   },
@@ -209,7 +238,9 @@ const TOKEN_META = {
     protocol: 'merkl',
   },
   sUSDS: {
-    addresses: ['0xdC035D45d973E3EC169d2276DDab16f1e407384F'],
+    // Sky sUSDS share token. Previous value was USDS (the underlying).
+    // Corrected via CoinGecko (id=susds).
+    addresses: ['0xa3931d71877c0e7a3148cb7eb4463524fec27fbd'],
     aliases: ['sUSDS'],
     protocol: 'sky-lending',
   },
@@ -219,12 +250,18 @@ const TOKEN_META = {
     protocol: 'yield-protocol',
   },
   dUSDC: {
-    addresses: ['0x1e33e98af620f1d563fcd3cfd3c75ace841204ef'],
+    // DeFiLlama pool 20e45c3e... is actually 'Dolomite Balance' for plain USDC
+    // with DOLO rewards — NOT a yield-bearing wrapper token. The declared address
+    // was Dialectic USD (a different protocol entirely). Leaving empty;
+    // Dolomite balances should be caught by a dedicated Dolomite scanner instead.
+    addresses: [],
     aliases: ['dUSDC'],
     protocol: 'dolomite',
   },
   cUSDO: {
-    addresses: ['0x67aeeed39c1675e0df93ad8bab543b17992d433b'],
+    // Compounding OpenDollar (cUSDO) share token. Previous value was the Pendle
+    // PT maturity token. Corrected via CoinGecko (id=compounding-open-dollar).
+    addresses: ['0xad55aebc9b8c03fc43cd9f62260391c13c23e7c0'],
     aliases: ['cUSDO'],
     protocol: 'usdo',
   },
@@ -234,7 +271,11 @@ const TOKEN_META = {
     protocol: 'lagoon',
   },
   sFRAX: {
-    addresses: ['0x853d955acef822db058eb8505911ed77f175b99e'],
+    // Frax rebranded sFRAX → sfrxUSD (same economic exposure, new token).
+    // The old sFRAX contract was wound down. DeFiLlama's pool 55de30c3... now
+    // has the underlying FRAX address. Prefer the sfrxUSD entry above. Left
+    // here with empty addresses so any legacy code paths don't break.
+    addresses: [],
     aliases: ['sFRAX'],
     protocol: 'frax',
   },

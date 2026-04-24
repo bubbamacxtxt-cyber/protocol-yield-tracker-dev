@@ -31,6 +31,8 @@ const DRPC_KEY = process.env.DRPC_API_KEY || '';
 
 const RECON = path.join(__dirname, '..', 'data', 'recon', 'debank-wallet-summary.json');
 const REGISTRY = path.join(__dirname, '..', 'data', 'token-registry.json');
+const YBS_PATH = path.join(__dirname, '..', 'data', 'stables.json');
+const VAULTS_PATH = path.join(__dirname, '..', 'data', 'vaults.json');
 const OUT = path.join(__dirname, '..', 'data', 'recon', 'alchemy-token-discovery.json');
 
 // Chain configuration. `alchemy` is the enhanced endpoint (uses
@@ -77,19 +79,31 @@ async function rpcSingle(url, method, params) {
   return { result: body?.result, error: null };
 }
 
-async function rpcBatch(url, batch) {
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(batch),
-  });
-  try {
-    const body = await res.json();
-    if (Array.isArray(body)) return body;
-    return [body];
-  } catch {
-    return [{ error: { message: `HTTP ${res.status} non-JSON` } }];
+async function rpcBatch(url, batch, retryCount = 3) {
+  // Retry the whole batch if ANY response is a 429 rate-limit error.
+  // Alchemy's free tier caps CU/s; large augmentation batches easily trip it.
+  for (let attempt = 0; attempt <= retryCount; attempt++) {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(batch),
+    });
+    let body;
+    try {
+      body = await res.json();
+    } catch {
+      return [{ error: { message: `HTTP ${res.status} non-JSON` } }];
+    }
+    const arr = Array.isArray(body) ? body : [body];
+    // Look for rate-limit errors.
+    const rateLimited = arr.some(r => r?.error?.code === 429 ||
+      /exceeded its compute units|rate.?limit|too many/i.test(r?.error?.message || ''));
+    if (!rateLimited || attempt === retryCount) return arr;
+    // Exponential backoff: 1s, 2s, 4s
+    const delay = 1000 * Math.pow(2, attempt);
+    await new Promise(r => setTimeout(r, delay));
   }
+  return [];
 }
 
 // ─── Path 1: Alchemy enhanced API ───────────────────────────────
@@ -156,6 +170,88 @@ function loadTokenListForChain(registry, prefix) {
   return out;
 }
 
+// Curated augmentation list: YBS + vault addresses we want to force-check
+// for every wallet even if Alchemy's default `alchemy_getTokenBalances`
+// doesn't list them (Alchemy's curated token set misses niche yield tokens
+// like stcUSD). Indexed by chain prefix.
+function loadCuratedAddresses() {
+  const byChain = {};
+
+  // YBS list — stables.json
+  try {
+    const ybsData = JSON.parse(fs.readFileSync(YBS_PATH, 'utf8')).stables || [];
+    // Map stables.json chain names → our registry prefix
+    const chainMap = { 'ethereum': 'eth', 'arbitrum': 'arb', 'base': 'base',
+      'plasma': 'plasma', 'mantle': 'mnt', 'monad': 'monad', 'avalanche': 'avax',
+      'bsc': 'bsc', 'optimism': 'opt' };
+    for (const s of ybsData) {
+      const chain = chainMap[(s.chain || '').toLowerCase()];
+      if (!chain) continue;
+      for (const addr of (s.addresses || [])) {
+        if (typeof addr === 'string' && addr.startsWith('0x')) {
+          (byChain[chain] = byChain[chain] || new Set()).add(addr.toLowerCase());
+        }
+      }
+    }
+  } catch (e) { /* optional */ }
+
+  // Vaults list — vaults.json (only entries that made it through the
+  // address-validity filter in export-vaults.js)
+  try {
+    const vaultsData = JSON.parse(fs.readFileSync(VAULTS_PATH, 'utf8')).vaults || [];
+    const chainMap = { 'eth': 'eth', 'arb': 'arb', 'base': 'base', 'avax': 'avax',
+      'bsc': 'bsc', 'mantle': 'mnt', 'monad': 'monad', 'plasma': 'plasma' };
+    for (const v of vaultsData) {
+      const chain = chainMap[(v.chain || '').toLowerCase()];
+      if (!chain || !v.address) continue;
+      (byChain[chain] = byChain[chain] || new Set()).add(v.address.toLowerCase());
+    }
+  } catch (e) { /* optional */ }
+
+  // Convert sets to arrays
+  const out = {};
+  for (const [ch, set] of Object.entries(byChain)) out[ch] = [...set];
+  return out;
+}
+
+// Given a wallet's existing token set and a list of curated addresses we
+// want to force-check, return the subset NOT already in the set. We batch
+// balanceOf() for the missing ones via the provided RPC URL.
+async function augmentWithCurated(url, wallet, existingTokens, curatedAddrs) {
+  if (!url || !curatedAddrs?.length) return [];
+  const have = new Set(existingTokens.map(t => t.address.toLowerCase()));
+  const missing = curatedAddrs.filter(a => !have.has(a));
+  if (!missing.length) return [];
+
+  const padded = wallet.slice(2).toLowerCase().padStart(64, '0');
+  const data = '0x70a08231' + padded;
+
+  // Smaller chunks to stay under Alchemy's CU/s cap on the free tier.
+  // 80 addrs * 26 CU per eth_call ≈ 2080 CU per batch; with ~30 wallets in
+  // quick succession we blow through the 660 CU/s limit. Keep per-batch
+  // work small and let rpcBatch handle retries.
+  const chunkSize = 40;
+  const found = [];
+  for (let chunkStart = 0; chunkStart < missing.length; chunkStart += chunkSize) {
+    const chunkMissing = missing.slice(chunkStart, chunkStart + chunkSize);
+    const batch = chunkMissing.map((addr, i) => ({
+      jsonrpc: '2.0', id: i, method: 'eth_call',
+      params: [{ to: addr, data }, 'latest'],
+    }));
+    const responses = await rpcBatch(url, batch);
+    const resById = {};
+    for (const r of responses) if (r?.id != null) resById[r.id] = r;
+    for (let i = 0; i < chunkMissing.length; i++) {
+      const r = resById[i];
+      if (!r || r.error) continue;
+      const hex = r.result;
+      if (!hex || hex === '0x' || /^0x0+$/.test(hex)) continue;
+      found.push({ address: chunkMissing[i], tokenBalance: hex });
+    }
+  }
+  return found;
+}
+
 async function main() {
   const recon = JSON.parse(fs.readFileSync(RECON, 'utf8'));
   const registry = JSON.parse(fs.readFileSync(REGISTRY, 'utf8'));
@@ -185,6 +281,13 @@ async function main() {
     tokensByChain[ch] = loadTokenListForChain(registry, CHAINS[ch].registryPrefix);
   }
 
+  // Curated addresses (YBS + vaults) to force-check even if Alchemy's
+  // default token list doesn't include them. Applies to Alchemy path only
+  // — dRPC path already iterates the full registry so it catches these.
+  const curatedByChain = loadCuratedAddresses();
+  const curatedCount = Object.values(curatedByChain).reduce((a, v) => a + v.length, 0);
+  console.log(`Curated augmentation list: ${curatedCount} addresses across ${Object.keys(curatedByChain).length} chains`);
+
   const out = [];
   const errors = [];
   const byChainStats = {};
@@ -213,6 +316,20 @@ async function main() {
         }
       } else {
         tokens = r.tokens;
+        // Augment with curated YBS + vault addresses that Alchemy's default
+        // list may have missed (e.g. stcUSD 0x88887be4... isn't in Alchemy's
+        // top-7k token set even though whales hold $5M+ of it).
+        const curated = curatedByChain[w.chain];
+        if (curated?.length) {
+          const extra = await augmentWithCurated(cfg.alchemy, w.wallet, tokens, curated);
+          if (extra.length) {
+            console.log(`   + ${w.chain} ${w.wallet.slice(0, 10)} augmented with ${extra.length} curated: ${extra.map(t => t.address.slice(0, 10)).join(', ')}`);
+            tokens = tokens.concat(extra);
+            stat.augmented = (stat.augmented || 0) + extra.length;
+          }
+        }
+        // Throttle between wallets to stay under Alchemy's CU/s cap.
+        await new Promise(r => setTimeout(r, 120));
       }
     }
 
@@ -267,7 +384,8 @@ async function main() {
   console.log('\n=== Per-chain scan summary ===');
   for (const [ch, s] of Object.entries(byChainStats)) {
     const flag = s.errors > 0 || s.empty > 0 ? '⚠️ ' : '   ';
-    console.log(`${flag} ${ch.padEnd(10)} via ${s.path.padEnd(8)}  scans:${s.scans}  empty:${s.empty}  errors:${s.errors}`);
+    const aug = s.augmented ? `  augmented:${s.augmented}` : '';
+    console.log(`${flag} ${ch.padEnd(10)} via ${s.path.padEnd(8)}  scans:${s.scans}  empty:${s.empty}  errors:${s.errors}${aug}`);
   }
 
   if (errors.length) {
