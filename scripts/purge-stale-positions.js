@@ -32,6 +32,7 @@ const SCANNER_PROTOCOLS = [
   'pendle-pt', 'pendle-yt', 'pendle-lp',
   'ethena-cooldown',
   'yo-protocol',
+  'curve',
   'wallet-held',
   'vault',
   'vault-probed',
@@ -43,7 +44,10 @@ const SCANNER_PROTOCOLS = [
 // quickly. Drop any >48h old (regardless of size) so stale sells/closes
 // don't linger in the whale totals.
 const DEBANK_ONLY_PROTOCOLS = [
-  'curve',
+  // Curve now has a scanner (curve-scanner.js). Legacy chain-prefixed rows
+  // (arb_curve, plasma_curve) stay here until they age out — the scanner
+  // writes canonical protocol_id = 'curve' so old rows won't be rewritten
+  // and they'll fall off naturally via the 48h window.
   'arb_curve', 'plasma_curve',
   'convex',
   'capapp',

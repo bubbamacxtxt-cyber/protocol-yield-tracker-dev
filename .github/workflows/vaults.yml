@@ -23,9 +23,15 @@ jobs:
 
       - name: Fetch vault data (IPOR + Upshift)
         run: node src/fetch-vaults.js
+        env:
+          ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
+          DRPC_API_KEY: ${{ secrets.DRPC_API_KEY }}
 
       - name: Fetch YBS stables data
         run: node src/fetch-stables.js
+
+      - name: Fetch Curve pool registry (all chains, all factories)
+        run: node src/fetch-curve.js
 
       - name: Export vaults.json
         run: node src/export-vaults.js

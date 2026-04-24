@@ -66,6 +66,10 @@ jobs:
         run: node src/pendle-scanner.js || node src/pendle-scanner.js
         env:
           ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
+      - name: Scan Curve LP and gauge positions
+        # Reads alchemy-token-discovery.json + curve_pools table. No RPC calls.
+        # Curve pool catalogue is refreshed by the vaults workflow every 2h.
+        run: node src/curve-scanner.js
       - name: Scan Ethena cooldowns (Locked USDe)
         run: node src/ethena-scanner.js || node src/ethena-scanner.js
         env:
@@ -94,6 +98,15 @@ jobs:
         run: node src/check-fixtures.js || echo "⚠️ fixtures failed — review but continuing"
       - name: Validate data
         run: node src/validate.js
+      - name: Pull latest from remote (avoids push race with Vaults workflow)
+        # Both the scan and vaults workflows can commit at the same time.
+        # Rebase any new upstream commits onto our local data changes before
+        # the commit step tries to push.
+        run: |
+          git fetch origin main
+          git stash --include-untracked -m 'pre-rebase' || true
+          git rebase origin/main || git rebase --abort
+          git stash pop || true
       - name: Commit updated data
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
