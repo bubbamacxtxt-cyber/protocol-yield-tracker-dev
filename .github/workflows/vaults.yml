@@ -36,6 +36,31 @@ jobs:
       - name: Export vaults.json
         run: node src/export-vaults.js
 
+      - name: Pull latest from remote (avoids push race with scan workflow)
+        # Mirror of the same guard in free-scans-hourly.yml. Save regenerated
+        # outputs, fast-forward to origin/main, then restore our outputs on
+        # top. Prevents binary-file merge conflicts on yield-tracker.db.
+        run: |
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          OUT_FILES="data/vaults.json data/stables.json yield-tracker.db"
+          mkdir -p /tmp/vaults-output
+          for f in $OUT_FILES; do
+            if [ -f "$f" ]; then
+              mkdir -p "/tmp/vaults-output/$(dirname $f)"
+              cp "$f" "/tmp/vaults-output/$f"
+            fi
+          done
+          git checkout -- $OUT_FILES 2>/dev/null || true
+          git fetch origin main
+          git reset --hard origin/main
+          for f in $OUT_FILES; do
+            if [ -f "/tmp/vaults-output/$f" ]; then
+              mkdir -p "$(dirname $f)"
+              cp "/tmp/vaults-output/$f" "$f"
+            fi
+          done
+
       - name: Commit and push
         uses: stefanzweifel/git-auto-commit-action@v5
         with:

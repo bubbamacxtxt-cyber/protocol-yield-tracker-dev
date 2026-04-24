@@ -32,6 +32,30 @@ jobs:
         run: node src/debank-import.js
       - name: Reconcile gaps against latest modeled data
         run: node src/reconcile-gaps.js
+      - name: Pull latest from remote (avoids push race with other workflows)
+        # Daily recon is the only DeBank consumer, but if a scan workflow
+        # lands a commit between our checkout and our push, the commit step
+        # fails. Same guard as free-scans-hourly.yml.
+        run: |
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          OUT_FILES="data/recon/wallet-inventory.json data/recon/debank-wallet-summary.json data/recon/debank-wallet-positions.json data/recon/gap-report.json yield-tracker.db"
+          mkdir -p /tmp/recon-output
+          for f in $OUT_FILES; do
+            if [ -f "$f" ]; then
+              mkdir -p "/tmp/recon-output/$(dirname $f)"
+              cp "$f" "/tmp/recon-output/$f"
+            fi
+          done
+          git checkout -- $OUT_FILES 2>/dev/null || true
+          git fetch origin main
+          git reset --hard origin/main
+          for f in $OUT_FILES; do
+            if [ -f "/tmp/recon-output/$f" ]; then
+              mkdir -p "$(dirname $f)"
+              cp "/tmp/recon-output/$f" "$f"
+            fi
+          done
       - name: Commit recon artifacts
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
