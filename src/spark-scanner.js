@@ -34,7 +34,7 @@ const SPARK_SAVINGS_BY_CHAIN = {
     chainId: 1,
     tokens: {
       sUSDS: { address: '0xa3931d71877c0e7a3148cb7eb4463524fec27fbd', underlying: 'USDS', decimals: 18 },
-      sUSDC: { address: '0xBc65ad17c5C0a2A4D159fa5a503f4992c7B545FE', underlying: 'USDC', decimals: 6 },
+      sUSDC: { address: '0xBc65ad17c5C0a2A4D159fa5a503f4992c7B545FE', underlying: 'USDC', decimals: 18 },
     },
   },
   base: {
