@@ -871,28 +871,51 @@ async function main() {
                 );
             if (isStandaloneCanonicalYield && scannerContextForSuppression.length > 0) return false;
 
-            // Suppress vault-probed rows whose vault share token is already held INSIDE a scanner
-            // venue row for the same wallet+chain. This catches the case where the generic ERC-4626
-            // probe in token-discovery detects a wallet balance of the vault share (e.g. eRLUSD-7)
-            // at the same moment the Euler/Morpho scanner has already credited that vault position
-            // under the host protocol. Without this filter the same deposit is counted twice.
-            // Match rule: vault-probed token address must appear either as a scanner token address
-            // OR inside the scanner position_index (which encodes wallet|vault for Euler/Morpho).
-            if (p.source_type === 'vault-probed' && scannerRowsSameWalletChain.length > 0) {
-                const probedAddrs = (p.supply || []).map(t => String(t.address || '').toLowerCase()).filter(Boolean);
-                if (probedAddrs.length) {
-                    const scannerVaultAddrs = new Set();
+            // Suppress wallet-held / vault-probed rows whose token addresses are already credited
+            // by a scanner venue row for the same wallet+chain.  This catches two patterns:
+            //   1. vault-probed: generic ERC-4626 probe detects wallet-held vault share (e.g. eRLUSD-7)
+            //      that the Euler/Morpho scanner already credited under host protocol.
+            //   2. wallet-held: token-discovery detects an aToken (e.g. aEthUSDT = 0x238789...) in
+            //      wallet, while the Aave scanner already credited the underlying USDT exposure.
+            // Without this filter the same deposit is counted twice.
+            // Build the full set of addresses known to scanners for this wallet+chain.
+            // Includes both scanner token addresses and all 40-char hex from position_index
+            // (which encodes wallet|market|vault for Euler/Morpho/Aave).
+            if (scannerRowsSameWalletChain.length > 0 &&
+                (p.source_type === 'vault-probed' ||
+                 (p.source_type === 'wallet' && p.protocol_id === 'wallet-held'))) {
+                const ownAddrs = new Set(
+                    (p.supply || []).map(t => String(t.address || '').toLowerCase()).filter(Boolean)
+                );
+                if (ownAddrs.size) {
+                    const scannerAddrs = new Set();
                     for (const x of scannerRowsSameWalletChain) {
-                        for (const t of (x.supply || [])) {
+                        for (const t of [...(x.supply || []), ...(x.borrow || [])]) {
                             const a = String(t.address || '').toLowerCase();
-                            if (a) scannerVaultAddrs.add(a);
+                            if (a) scannerAddrs.add(a);
                         }
                         const idx = String(x.position_index || '').toLowerCase();
                         for (const part of idx.split(/[|:]/)) {
-                            if (/^0x[a-f0-9]{40}$/.test(part)) scannerVaultAddrs.add(part);
+                            if (/^0x[a-f0-9]{40}$/.test(part)) scannerAddrs.add(part);
                         }
                     }
-                    if (probedAddrs.some(a => scannerVaultAddrs.has(a))) return false;
+                    // Direct match: row's token address equals any scanner-known address
+                    if ([...ownAddrs].some(a => scannerAddrs.has(a))) return false;
+                    // Fallback for aToken overlap: if no direct address match, compare values.
+                    // Aave scanner stores underlying USDT, wallet scanner stores aEthUSDT —
+                    // different addresses for the same $1M deposit.  Drop the wallet row when
+                    // its value closely matches a scanner supply value (within 1%, min $500).
+                    // Only applies to wallet-held / vault-probed rows with a single supply token.
+                    if (ownAddrs.size === 1 && (p.asset_usd || 0) > 500) {
+                        const myVal = p.asset_usd || 0;
+                        const hasMatchingValue = scannerRowsSameWalletChain.some(x =>
+                            (x.supply || []).some(t => {
+                                const tv = t.value_usd || 0;
+                                return tv > 500 && Math.abs(tv - myVal) / Math.max(tv, myVal) < 0.01;
+                            })
+                        );
+                        if (hasMatchingValue) return false;
+                    }
                 }
             }
 
