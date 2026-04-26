@@ -133,9 +133,15 @@ async function fetchChain(endpoint) {
 
   // Filter out PROTOCOL type and zero/near-zero positions
   const realFarms = farms.filter(f => f.type !== 'PROTOCOL' && (f.assetsNormalized || 0) > 100);
-  console.log(`  ${endpoint.chain}: ${farms.length} total, ${realFarms.length} real positions (> $100)`);
+  // Exclude Morpho vault farms — the Morpho scanner reads these on-chain directly
+  // and is the authoritative source. Importing them here would double-count.
+  const SCANNER_COVERED = new Set(['morpho-steakUSDCinfinifi']);
+  const filteredFarms = realFarms.filter(f => !SCANNER_COVERED.has(f.name));
+  console.log(`  ${endpoint.chain}: ${farms.length} total, ${realFarms.length} real (> $100), ${filteredFarms.length} after excluding scanner-covered`);
 
-  return realFarms.map(f => mapFarmToPosition(f, endpoint.chain));
+  return filteredFarms.map(f => mapFarmToPosition(f, endpoint.chain));
+
+  return filteredFarms.map(f => mapFarmToPosition(f, endpoint.chain));
 }
 
 async function main() {
