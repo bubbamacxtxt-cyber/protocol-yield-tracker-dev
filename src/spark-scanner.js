@@ -29,12 +29,18 @@ const CHAIN_RPC_URLS = {
   arb: () => process.env.ARB_RPC_URL || process.env.ARBITRUM_RPC_URL || process.env.ALCHEMY_ARB_RPC_URL || 'https://arbitrum.drpc.org',
 };
 
+// NOTE: `decimals` here means the UNDERLYING token's decimals, not the share
+// token's. convertToAssets() returns raw amounts in underlying decimals
+// (e.g. 1.09 USDC = 1094557 for 6-decimal USDC), so this is what we need
+// to divide by when converting BigInt -> Number.
+// Previous bug: decimals=18 was set for sUSDC treating it as share-decimals,
+// which made 6.24M USDC read as 0.0000062M. Corrected to match underlying.
 const SPARK_SAVINGS_BY_CHAIN = {
   eth: {
     chainId: 1,
     tokens: {
       sUSDS: { address: '0xa3931d71877c0e7a3148cb7eb4463524fec27fbd', underlying: 'USDS', decimals: 18 },
-      sUSDC: { address: '0xBc65ad17c5C0a2A4D159fa5a503f4992c7B545FE', underlying: 'USDC', decimals: 18 },
+      sUSDC: { address: '0xBc65ad17c5C0a2A4D159fa5a503f4992c7B545FE', underlying: 'USDC', decimals: 6 },
     },
   },
   base: {
@@ -93,20 +99,31 @@ async function readSavingsBalance(wallet, label, provider, chain, chainId, symbo
     const balance = await token.balanceOf(wallet);
     if (balance <= 0n) return null;
 
+    // Resolve the underlying asset amount.
+    // convertToAssets() and totalAssets() both return raw values in UNDERLYING
+    // decimals (e.g. USDC = 6, USDS = 18), NOT the share token's decimals.
+    // When both methods fail, we fall back to the raw share balance — mark it
+    // so the division below uses share decimals (18) instead of underlying.
     let underlyingAmount = balance;
+    let amountInUnderlying = false;
     try {
       const vault = new Contract(config.address, ERC4626_ABI, provider);
       underlyingAmount = await vault.convertToAssets(balance);
+      amountInUnderlying = true;
     } catch {
       try {
         const vault = new Contract(config.address, ERC4626_ABI, provider);
         const totalAssets = await vault.totalAssets();
         const totalSupply = await vault.totalSupply();
-        if (totalSupply > 0n) underlyingAmount = (balance * totalAssets) / totalSupply;
+        if (totalSupply > 0n) {
+          underlyingAmount = (balance * totalAssets) / totalSupply;
+          amountInUnderlying = true;
+        }
       } catch {
-        // Keep raw balance when no ERC4626 path works
+        // Keep raw balance in share decimals when no ERC4626 path works
       }
     }
+    const divisorDecimals = amountInUnderlying ? config.decimals : 18;
 
     return {
       wallet,
@@ -119,7 +136,7 @@ async function readSavingsBalance(wallet, label, provider, chain, chainId, symbo
       strategy: 'Savings',
       symbol,
       token_address: config.address,
-      amount: Number(underlyingAmount) / (10 ** config.decimals),
+      amount: Number(underlyingAmount) / (10 ** divisorDecimals),
       value_usd: 0,
       apy_base: null,
     };
@@ -255,7 +272,12 @@ async function enrichSavingsAPY(positions) {
       const data = payload.data || payload;
 
       if (data.rate) pos.apy_base = parseFloat(data.rate) * 100;
-      if (data.price_usd && pos.amount > 0) pos.value_usd = pos.amount * parseFloat(data.price_usd);
+      // NOTE: blockanalitica's price_usd is the SHARE price in underlying units
+      // (e.g. 1.094 USDC per sUSDC share), NOT the USD price of the underlying.
+      // We already converted the share balance to underlying units via convertToAssets(),
+      // so multiplying pos.amount by this would double-apply the exchange rate.
+      // Do not use data.price_usd for value_usd — rely on the DeFiLlama USD price
+      // of the underlying set above.
     } catch {
       // Keep null APY
     }

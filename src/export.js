@@ -845,7 +845,69 @@ async function main() {
 
         const walletSet = new Set(walletList.map(w => w.toLowerCase()));
         const positions = filtered.filter(p => !p._drop && walletSet.has(p.wallet.toLowerCase()));
-        const dedupedBySignature = dedupCanonicalClusters(positions);
+
+        // Cross-source value-overlap dedup: when two rows on the same wallet+chain
+        // have near-identical net_usd values (within 1%) AND overlapping identifiers
+        // (same supply symbol, or same token address, or shared 40-char hex in
+        // position_index), keep the higher-ranked source and drop the lower.
+        //
+        // This generalizes what the later cleanedPositions filter does specifically
+        // for scanner vs wallet/vault-probed, and catches the cross-source cases:
+        //   - protocol_api vs scanner (Aave Horizon USDC double-reported)
+        //   - protocol_api vs vault-probed (Spark sUSDC double-reported)
+        //   - debank vs vault-probed (ethstrat ESPN double-reported)
+        // Rank order: scanner(500) > protocol_api(400) > manual(300) > wallet(200) > debank(100).
+        const extractHexAddrs = p => {
+            const s = new Set();
+            for (const t of [...(p.supply || []), ...(p.borrow || [])]) {
+                const a = String(t?.address || '').toLowerCase();
+                if (/^0x[a-f0-9]{40}$/.test(a)) s.add(a);
+            }
+            const idx = String(p.position_index || '').toLowerCase();
+            for (const part of idx.split(/[|:]/)) {
+                if (/^0x[a-f0-9]{40}$/.test(part)) s.add(part);
+            }
+            return s;
+        };
+        const extractSymbols = p => new Set(
+            (p.supply || []).map(t => String(t?.symbol || '').toLowerCase()).filter(Boolean)
+        );
+        const positionsByWalletChain = new Map();
+        for (const p of positions) {
+            const k = `${String(p.wallet || '').toLowerCase()}|${String(p.chain || '').toLowerCase()}`;
+            if (!positionsByWalletChain.has(k)) positionsByWalletChain.set(k, []);
+            positionsByWalletChain.get(k).push(p);
+        }
+        const crossSourceDropped = new Set();
+        for (const rows of positionsByWalletChain.values()) {
+            if (rows.length < 2) continue;
+            for (let i = 0; i < rows.length; i++) {
+                for (let j = i + 1; j < rows.length; j++) {
+                    const a = rows[i], b = rows[j];
+                    if (crossSourceDropped.has(a) || crossSourceDropped.has(b)) continue;
+                    const va = a.net_usd || 0, vb = b.net_usd || 0;
+                    if (va < 50000 || vb < 50000) continue;
+                    if (Math.abs(va - vb) / Math.max(va, vb) >= 0.01) continue;
+                    // Must share at least one identifier: address OR symbol
+                    const aAddrs = extractHexAddrs(a);
+                    const bAddrs = extractHexAddrs(b);
+                    const sharedAddr = [...aAddrs].some(x => bAddrs.has(x));
+                    const aSyms = extractSymbols(a);
+                    const bSyms = extractSymbols(b);
+                    const sharedSym = [...aSyms].some(x => bSyms.has(x));
+                    if (!sharedAddr && !sharedSym) continue;
+                    // Drop the lower-ranked row. Ties: keep the one with more populated tokens.
+                    const ra = sourceRank(a), rb = sourceRank(b);
+                    let drop;
+                    if (ra !== rb) drop = ra > rb ? b : a;
+                    else drop = (a.supply || []).length >= (b.supply || []).length ? b : a;
+                    crossSourceDropped.add(drop);
+                }
+            }
+        }
+        const positionsAfterCrossSource = positions.filter(p => !crossSourceDropped.has(p));
+
+        const dedupedBySignature = dedupCanonicalClusters(positionsAfterCrossSource);
 
         // No entity-level chain suppression here.
         // Only remove rows when they are structurally duplicate/fragment/enrichment leakage,

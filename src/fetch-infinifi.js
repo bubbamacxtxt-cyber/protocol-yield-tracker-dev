@@ -133,9 +133,19 @@ async function fetchChain(endpoint) {
 
   // Filter out PROTOCOL type and zero/near-zero positions
   const realFarms = farms.filter(f => f.type !== 'PROTOCOL' && (f.assetsNormalized || 0) > 100);
-  // Exclude Morpho vault farms — the Morpho scanner reads these on-chain directly
-  // and is the authoritative source. Importing them here would double-count.
-  const SCANNER_COVERED = new Set(['morpho-steakUSDCinfinifi']);
+  // Exclude farms that are also covered by on-chain scanners (Morpho/Aave/Spark
+  // read the same deposits directly). Without this we'd double-count every
+  // position that InfiniFi deploys into a scanner-covered venue.
+  // Name maps to the InfiniFi farm.name field from their API.
+  const SCANNER_COVERED = new Set([
+    'morpho-steakUSDCinfinifi',  // Morpho scanner reads this MetaMorpho vault
+    'aavev3',                    // Aave V3 scanner reads supply positions
+    'aavev3-horizon-usdc',       // Aave V3 scanner reads Horizon market too
+    'aavev3-rlusd-farm',         // Aave V3 scanner reads RLUSD market
+    'spark-sUSDC-refcode',       // Spark scanner reads Spark sUSDC savings
+    'morpho-v2-sentora-pyusd',   // Morpho scanner reads this too
+    'fluid-fUSDC',               // Fluid scanner covers this
+  ]);
   const filteredFarms = realFarms.filter(f => !SCANNER_COVERED.has(f.name));
   console.log(`  ${endpoint.chain}: ${farms.length} total, ${realFarms.length} real (> $100), ${filteredFarms.length} after excluding scanner-covered`);
 

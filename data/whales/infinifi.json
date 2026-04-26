@@ -45,23 +45,23 @@
       "strategy": "rwa",
       "yield_source": "cap",
       "health_rate": null,
-      "net_usd": 29211904.610185,
-      "asset_usd": 29211904.610185,
+      "net_usd": 29211975.528114,
+      "asset_usd": 29211975.528114,
       "debt_usd": 0,
       "supply": [
         {
           "symbol": "stcUSD",
           "real_symbol": "stcUSD",
-          "amount": 29211904.610185,
+          "amount": 29211975.528114,
           "price_usd": 1,
-          "value_usd": 29211904.610185
+          "value_usd": 29211975.528114
         }
       ],
       "borrow": [],
       "rewards": [],
-      "apy_current": 5.02,
-      "apy_avg": 5.86,
-      "apy_base": 5.02,
+      "apy_current": 5,
+      "apy_avg": 5.84,
+      "apy_base": 5,
       "apy_rewards": 0,
       "maturity": "2026-04-27",
       "bucket_weeks": 1,
@@ -73,46 +73,6 @@
       "discovery_type": "onchain"
     },
     {
-      "wallet": "0xd880D7C5CaFdbE2AEc281250995abF612235e563",
-      "chain": "eth",
-      "protocol_name": "Spark sUSDC",
-      "protocol_id": "spark-sUSDC-refcode",
-      "position_type": "Liquid",
-      "strategy": "spark-strategy-indirect",
-      "yield_source": "spark",
-      "health_rate": null,
-      "net_usd": 6242232.40359,
-      "asset_usd": 6242232.40359,
-      "debt_usd": 0,
-      "supply": [
-        {
-          "symbol": "sUSDC",
-          "real_symbol": "sUSDC",
-          "amount": 6242232.40359,
-          "price_usd": 1,
-          "value_usd": 6242232.40359
-        }
-      ],
-      "borrow": [],
-      "rewards": [],
-      "apy_current": 3.67,
-      "apy_avg": 3.7,
-      "apy_base": 3.67,
-      "apy_rewards": 0,
-      "maturity": null,
-      "bucket_weeks": null,
-      "underlying": "sUSDC",
-      "paused": false,
-      "manual": false,
-      "source_type": "protocol_api",
-      "source_name": "fetch-infinifi",
-      "discovery_type": "onchain",
-      "spark_exposure_type": "indirect_strategy",
-      "spark_product_type": "savings",
-      "spark_token_address": "0xBc65ad17c5C0a2A4D159fa5a503f4992c7B545FE",
-      "spark_token_symbol": "sUSDC"
-    },
-    {
       "wallet": "0xF56E946e92FeF6a050F482C560b5f8DcCB8163B3",
       "chain": "eth",
       "protocol_name": "Maple Institutional",
@@ -121,16 +81,16 @@
       "strategy": "rwa",
       "yield_source": "maple",
       "health_rate": null,
-      "net_usd": 5365925.548537,
-      "asset_usd": 5365925.548537,
+      "net_usd": 5365936.906837,
+      "asset_usd": 5365936.906837,
       "debt_usd": 0,
       "supply": [
         {
           "symbol": "MPLhysUSDC1",
           "real_symbol": "MPLhysUSDC1",
-          "amount": 5365925.548537,
+          "amount": 5365936.906837,
           "price_usd": 1,
-          "value_usd": 5365925.548537
+          "value_usd": 5365936.906837
         }
       ],
       "borrow": [],
@@ -185,42 +145,6 @@
       "discovery_type": "onchain"
     },
     {
-      "wallet": "0x817d93DbdFd8190bbef0a73fCf5Dd9DA5A87E032",
-      "chain": "eth",
-      "protocol_name": "Horizon USDC",
-      "protocol_id": "aavev3-horizon-usdc",
-      "position_type": "Liquid",
-      "strategy": "lend",
-      "yield_source": "aave",
-      "health_rate": null,
-      "net_usd": 529045.137166,
-      "asset_usd": 529045.137166,
-      "debt_usd": 0,
-      "supply": [
-        {
-          "symbol": "USDC",
-          "real_symbol": "USDC",
-          "amount": 529045.137166,
-          "price_usd": 1,
-          "value_usd": 529045.137166
-        }
-      ],
-      "borrow": [],
-      "rewards": [],
-      "apy_current": 3.9,
-      "apy_avg": 3.34,
-      "apy_base": 3.9,
-      "apy_rewards": 0,
-      "maturity": null,
-      "bucket_weeks": null,
-      "underlying": "USDC",
-      "paused": false,
-      "manual": false,
-      "source_type": "protocol_api",
-      "source_name": "fetch-infinifi",
-      "discovery_type": "onchain"
-    },
-    {
       "wallet": "0x92c3A5f226A47a44aD73f04663b305372cc665bf",
       "chain": "eth",
       "protocol_name": "infinifiUSD Autopool",
@@ -229,23 +153,23 @@
       "strategy": "rwa",
       "yield_source": "tokemak",
       "health_rate": null,
-      "net_usd": 4948.897409,
-      "asset_usd": 4948.897409,
+      "net_usd": 4948.904707,
+      "asset_usd": 4948.904707,
       "debt_usd": 0,
       "supply": [
         {
           "symbol": "infinifiUSD",
           "real_symbol": "infinifiUSD",
-          "amount": 4948.897409,
+          "amount": 4948.904707,
           "price_usd": 1,
-          "value_usd": 4948.897409
+          "value_usd": 4948.904707
         }
       ],
       "borrow": [],
       "rewards": [],
-      "apy_current": 7.68,
-      "apy_avg": 8.33,
-      "apy_base": 7.68,
+      "apy_current": 7.74,
+      "apy_avg": 8.3,
+      "apy_base": 7.74,
       "apy_rewards": 0,
       "maturity": "2026-05-03",
       "bucket_weeks": 1,
@@ -286,42 +210,6 @@
       "maturity": "2026-05-03",
       "bucket_weeks": 1,
       "underlying": "sGHO",
-      "paused": false,
-      "manual": false,
-      "source_type": "protocol_api",
-      "source_name": "fetch-infinifi",
-      "discovery_type": "onchain"
-    },
-    {
-      "wallet": "0xBE2B5838eb9Eedb637EDe5dF8Ac43b73b4482Ae8",
-      "chain": "eth",
-      "protocol_name": "Aave Horizon RLUSD",
-      "protocol_id": "aavev3-rlusd-farm",
-      "position_type": "Liquid",
-      "strategy": "lend",
-      "yield_source": "aave",
-      "health_rate": null,
-      "net_usd": 209.606189,
-      "asset_usd": 209.606189,
-      "debt_usd": 0,
-      "supply": [
-        {
-          "symbol": "RLUSD",
-          "real_symbol": "RLUSD",
-          "amount": 209.606189,
-          "price_usd": 1,
-          "value_usd": 209.606189
-        }
-      ],
-      "borrow": [],
-      "rewards": [],
-      "apy_current": 1.13,
-      "apy_avg": 1.13,
-      "apy_base": 1.13,
-      "apy_rewards": 0,
-      "maturity": "2026-05-03",
-      "bucket_weeks": 1,
-      "underlying": "RLUSD",
       "paused": false,
       "manual": false,
       "source_type": "protocol_api",
