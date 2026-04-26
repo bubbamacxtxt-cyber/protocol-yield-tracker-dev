@@ -159,16 +159,19 @@ const TOKEN_META = {
     addresses: ['0x12b004719fb632f1e7c010c6f5d6009fb4258442'],
     aliases: ['liUSD-1W'],
     protocol: 'infinifi',
+    underlying: '0x48f9e38f3070ad8945dfeae3fa70987722e3d89c',  // iUSD
   },
   'LIUSD-4W': {
     addresses: ['0x66bcf6151d5558afb47c38b20663589843156078'],
     aliases: ['liUSD-4W'],
     protocol: 'infinifi',
+    underlying: '0x48f9e38f3070ad8945dfeae3fa70987722e3d89c',  // iUSD
   },
   'LIUSD-8W': {
     addresses: ['0xf68b95b7e851170c0e5123a3249dd1ca46215085'],
     aliases: ['liUSD-8W'],
     protocol: 'infinifi',
+    underlying: '0x48f9e38f3070ad8945dfeae3fa70987722e3d89c',  // iUSD
   },
   'LIUSD-13W': {
     // Address not in CoinGecko registry yet. Apply once known.
@@ -314,6 +317,7 @@ async function main() {
         apy_7d: null,
         apy_30d: null,
         _poolId: target.pool,
+        pool: target.pool,
         chain: pool.chain || 'N/A',
         tvl: pool.tvlUsd >= 1e6 ? "$" + (pool.tvlUsd / 1e6).toFixed(0) + "M" : pool.tvlUsd >= 1e3 ? "$" + (pool.tvlUsd / 1e3).toFixed(0) + "K" : "N/A",
         tvlNum: pool.tvlUsd || 0,
@@ -384,6 +388,7 @@ async function main() {
       }
     }
     delete s._poolId;
+    // pool field preserved — used by token-discovery for underlying price fallback
   }
   
   console.log('  📊 APY history: saved ' + historyRows.length + ' snapshots, 7d avg from ' + history7d.length + ' pools');

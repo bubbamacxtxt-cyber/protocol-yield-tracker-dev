@@ -850,7 +850,22 @@ async function scanWalletChain(db, registry, vaultIndex, ybsIndex, morphoVaultSe
     const ybsMatchSource = ybsByAddr ? 'address' : (ybsByTicker ? 'ticker' : null);
 
     if (ybs) {
-      const price = await getDefiLlamaPrice(chain, address);
+      let price = await getDefiLlamaPrice(chain, address);
+      // Fallback: if DeFiLlama has no price for the locked/tranche token (e.g. LIUSD-4W),
+      // look up its underlying token from the DeFiLlama pool metadata and price that instead.
+      // Locked iUSD tranches are worth ~1:1 of the underlying iUSD.
+      if (!price && ybs.pool) {
+        try {
+          const poolRes = await fetch(`https://yields.llama.fi/pools`);
+          const poolData = await poolRes.json();
+          const pool = (poolData.data || []).find(p => p.pool === ybs.pool);
+          const underlyingAddr = pool?.underlyingTokens?.[0];
+          if (underlyingAddr) {
+            price = await getDefiLlamaPrice(chain, underlyingAddr.toLowerCase());
+            if (price) console.log(`  ↳ YBS    underlying price fallback: $${price.toFixed(4)} via ${underlyingAddr.slice(0,10)}...`);
+          }
+        } catch (e) { /* fallback failed, will skip below */ }
+      }
       if (price) {
         const valueUsd = amount * price;
         if (valueUsd >= MIN_POSITION_USD) {
