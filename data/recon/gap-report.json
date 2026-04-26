@@ -1,13 +1,13 @@
 {
-  "generated_at": "2026-04-25T08:09:21.394Z",
+  "generated_at": "2026-04-26T08:19:58.854Z",
   "report": [
     {
       "wallet": "0x020c5bb0d81b8cf539ca06364ece4a41631995b4",
       "whale": "Avant",
       "chain": "avax",
-      "debank_usd": 0.000029870703632451346,
+      "debank_usd": 0.00002977802242434719,
       "modeled_usd": 0,
-      "delta_usd": 0.000029870703632451346,
+      "delta_usd": 0.00002977802242434719,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -18,9 +18,9 @@
       "wallet": "0x020c5bb0d81b8cf539ca06364ece4a41631995b4",
       "whale": "Avant",
       "chain": "eth",
-      "debank_usd": 0.002346440499500126,
+      "debank_usd": 0.002523549842010187,
       "modeled_usd": 0,
-      "delta_usd": 0.002346440499500126,
+      "delta_usd": 0.002523549842010187,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -31,9 +31,9 @@
       "wallet": "0x887fd380c1e4cc28e119917015fe7fb0062c5d67",
       "whale": "Avant",
       "chain": "avax",
-      "debank_usd": 502.52985216394916,
+      "debank_usd": 501.4651788724072,
       "modeled_usd": 0,
-      "delta_usd": 502.52985216394916,
+      "delta_usd": 501.4651788724072,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -44,21 +44,14 @@
       "wallet": "0x887fd380c1e4cc28e119917015fe7fb0062c5d67",
       "whale": "Avant",
       "chain": "eth",
-      "debank_usd": 19643471.449487116,
+      "debank_usd": 14.636635519503288,
       "modeled_usd": 0,
-      "delta_usd": 19643471.449487116,
-      "active_for_position_scan": true,
+      "delta_usd": 14.636635519503288,
+      "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
-      "below_threshold": false,
-      "classification": "needs-review",
-      "protocols_missing_or_misaligned": [
-        {
-          "protocol": "ethena",
-          "debank_usd": 19643457.265715826,
-          "modeled_usd": 0,
-          "delta_usd": 19643457.265715826
-        }
-      ]
+      "below_threshold": true,
+      "classification": "below-threshold",
+      "protocols_missing_or_misaligned": []
     },
     {
       "wallet": "0x1ae4190c55c2986130694af6998a94126c0685cd",
@@ -77,9 +70,9 @@
       "wallet": "0x1ae4190c55c2986130694af6998a94126c0685cd",
       "whale": "Avant",
       "chain": "eth",
-      "debank_usd": 0.005156849825571489,
+      "debank_usd": 0.005258465519970592,
       "modeled_usd": 0,
-      "delta_usd": 0.005156849825571489,
+      "delta_usd": 0.005258465519970592,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -90,9 +83,9 @@
       "wallet": "0xc1d023141ad6935f81e5286e577768b75c9ff8eb",
       "whale": "Avant",
       "chain": "bera",
-      "debank_usd": 2.7442864608282433,
+      "debank_usd": 2.744666557607582,
       "modeled_usd": 0,
-      "delta_usd": 2.7442864608282433,
+      "delta_usd": 2.744666557607582,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -103,9 +96,9 @@
       "wallet": "0xc1d023141ad6935f81e5286e577768b75c9ff8eb",
       "whale": "Avant",
       "chain": "eth",
-      "debank_usd": 1.1378728908436626e-18,
+      "debank_usd": 1.1381283614915526e-18,
       "modeled_usd": 0,
-      "delta_usd": 1.1378728908436626e-18,
+      "delta_usd": 1.1381283614915526e-18,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -116,9 +109,9 @@
       "wallet": "0xfbbf1826aba90704a2167d2eb4a7a9d83a8de9c7",
       "whale": "Avant",
       "chain": "eth",
-      "debank_usd": 1.3188502602513799,
+      "debank_usd": 1.3761507345215611,
       "modeled_usd": 0,
-      "delta_usd": 1.3188502602513799,
+      "delta_usd": 1.3761507345215611,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -129,9 +122,9 @@
       "wallet": "0x1dff1e9968222aa6c66bf402bac2c3fe5ed13f76",
       "whale": "Avant",
       "chain": "bsc",
-      "debank_usd": 3.915046555302221,
+      "debank_usd": 3.9450768632794206,
       "modeled_usd": 0,
-      "delta_usd": 3.915046555302221,
+      "delta_usd": 3.9450768632794206,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -142,9 +135,9 @@
       "wallet": "0x1dff1e9968222aa6c66bf402bac2c3fe5ed13f76",
       "whale": "Avant",
       "chain": "eth",
-      "debank_usd": 94.78326378745713,
+      "debank_usd": 98.901340063123,
       "modeled_usd": 0,
-      "delta_usd": 94.78326378745713,
+      "delta_usd": 98.901340063123,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -155,22 +148,22 @@
       "wallet": "0x3207363359ca0c11d11073ad48301e8c958b7910",
       "whale": "Avant",
       "chain": "eth",
-      "debank_usd": 9945267.9247705,
-      "modeled_usd": 9945684.58600698,
-      "delta_usd": -416.6612364798784,
-      "active_for_position_scan": true,
+      "debank_usd": 10.968658829688241,
+      "modeled_usd": 0,
+      "delta_usd": 10.968658829688241,
+      "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
-      "below_threshold": false,
-      "classification": "aligned",
+      "below_threshold": true,
+      "classification": "below-threshold",
       "protocols_missing_or_misaligned": []
     },
     {
       "wallet": "0x3207363359ca0c11d11073ad48301e8c958b7910",
       "whale": "Avant",
       "chain": "mnt",
-      "debank_usd": 8524929.98292549,
-      "modeled_usd": 8692106.989691794,
-      "delta_usd": -167177.00676630437,
+      "debank_usd": 8520765.213823885,
+      "modeled_usd": 8695515.420125797,
+      "delta_usd": -174750.20630191267,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -178,9 +171,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "aave",
-          "debank_usd": 8524929.98292549,
-          "modeled_usd": 8692106.989691794,
-          "delta_usd": -167177.00676630437
+          "debank_usd": 8520765.213823885,
+          "modeled_usd": 8695515.420125797,
+          "delta_usd": -174750.20630191267
         }
       ]
     },
@@ -188,9 +181,9 @@
       "wallet": "0x7bee8d37fba61a6251a08b957d502c56e2a50fab",
       "whale": "Avant",
       "chain": "arb",
-      "debank_usd": 296.7426810965534,
+      "debank_usd": 292.9411546620082,
       "modeled_usd": 0,
-      "delta_usd": 296.7426810965534,
+      "delta_usd": 292.9411546620082,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -201,9 +194,9 @@
       "wallet": "0x7bee8d37fba61a6251a08b957d502c56e2a50fab",
       "whale": "Avant",
       "chain": "bera",
-      "debank_usd": 18.0465030805691,
+      "debank_usd": 18.127404917451507,
       "modeled_usd": 0,
-      "delta_usd": 18.0465030805691,
+      "delta_usd": 18.127404917451507,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -214,9 +207,9 @@
       "wallet": "0x7bee8d37fba61a6251a08b957d502c56e2a50fab",
       "whale": "Avant",
       "chain": "eth",
-      "debank_usd": 3586226.990423614,
-      "modeled_usd": 3573536.6931914017,
-      "delta_usd": 12690.297232212499,
+      "debank_usd": 3589192.0206523365,
+      "modeled_usd": 3595134.2644064985,
+      "delta_usd": -5942.243754161987,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -224,9 +217,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "morpho",
-          "debank_usd": 3586141.2850984726,
-          "modeled_usd": 3573536.6931914017,
-          "delta_usd": 12604.59190707095
+          "debank_usd": 3589104.30186997,
+          "modeled_usd": 3595134.2644064985,
+          "delta_usd": -6029.962536528707
         }
       ]
     },
@@ -234,9 +227,9 @@
       "wallet": "0x7bee8d37fba61a6251a08b957d502c56e2a50fab",
       "whale": "Avant",
       "chain": "plasma",
-      "debank_usd": 8.252944348331788,
+      "debank_usd": 8.351782005198036,
       "modeled_usd": 0,
-      "delta_usd": 8.252944348331788,
+      "delta_usd": 8.351782005198036,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -247,9 +240,9 @@
       "wallet": "0x7bee8d37fba61a6251a08b957d502c56e2a50fab",
       "whale": "Avant",
       "chain": "sei",
-      "debank_usd": 10.767322076307817,
+      "debank_usd": 10.769748247491606,
       "modeled_usd": 0,
-      "delta_usd": 10.767322076307817,
+      "delta_usd": 10.769748247491606,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -260,9 +253,9 @@
       "wallet": "0x920eefbcf1f5756109952e6ff6da1cab950c64d7",
       "whale": "Avant",
       "chain": "eth",
-      "debank_usd": 73.33479395061126,
+      "debank_usd": 75.62488861091444,
       "modeled_usd": 0,
-      "delta_usd": 73.33479395061126,
+      "delta_usd": 75.62488861091444,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -273,9 +266,9 @@
       "wallet": "0x920eefbcf1f5756109952e6ff6da1cab950c64d7",
       "whale": "Avant",
       "chain": "mnt",
-      "debank_usd": 1809680.4492848292,
-      "modeled_usd": 1844336.2284168005,
-      "delta_usd": -34655.7791319713,
+      "debank_usd": 1814596.3442477435,
+      "modeled_usd": 1845345.4257236999,
+      "delta_usd": -30749.081475956365,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -283,9 +276,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "aave",
-          "debank_usd": 1809680.4492848292,
-          "modeled_usd": 1844336.2284168005,
-          "delta_usd": -34655.7791319713
+          "debank_usd": 1814596.3442477435,
+          "modeled_usd": 1845345.4257236999,
+          "delta_usd": -30749.081475956365
         }
       ]
     },
@@ -293,9 +286,9 @@
       "wallet": "0xd2305803ca7821e4e5c3bcaed366ad7de9f13739",
       "whale": "Avant",
       "chain": "eth",
-      "debank_usd": 33.89184383325297,
+      "debank_usd": 35.364347528044405,
       "modeled_usd": 0,
-      "delta_usd": 33.89184383325297,
+      "delta_usd": 35.364347528044405,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -306,9 +299,9 @@
       "wallet": "0xc2d2c22f54c9fae2456b6e7f7fbdc240e1898da1",
       "whale": "Avant",
       "chain": "sonic",
-      "debank_usd": 613.0939873480867,
+      "debank_usd": 617.8374611380137,
       "modeled_usd": 0,
-      "delta_usd": 613.0939873480867,
+      "delta_usd": 617.8374611380137,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -319,9 +312,9 @@
       "wallet": "0xacabc577f359e4af4dd057af56de5a576ba9bd82",
       "whale": "Avant",
       "chain": "avax",
-      "debank_usd": 5.766641481411793e-14,
+      "debank_usd": 5.742241794063414e-14,
       "modeled_usd": 0,
-      "delta_usd": 5.766641481411793e-14,
+      "delta_usd": 5.742241794063414e-14,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -332,9 +325,9 @@
       "wallet": "0xc468315a2df54f9c076bd5cfe5002ba211f74ca6",
       "whale": "Avant",
       "chain": "eth",
-      "debank_usd": 6098358.255180067,
-      "modeled_usd": 6158815.46675238,
-      "delta_usd": -60457.21157231275,
+      "debank_usd": 19900581.296622373,
+      "modeled_usd": 19965746.006546095,
+      "delta_usd": -65164.70992372185,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -342,9 +335,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "aave",
-          "debank_usd": 6098358.131285898,
-          "modeled_usd": 6158815.46675238,
-          "delta_usd": -60457.335466481745
+          "debank_usd": 19900581.167345338,
+          "modeled_usd": 19965746.006546095,
+          "delta_usd": -65164.839200757444
         }
       ]
     },
@@ -352,9 +345,9 @@
       "wallet": "0xc468315a2df54f9c076bd5cfe5002ba211f74ca6",
       "whale": "Avant",
       "chain": "hyper",
-      "debank_usd": 5.704907758096942e-11,
+      "debank_usd": 5.704918412732017e-11,
       "modeled_usd": 0,
-      "delta_usd": 5.704907758096942e-11,
+      "delta_usd": 5.704918412732017e-11,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -365,9 +358,9 @@
       "wallet": "0xc468315a2df54f9c076bd5cfe5002ba211f74ca6",
       "whale": "Avant",
       "chain": "ink",
-      "debank_usd": 22804.809648774797,
+      "debank_usd": 18665.55996634488,
       "modeled_usd": 0,
-      "delta_usd": 22804.809648774797,
+      "delta_usd": 18665.55996634488,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -375,9 +368,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "aave",
-          "debank_usd": 22804.809648774797,
+          "debank_usd": 18665.55996634488,
           "modeled_usd": 0,
-          "delta_usd": 22804.809648774797
+          "delta_usd": 18665.55996634488
         }
       ]
     },
@@ -385,9 +378,9 @@
       "wallet": "0xc468315a2df54f9c076bd5cfe5002ba211f74ca6",
       "whale": "Avant",
       "chain": "plasma",
-      "debank_usd": 32791013.884887174,
-      "modeled_usd": 32890218.081791207,
-      "delta_usd": -99204.19690403342,
+      "debank_usd": 52531507.988665044,
+      "modeled_usd": 52662190.71402469,
+      "delta_usd": -130682.72535964847,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -395,9 +388,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "aave",
-          "debank_usd": 32791013.884887174,
-          "modeled_usd": 32890218.081791207,
-          "delta_usd": -99204.19690403342
+          "debank_usd": 52531507.988665044,
+          "modeled_usd": 52662190.71402469,
+          "delta_usd": -130682.72535964847
         }
       ]
     },
@@ -405,9 +398,9 @@
       "wallet": "0x33a4866bffc90791e65da0d339eddcae3d9ce9f9",
       "whale": "Avant",
       "chain": "eth",
-      "debank_usd": 0.0223289667341149,
+      "debank_usd": 0.022331757845250457,
       "modeled_usd": 0,
-      "delta_usd": 0.0223289667341149,
+      "delta_usd": 0.022331757845250457,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -418,9 +411,9 @@
       "wallet": "0x0000000f2eb9f69274678c76222b35eec7588a65",
       "whale": "yoUSD",
       "chain": "eth",
-      "debank_usd": 11965345.53748221,
-      "modeled_usd": 4663983.777027437,
-      "delta_usd": 7301361.760454772,
+      "debank_usd": 11967618.777880495,
+      "modeled_usd": 4662482.438579421,
+      "delta_usd": 7305136.339301075,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -428,9 +421,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "morpho",
-          "debank_usd": 11964890.361687424,
+          "debank_usd": 11967159.313617188,
           "modeled_usd": 0,
-          "delta_usd": 11964890.361687424
+          "delta_usd": 11967159.313617188
         }
       ]
     },
@@ -438,9 +431,9 @@
       "wallet": "0x0000000f2eb9f69274678c76222b35eec7588a65",
       "whale": "yoUSD",
       "chain": "arb",
-      "debank_usd": 0.7303567676087863,
+      "debank_usd": 0.7306677149584272,
       "modeled_usd": 0,
-      "delta_usd": 0.7303567676087863,
+      "delta_usd": 0.7306677149584272,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -451,9 +444,9 @@
       "wallet": "0x0000000f2eb9f69274678c76222b35eec7588a65",
       "whale": "yoUSD",
       "chain": "base",
-      "debank_usd": 140.70201123210882,
-      "modeled_usd": 19597101.1207482,
-      "delta_usd": -19596960.41873697,
+      "debank_usd": 142.3990084354694,
+      "modeled_usd": 19411890.3834406,
+      "delta_usd": -19411747.984432165,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -464,9 +457,9 @@
       "wallet": "0x0000000f2eb9f69274678c76222b35eec7588a65",
       "whale": "yoUSD",
       "chain": "hyper",
-      "debank_usd": 179.2768510106532,
+      "debank_usd": 179.2153321448622,
       "modeled_usd": 0,
-      "delta_usd": 179.2768510106532,
+      "delta_usd": 179.2153321448622,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -477,9 +470,9 @@
       "wallet": "0x0000000f2eb9f69274678c76222b35eec7588a65",
       "whale": "yoUSD",
       "chain": "op",
-      "debank_usd": 269.4062017974846,
+      "debank_usd": 263.5313002006547,
       "modeled_usd": 0,
-      "delta_usd": 269.4062017974846,
+      "delta_usd": 263.5313002006547,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -490,9 +483,9 @@
       "wallet": "0x0000000f2eb9f69274678c76222b35eec7588a65",
       "whale": "yoUSD",
       "chain": "plasma",
-      "debank_usd": 4.248004327666389,
+      "debank_usd": 4.249282469997146,
       "modeled_usd": 0,
-      "delta_usd": 4.248004327666389,
+      "delta_usd": 4.249282469997146,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -503,9 +496,9 @@
       "wallet": "0x0000000f2eb9f69274678c76222b35eec7588a65",
       "whale": "yoUSD",
       "chain": "uni",
-      "debank_usd": 5.729790815313191,
+      "debank_usd": 5.833987555872641,
       "modeled_usd": 0,
-      "delta_usd": 5.729790815313191,
+      "delta_usd": 5.833987555872641,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -516,9 +509,9 @@
       "wallet": "0x815f5bb257e88b67216a344c7c83a3ea4ee74748",
       "whale": "Yuzu",
       "chain": "eth",
-      "debank_usd": 15692714.41883297,
-      "modeled_usd": 35139424.40795885,
-      "delta_usd": -19446709.989125878,
+      "debank_usd": 15692040.344936682,
+      "modeled_usd": 35140385.25250265,
+      "delta_usd": -19448344.907565966,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -526,21 +519,15 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "euler",
-          "debank_usd": 2457249.886213709,
-          "modeled_usd": 21912688.8804533,
-          "delta_usd": -19455438.99423959
+          "debank_usd": 2457280.7253674963,
+          "modeled_usd": 21912649.59632571,
+          "delta_usd": -19455368.870958213
         },
         {
           "protocol": "capapp",
-          "debank_usd": 8759858.51738368,
+          "debank_usd": 8761970.953845214,
           "modeled_usd": 0,
-          "delta_usd": 8759858.51738368
-        },
-        {
-          "protocol": "morpho",
-          "debank_usd": 2944798.3011583574,
-          "modeled_usd": 2939687.4789089,
-          "delta_usd": 5110.82224945724
+          "delta_usd": 8761970.953845214
         }
       ]
     },
@@ -548,9 +535,9 @@
       "wallet": "0x815f5bb257e88b67216a344c7c83a3ea4ee74748",
       "whale": "Yuzu",
       "chain": "arb",
-      "debank_usd": 449548.95818538684,
-      "modeled_usd": 452934.97482131,
-      "delta_usd": -3386.0166359231807,
+      "debank_usd": 449512.4150261916,
+      "modeled_usd": 453564.35684570996,
+      "delta_usd": -4051.941819518339,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -558,9 +545,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "arb_morphoblue",
-          "debank_usd": 449548.95818538684,
+          "debank_usd": 449512.4150261916,
           "modeled_usd": 0,
-          "delta_usd": 449548.95818538684
+          "delta_usd": 449512.4150261916
         }
       ]
     },
@@ -568,9 +555,9 @@
       "wallet": "0x815f5bb257e88b67216a344c7c83a3ea4ee74748",
       "whale": "Yuzu",
       "chain": "base",
-      "debank_usd": 709796.1244222969,
-      "modeled_usd": 710202.2896325402,
-      "delta_usd": -406.1652102433145,
+      "debank_usd": 708498.7508090269,
+      "modeled_usd": 710496.9113571597,
+      "delta_usd": -1998.1605481328443,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -581,22 +568,29 @@
       "wallet": "0x815f5bb257e88b67216a344c7c83a3ea4ee74748",
       "whale": "Yuzu",
       "chain": "plasma",
-      "debank_usd": 10.33971018863326,
+      "debank_usd": 309849.02396541176,
       "modeled_usd": 0,
-      "delta_usd": 10.33971018863326,
-      "active_for_position_scan": false,
+      "delta_usd": 309849.02396541176,
+      "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
-      "below_threshold": true,
-      "classification": "below-threshold",
-      "protocols_missing_or_misaligned": []
+      "below_threshold": false,
+      "classification": "needs-review",
+      "protocols_missing_or_misaligned": [
+        {
+          "protocol": "aave",
+          "debank_usd": 309838.5604263811,
+          "modeled_usd": 0,
+          "delta_usd": 309838.5604263811
+        }
+      ]
     },
     {
       "wallet": "0x815f5bb257e88b67216a344c7c83a3ea4ee74748",
       "whale": "Yuzu",
       "chain": "uni",
-      "debank_usd": 0.000016993202718912435,
+      "debank_usd": 0.000016994901529541138,
       "modeled_usd": 0,
-      "delta_usd": 0.000016993202718912435,
+      "delta_usd": 0.000016994901529541138,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -607,9 +601,9 @@
       "wallet": "0x015cc48cc8bc37d80aaff4e43061dbaf94192308",
       "whale": "Yuzu",
       "chain": "eth",
-      "debank_usd": 7319122.59524543,
-      "modeled_usd": 7315147.73277477,
-      "delta_usd": 3974.8624706603587,
+      "debank_usd": 4330129.698377968,
+      "modeled_usd": 4325935.51600718,
+      "delta_usd": 4194.182370787486,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -620,9 +614,9 @@
       "wallet": "0x015cc48cc8bc37d80aaff4e43061dbaf94192308",
       "whale": "Yuzu",
       "chain": "mnt",
-      "debank_usd": 485703.58724819217,
-      "modeled_usd": 494418.2641729405,
-      "delta_usd": -8714.676924748346,
+      "debank_usd": 485411.37569541053,
+      "modeled_usd": 494601.66881685006,
+      "delta_usd": -9190.293121439521,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -630,9 +624,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "aave",
-          "debank_usd": 485324.51859790366,
-          "modeled_usd": 494418.2641729405,
-          "delta_usd": -9093.745575036854
+          "debank_usd": 485029.2626260668,
+          "modeled_usd": 494601.66881685006,
+          "delta_usd": -9572.406190783251
         }
       ]
     },
@@ -640,9 +634,9 @@
       "wallet": "0x015cc48cc8bc37d80aaff4e43061dbaf94192308",
       "whale": "Yuzu",
       "chain": "plasma",
-      "debank_usd": 1.3519246333781751,
+      "debank_usd": 1.352153883937658,
       "modeled_usd": 0,
-      "delta_usd": 1.3519246333781751,
+      "delta_usd": 1.352153883937658,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -653,9 +647,9 @@
       "wallet": "0x502d222e8e4daef69032f55f0c1a999effd78fb3",
       "whale": "Yuzu",
       "chain": "eth",
-      "debank_usd": 3002897.3598322496,
-      "modeled_usd": 2994806.295395302,
-      "delta_usd": 8091.064436947461,
+      "debank_usd": 3002752.106064504,
+      "modeled_usd": 2997564.686957583,
+      "delta_usd": 5187.419106921181,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -666,9 +660,9 @@
       "wallet": "0x502d222e8e4daef69032f55f0c1a999effd78fb3",
       "whale": "Yuzu",
       "chain": "mnt",
-      "debank_usd": 3874152.2711723745,
-      "modeled_usd": 3950087.7029687017,
-      "delta_usd": -75935.43179632723,
+      "debank_usd": 3885545.955133885,
+      "modeled_usd": 3952282.198115103,
+      "delta_usd": -66736.2429812178,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -676,9 +670,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "aave",
-          "debank_usd": 3874152.2711723745,
-          "modeled_usd": 3950087.7029687017,
-          "delta_usd": -75935.43179632723
+          "debank_usd": 3885545.955133885,
+          "modeled_usd": 3952282.198115103,
+          "delta_usd": -66736.2429812178
         }
       ]
     },
@@ -686,9 +680,9 @@
       "wallet": "0x502d222e8e4daef69032f55f0c1a999effd78fb3",
       "whale": "Yuzu",
       "chain": "plasma",
-      "debank_usd": 5433660.897462271,
-      "modeled_usd": 5446250.152063671,
-      "delta_usd": -12589.254601399414,
+      "debank_usd": 7433487.807633229,
+      "modeled_usd": 7446656.40534485,
+      "delta_usd": -13168.597711621784,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -696,9 +690,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "aave",
-          "debank_usd": 5433660.897462271,
-          "modeled_usd": 5446250.152063671,
-          "delta_usd": -12589.254601399414
+          "debank_usd": 7433487.807633229,
+          "modeled_usd": 7446656.40534485,
+          "delta_usd": -13168.597711621784
         }
       ]
     },
@@ -706,9 +700,9 @@
       "wallet": "0xcf0a12cbd8088fc5f84ad431e71787157041cd69",
       "whale": "Yuzu",
       "chain": "eth",
-      "debank_usd": 1392828.7174411903,
-      "modeled_usd": 1388415.82845591,
-      "delta_usd": 4412.88898528018,
+      "debank_usd": 1393227.5184156934,
+      "modeled_usd": 1391437.36853276,
+      "delta_usd": 1790.1498829333577,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -719,9 +713,9 @@
       "wallet": "0xcf0a12cbd8088fc5f84ad431e71787157041cd69",
       "whale": "Yuzu",
       "chain": "plasma",
-      "debank_usd": 12.98560835657886,
+      "debank_usd": 13.14112462432232,
       "modeled_usd": 0,
-      "delta_usd": 12.98560835657886,
+      "delta_usd": 13.14112462432232,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -732,9 +726,9 @@
       "wallet": "0xb6cbe8b123392ef6aa72897bb85bd6515d2e8db7",
       "whale": "Yuzu",
       "chain": "eth",
-      "debank_usd": 4977021.1215972295,
-      "modeled_usd": 4983997.015093997,
-      "delta_usd": -6975.893496767618,
+      "debank_usd": 4976606.5774386665,
+      "modeled_usd": 4984722.880904995,
+      "delta_usd": -8116.30346632842,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -742,9 +736,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "aave",
-          "debank_usd": 4977021.112768646,
-          "modeled_usd": 4983997.015093997,
-          "delta_usd": -6975.902325350791
+          "debank_usd": 4976606.568610083,
+          "modeled_usd": 4984722.880904995,
+          "delta_usd": -8116.312294911593
         }
       ]
     },
@@ -752,9 +746,9 @@
       "wallet": "0xfaa7744b9ed973290a36ee815b5acc76856583a0",
       "whale": "Yuzu",
       "chain": "eth",
-      "debank_usd": 6031428.475384199,
-      "modeled_usd": 947104.5236484092,
-      "delta_usd": 5084323.95173579,
+      "debank_usd": 6008768.420418601,
+      "modeled_usd": 946492.4617045987,
+      "delta_usd": 5062275.958714002,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -762,9 +756,15 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "upshift",
-          "debank_usd": 5084263.235029988,
+          "debank_usd": 5084771.508871338,
           "modeled_usd": 0,
-          "delta_usd": 5084263.235029988
+          "delta_usd": 5084771.508871338
+        },
+        {
+          "protocol": "aave",
+          "debank_usd": 923996.9095941563,
+          "modeled_usd": 946492.4617045987,
+          "delta_usd": -22495.552110442426
         }
       ]
     },
@@ -772,9 +772,9 @@
       "wallet": "0x424323d25d30c687bdf79bb333da1d41c0373f37",
       "whale": "Yuzu",
       "chain": "eth",
-      "debank_usd": 4.163406227479175e-12,
+      "debank_usd": 4.1641771052489e-12,
       "modeled_usd": 0,
-      "delta_usd": 4.163406227479175e-12,
+      "delta_usd": 4.1641771052489e-12,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -785,9 +785,9 @@
       "wallet": "0xdaef005ae017be5b938a2b321db3dec96e684f68",
       "whale": "Yuzu",
       "chain": "plasma",
-      "debank_usd": 409627.2172065748,
-      "modeled_usd": 408422.127926943,
-      "delta_usd": 1205.089279631793,
+      "debank_usd": 409694.92097804806,
+      "modeled_usd": 408464.856387424,
+      "delta_usd": 1230.064590624068,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -798,9 +798,9 @@
       "wallet": "0x6695c0f8706c5ace3bdf8995073179cca47926dc",
       "whale": "Yuzu",
       "chain": "plasma",
-      "debank_usd": 694603.236950766,
-      "modeled_usd": 855287.860307374,
-      "delta_usd": -160684.6233566081,
+      "debank_usd": 495838.2803638973,
+      "modeled_usd": 1190270.414710203,
+      "delta_usd": -694432.1343463056,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -808,9 +808,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "yuzumoney",
-          "debank_usd": 694603.236950766,
-          "modeled_usd": 0,
-          "delta_usd": 694603.236950766
+          "debank_usd": 495838.2803638973,
+          "modeled_usd": 694603.236950766,
+          "delta_usd": -198764.95658686862
         }
       ]
     },
@@ -818,9 +818,9 @@
       "wallet": "0x09bfbc374c37c927909a0e7b278ee7fdf47a380a",
       "whale": "Yuzu",
       "chain": "monad",
-      "debank_usd": 1018.7225202409705,
+      "debank_usd": 1018.9951675781751,
       "modeled_usd": 0,
-      "delta_usd": 1018.7225202409705,
+      "delta_usd": 1018.9951675781751,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -831,9 +831,9 @@
       "wallet": "0x09bfbc374c37c927909a0e7b278ee7fdf47a380a",
       "whale": "Yuzu",
       "chain": "plasma",
-      "debank_usd": 1051193.863565579,
-      "modeled_usd": 250084.6579653816,
-      "delta_usd": 801109.2056001974,
+      "debank_usd": 1051220.0047511156,
+      "modeled_usd": 250059.5210434768,
+      "delta_usd": 801160.4837076388,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -841,9 +841,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "curve",
-          "debank_usd": 800114.9473881697,
+          "debank_usd": 800125.1865841636,
           "modeled_usd": 0,
-          "delta_usd": 800114.9473881697
+          "delta_usd": 800125.1865841636
         }
       ]
     },
@@ -851,9 +851,9 @@
       "wallet": "0x31eae643b679a84b37e3d0b4bd4f5da90fb04a61",
       "whale": "Reservoir",
       "chain": "eth",
-      "debank_usd": 45527.41284321857,
+      "debank_usd": 45534.20458024941,
       "modeled_usd": 0,
-      "delta_usd": 45527.41284321857,
+      "delta_usd": 45534.20458024941,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -861,9 +861,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "morpho",
-          "debank_usd": 45527.41284321857,
+          "debank_usd": 45534.20458024941,
           "modeled_usd": 0,
-          "delta_usd": 45527.41284321857
+          "delta_usd": 45534.20458024941
         }
       ]
     },
@@ -871,9 +871,9 @@
       "wallet": "0x3063c5907faa10c01b242181aa689beb23d2bd65",
       "whale": "Reservoir",
       "chain": "eth",
-      "debank_usd": 37480287.23058997,
-      "modeled_usd": 37482747.06916266,
-      "delta_usd": -2459.8385726884007,
+      "debank_usd": 37490779.63353151,
+      "modeled_usd": 37481175.77154555,
+      "delta_usd": 9603.861985959113,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -881,15 +881,15 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "aave",
-          "debank_usd": 4470132.265710454,
+          "debank_usd": 4481754.609576508,
           "modeled_usd": 0,
-          "delta_usd": 4470132.265710454
+          "delta_usd": 4481754.609576508
         },
         {
           "protocol": "euler",
-          "debank_usd": 33010154.964879517,
-          "modeled_usd": 33016543.5539982,
-          "delta_usd": -6388.589118681848
+          "debank_usd": 33009025.023955002,
+          "modeled_usd": 33014677.7897257,
+          "delta_usd": -5652.765770696104
         }
       ]
     },
@@ -897,9 +897,9 @@
       "wallet": "0x3063c5907faa10c01b242181aa689beb23d2bd65",
       "whale": "Reservoir",
       "chain": "plasma",
-      "debank_usd": 0.0000308916704926935,
+      "debank_usd": 0.000031261630618354497,
       "modeled_usd": 0,
-      "delta_usd": 0.0000308916704926935,
+      "delta_usd": 0.000031261630618354497,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -910,29 +910,22 @@
       "wallet": "0x289c204b35859bfb924b9c0759a4fe80f610671c",
       "whale": "Reservoir",
       "chain": "eth",
-      "debank_usd": 30745683.81203323,
-      "modeled_usd": 30751528.7045791,
-      "delta_usd": -5844.892545871437,
+      "debank_usd": 30744241.230102018,
+      "modeled_usd": 30749133.343016,
+      "delta_usd": -4892.11291398108,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
-      "classification": "needs-review",
-      "protocols_missing_or_misaligned": [
-        {
-          "protocol": "morpho",
-          "debank_usd": 30745683.81203227,
-          "modeled_usd": 30751528.7045791,
-          "delta_usd": -5844.892546828836
-        }
-      ]
+      "classification": "aligned",
+      "protocols_missing_or_misaligned": []
     },
     {
       "wallet": "0x289c204b35859bfb924b9c0759a4fe80f610671c",
       "whale": "Reservoir",
       "chain": "katana",
-      "debank_usd": 4999104.214209315,
+      "debank_usd": 4999748.137057882,
       "modeled_usd": 0,
-      "delta_usd": 4999104.214209315,
+      "delta_usd": 4999748.137057882,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -940,9 +933,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "katana_morphoblue",
-          "debank_usd": 4999104.214209315,
+          "debank_usd": 4999748.137057882,
           "modeled_usd": 0,
-          "delta_usd": 4999104.214209315
+          "delta_usd": 4999748.137057882
         }
       ]
     },
@@ -950,9 +943,9 @@
       "wallet": "0x289c204b35859bfb924b9c0759a4fe80f610671c",
       "whale": "Reservoir",
       "chain": "mnt",
-      "debank_usd": 3.6088760223124448,
+      "debank_usd": 3.637395714938887,
       "modeled_usd": 0,
-      "delta_usd": 3.6088760223124448,
+      "delta_usd": 3.637395714938887,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -963,9 +956,9 @@
       "wallet": "0x289c204b35859bfb924b9c0759a4fe80f610671c",
       "whale": "Reservoir",
       "chain": "monad",
-      "debank_usd": 13004065.755294126,
-      "modeled_usd": 13000893.4551771,
-      "delta_usd": 3172.300117025152,
+      "debank_usd": 13002043.848516645,
+      "modeled_usd": 13000939.9751107,
+      "delta_usd": 1103.873405944556,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -976,9 +969,9 @@
       "wallet": "0xd1a1c248b253f1fc60eacd90777b9a63f8c8c1bc",
       "whale": "Makina",
       "chain": "eth",
-      "debank_usd": 5115714.573343058,
-      "modeled_usd": 7083714.2975320835,
-      "delta_usd": -1967999.7241890253,
+      "debank_usd": 5116883.0676276665,
+      "modeled_usd": 6071975.670917416,
+      "delta_usd": -955092.6032897495,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -986,9 +979,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "infinifixyz",
-          "debank_usd": 1438982.6524783608,
+          "debank_usd": 1439562.7451386845,
           "modeled_usd": 0,
-          "delta_usd": 1438982.6524783608
+          "delta_usd": 1439562.7451386845
         }
       ]
     },
@@ -996,9 +989,9 @@
       "wallet": "0xbeef123217647014429b7670329782e210884e89",
       "whale": "Makina",
       "chain": "base",
-      "debank_usd": 1508091.973542583,
-      "modeled_usd": 1508534.39493331,
-      "delta_usd": -442.42139072716236,
+      "debank_usd": 1508571.9870668799,
+      "modeled_usd": 1508764.55592746,
+      "delta_usd": -192.56886058021337,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -1006,9 +999,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "base_morphoblue",
-          "debank_usd": 1508091.973542583,
+          "debank_usd": 1508571.9870668799,
           "modeled_usd": 0,
-          "delta_usd": 1508091.973542583
+          "delta_usd": 1508571.9870668799
         }
       ]
     },
@@ -1016,9 +1009,9 @@
       "wallet": "0xbeef123217647014429b7670329782e210884e89",
       "whale": "Makina",
       "chain": "eth",
-      "debank_usd": 6327410.56013164,
-      "modeled_usd": 3382367.2906273226,
-      "delta_usd": 2945043.2695043175,
+      "debank_usd": 6337486.931898749,
+      "modeled_usd": 3391230.628050444,
+      "delta_usd": 2946256.3038483053,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -1026,15 +1019,15 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "morpho",
-          "debank_usd": 6292352.114748514,
-          "modeled_usd": 3344019.596081051,
-          "delta_usd": 2948332.518667463
+          "debank_usd": 6302426.208072914,
+          "modeled_usd": 3352875.058620263,
+          "delta_usd": 2949551.149452651
         },
         {
           "protocol": "sky",
-          "debank_usd": 35058.4453831255,
+          "debank_usd": 35060.72382583544,
           "modeled_usd": 0,
-          "delta_usd": 35058.4453831255
+          "delta_usd": 35060.72382583544
         }
       ]
     },
@@ -1042,9 +1035,9 @@
       "wallet": "0x76d2e84009dae457f8667d823c7c96e9a7c35b78",
       "whale": "InfiniFi",
       "chain": "eth",
-      "debank_usd": 4012202.631082567,
-      "modeled_usd": 8019521.701128701,
-      "delta_usd": -4007319.070046134,
+      "debank_usd": 4013097.5227041887,
+      "modeled_usd": 8019974.703394011,
+      "delta_usd": -4006877.180689822,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -1055,9 +1048,9 @@
       "wallet": "0x7e9aa426abc2d9006e8c9881754baa00a392158d",
       "whale": "InfiniFi",
       "chain": "eth",
-      "debank_usd": 1864.395732496185,
+      "debank_usd": 1869.243161400675,
       "modeled_usd": 1066.827859,
-      "delta_usd": 797.567873496185,
+      "delta_usd": 802.415302400675,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -1068,9 +1061,9 @@
       "wallet": "0xd880d7c5cafdbe2aec281250995abf612235e563",
       "whale": "InfiniFi",
       "chain": "eth",
-      "debank_usd": 6401254.843489604,
-      "modeled_usd": 9981914.64767827,
-      "delta_usd": -3580659.804188665,
+      "debank_usd": 6262985.2532080375,
+      "modeled_usd": 3583971.72472,
+      "delta_usd": 2679013.5284880376,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -1078,9 +1071,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "spark",
-          "debank_usd": 6401254.843489604,
-          "modeled_usd": 9981914.64767827,
-          "delta_usd": -3580659.804188665
+          "debank_usd": 6262985.2532080375,
+          "modeled_usd": 3583971.72472,
+          "delta_usd": 2679013.5284880376
         }
       ]
     },
@@ -1088,9 +1081,9 @@
       "wallet": "0x817d93dbdfd8190bbef0a73fcf5dd9da5a87e032",
       "whale": "InfiniFi",
       "chain": "eth",
-      "debank_usd": 544863.6525619753,
-      "modeled_usd": 836105.060539172,
-      "delta_usd": -291241.40797719674,
+      "debank_usd": 531720.3600509847,
+      "modeled_usd": 822952.318537547,
+      "delta_usd": -291231.95848656236,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -1101,9 +1094,9 @@
       "wallet": "0xbfd5fc8deca3c6128bfce0fe46c25616811c3580",
       "whale": "InfiniFi",
       "chain": "eth",
-      "debank_usd": 0.07865353858456618,
+      "debank_usd": 0.07866140157952614,
       "modeled_usd": 0,
-      "delta_usd": 0.07865353858456618,
+      "delta_usd": 0.07866140157952614,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -1114,9 +1107,9 @@
       "wallet": "0xf014ef13a3e0372582f44a667e144a4f2e439ea7",
       "whale": "Upshift",
       "chain": "eth",
-      "debank_usd": 10988011.958638085,
-      "modeled_usd": 10978688.49884075,
-      "delta_usd": 9323.459797335789,
+      "debank_usd": 10989929.716333492,
+      "modeled_usd": 10980095.296405189,
+      "delta_usd": 9834.419928302988,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -1124,9 +1117,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "morpho",
-          "debank_usd": 10987991.499717139,
-          "modeled_usd": 10978688.49884075,
-          "delta_usd": 9303.000876389444
+          "debank_usd": 10989908.368841935,
+          "modeled_usd": 10980095.296405189,
+          "delta_usd": 9813.07243674621
         }
       ]
     },
@@ -1134,29 +1127,22 @@
       "wallet": "0x9f1a1479191af103ff82fead23e950b6b3b2bd1a",
       "whale": "Upshift",
       "chain": "eth",
-      "debank_usd": 21493597.22387505,
-      "modeled_usd": 21479404.980511293,
-      "delta_usd": 14192.243363756686,
+      "debank_usd": 18278829.4105926,
+      "modeled_usd": 18274431.965138387,
+      "delta_usd": 4397.445454213768,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
-      "classification": "needs-review",
-      "protocols_missing_or_misaligned": [
-        {
-          "protocol": "morpho",
-          "debank_usd": 21490577.875976183,
-          "modeled_usd": 21479404.980511293,
-          "delta_usd": 11172.895464889705
-        }
-      ]
+      "classification": "aligned",
+      "protocols_missing_or_misaligned": []
     },
     {
       "wallet": "0x9f1a1479191af103ff82fead23e950b6b3b2bd1a",
       "whale": "Upshift",
       "chain": "monad",
-      "debank_usd": 13390504.444591824,
-      "modeled_usd": 5728714.257295606,
-      "delta_usd": 7661790.187296218,
+      "debank_usd": 16022474.926894277,
+      "modeled_usd": 13317916.793594807,
+      "delta_usd": 2704558.13329947,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -1164,15 +1150,15 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "curvance",
-          "debank_usd": 6513505.985432149,
-          "modeled_usd": 0,
-          "delta_usd": 6513505.985432149
+          "debank_usd": 5953130.188268123,
+          "modeled_usd": 3214634.29286185,
+          "delta_usd": 2738495.895406273
         },
         {
           "protocol": "gearbox",
-          "debank_usd": 1149421.47003995,
-          "modeled_usd": 0,
-          "delta_usd": 1149421.47003995
+          "debank_usd": 1114722.9359346903,
+          "modeled_usd": 1149421.47003995,
+          "delta_usd": -34698.53410525969
         }
       ]
     },
@@ -1180,9 +1166,9 @@
       "wallet": "0x6f64630a0c12c60813a80a215fb9a31e52528820",
       "whale": "Upshift",
       "chain": "avax",
-      "debank_usd": 4.190261963999999e-14,
+      "debank_usd": 4.1769239988000005e-14,
       "modeled_usd": 0,
-      "delta_usd": 4.190261963999999e-14,
+      "delta_usd": 4.1769239988000005e-14,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -1193,69 +1179,48 @@
       "wallet": "0x6f64630a0c12c60813a80a215fb9a31e52528820",
       "whale": "Upshift",
       "chain": "eth",
-      "debank_usd": 1967847.8298899434,
-      "modeled_usd": 700432.591924311,
-      "delta_usd": 1267415.2379656322,
+      "debank_usd": 1968562.3766402956,
+      "modeled_usd": 1967924.225783064,
+      "delta_usd": 638.1508572315797,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
-      "classification": "needs-review",
-      "protocols_missing_or_misaligned": [
-        {
-          "protocol": "dolomite",
-          "debank_usd": 1267425.8922384768,
-          "modeled_usd": 0,
-          "delta_usd": 1267425.8922384768
-        }
-      ]
+      "classification": "aligned",
+      "protocols_missing_or_misaligned": []
     },
     {
       "wallet": "0x6f64630a0c12c60813a80a215fb9a31e52528820",
       "whale": "Upshift",
       "chain": "monad",
-      "debank_usd": 834016.7302595195,
-      "modeled_usd": 0,
-      "delta_usd": 834016.7302595195,
+      "debank_usd": 834075.3334927682,
+      "modeled_usd": 833807.3434088461,
+      "delta_usd": 267.9900839221664,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
-      "classification": "needs-review",
-      "protocols_missing_or_misaligned": [
-        {
-          "protocol": "traderjoe",
-          "debank_usd": 834016.730259485,
-          "modeled_usd": 0,
-          "delta_usd": 834016.730259485
-        }
-      ]
+      "classification": "aligned",
+      "protocols_missing_or_misaligned": []
     },
     {
       "wallet": "0x6f64630a0c12c60813a80a215fb9a31e52528820",
       "whale": "Upshift",
       "chain": "plasma",
-      "debank_usd": 556289.0772206255,
-      "modeled_usd": 562767.0859550904,
-      "delta_usd": -6478.008734464878,
+      "debank_usd": 558667.3093665219,
+      "modeled_usd": 562898.8530244301,
+      "delta_usd": -4231.543657908216,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
-      "classification": "needs-review",
-      "protocols_missing_or_misaligned": [
-        {
-          "protocol": "aave",
-          "debank_usd": 556288.4477921478,
-          "modeled_usd": 562767.0859550904,
-          "delta_usd": -6478.638162942603
-        }
-      ]
+      "classification": "aligned",
+      "protocols_missing_or_misaligned": []
     },
     {
       "wallet": "0x68e7e72938db36a5cbbca7b52c71dbbaadfb8264",
       "whale": "Midas",
       "chain": "eth",
-      "debank_usd": 16243356.317992594,
-      "modeled_usd": 8927921.625394147,
-      "delta_usd": 7315434.692598447,
+      "debank_usd": 16244278.734858168,
+      "modeled_usd": 8928964.283309324,
+      "delta_usd": 7315314.451548845,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -1263,9 +1228,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "neutrl",
-          "debank_usd": 7314286.773657379,
+          "debank_usd": 7314411.61091404,
           "modeled_usd": 0,
-          "delta_usd": 7314286.773657379
+          "delta_usd": 7314411.61091404
         }
       ]
     },
@@ -1273,9 +1238,9 @@
       "wallet": "0x68e7e72938db36a5cbbca7b52c71dbbaadfb8264",
       "whale": "Midas",
       "chain": "arb",
-      "debank_usd": 10854608.495248571,
-      "modeled_usd": 10849644.53831316,
-      "delta_usd": 4963.956935411319,
+      "debank_usd": 10862494.71971762,
+      "modeled_usd": 10855688.035233159,
+      "delta_usd": 6806.684484461322,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -1283,9 +1248,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "arb_usdai",
-          "debank_usd": 10563258.38474343,
+          "debank_usd": 10569935.497468498,
           "modeled_usd": 0,
-          "delta_usd": 10563258.38474343
+          "delta_usd": 10569935.497468498
         }
       ]
     },
@@ -1293,9 +1258,9 @@
       "wallet": "0x68e7e72938db36a5cbbca7b52c71dbbaadfb8264",
       "whale": "Midas",
       "chain": "hyper",
-      "debank_usd": 0.5912136013131155,
+      "debank_usd": 0.5912575922440348,
       "modeled_usd": 0,
-      "delta_usd": 0.5912136013131155,
+      "delta_usd": 0.5912575922440348,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -1306,9 +1271,9 @@
       "wallet": "0x68e7e72938db36a5cbbca7b52c71dbbaadfb8264",
       "whale": "Midas",
       "chain": "monad",
-      "debank_usd": 2151303.1026760577,
-      "modeled_usd": 2151851.20317963,
-      "delta_usd": -548.1005035722628,
+      "debank_usd": 2151758.5139519568,
+      "modeled_usd": 2151991.22818606,
+      "delta_usd": -232.7142341034487,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -1319,9 +1284,9 @@
       "wallet": "0x68e7e72938db36a5cbbca7b52c71dbbaadfb8264",
       "whale": "Midas",
       "chain": "plasma",
-      "debank_usd": 2015842.483407201,
-      "modeled_usd": 2015606.1150475699,
-      "delta_usd": 236.36835963116027,
+      "debank_usd": 2016174.2093074475,
+      "modeled_usd": 2015902.535177795,
+      "delta_usd": 271.6741296525579,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -1332,9 +1297,9 @@
       "wallet": "0x70ac345ab736ce145e0d4b5deced7a8bcb0e4033",
       "whale": "Midas",
       "chain": "arb",
-      "debank_usd": 4799158.367370788,
-      "modeled_usd": 4799570.830504882,
-      "delta_usd": -412.4631340941414,
+      "debank_usd": 4802179.58237296,
+      "modeled_usd": 4802213.926887482,
+      "delta_usd": -34.3445145227015,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -1345,9 +1310,9 @@
       "wallet": "0x70ac345ab736ce145e0d4b5deced7a8bcb0e4033",
       "whale": "Midas",
       "chain": "avax",
-      "debank_usd": 75.66867094047788,
+      "debank_usd": 75.42819846926875,
       "modeled_usd": 0,
-      "delta_usd": 75.66867094047788,
+      "delta_usd": 75.42819846926875,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -1358,9 +1323,9 @@
       "wallet": "0x70ac345ab736ce145e0d4b5deced7a8bcb0e4033",
       "whale": "Midas",
       "chain": "base",
-      "debank_usd": 1001179.6502680571,
-      "modeled_usd": 1001190.55073734,
-      "delta_usd": -10.900469282874838,
+      "debank_usd": 1001434.9542907423,
+      "modeled_usd": 1001407.53957199,
+      "delta_usd": 27.41471875226125,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -1368,9 +1333,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "base_fluid",
-          "debank_usd": 1001179.6502680571,
+          "debank_usd": 1001434.9542907423,
           "modeled_usd": 0,
-          "delta_usd": 1001179.6502680571
+          "delta_usd": 1001434.9542907423
         }
       ]
     },
@@ -1378,29 +1343,22 @@
       "wallet": "0x70ac345ab736ce145e0d4b5deced7a8bcb0e4033",
       "whale": "Midas",
       "chain": "eth",
-      "debank_usd": 10402023.057888778,
-      "modeled_usd": 9681946.505924216,
-      "delta_usd": 720076.5519645624,
+      "debank_usd": 10403845.545546984,
+      "modeled_usd": 10403827.110222142,
+      "delta_usd": 18.435324842110276,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
-      "classification": "needs-review",
-      "protocols_missing_or_misaligned": [
-        {
-          "protocol": "ethstrat",
-          "debank_usd": 721731.4237929836,
-          "modeled_usd": 0,
-          "delta_usd": 721731.4237929836
-        }
-      ]
+      "classification": "aligned",
+      "protocols_missing_or_misaligned": []
     },
     {
       "wallet": "0x70ac345ab736ce145e0d4b5deced7a8bcb0e4033",
       "whale": "Midas",
       "chain": "monad",
-      "debank_usd": 1654390.8983814756,
-      "modeled_usd": 1653126.56794115,
-      "delta_usd": 1264.3304403256625,
+      "debank_usd": 1654277.139190289,
+      "modeled_usd": 1653132.48317522,
+      "delta_usd": 1144.656015068991,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -1411,9 +1369,9 @@
       "wallet": "0x70ac345ab736ce145e0d4b5deced7a8bcb0e4033",
       "whale": "Midas",
       "chain": "plasma",
-      "debank_usd": 1013924.6185189092,
-      "modeled_usd": 1013476.70636137,
-      "delta_usd": 447.91215753916185,
+      "debank_usd": 1014098.6644429717,
+      "modeled_usd": 1013756.10420996,
+      "delta_usd": 342.56023301172536,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -1437,22 +1395,22 @@
       "wallet": "0x0fe15b65136ab92a3f9ce83cceb9e0663f1efaa6",
       "whale": "Midas",
       "chain": "eth",
-      "debank_usd": 1596431.6197314186,
-      "modeled_usd": 1596500.190378,
-      "delta_usd": -68.57064658147283,
-      "active_for_position_scan": true,
+      "debank_usd": 0.000004038102711537556,
+      "modeled_usd": 0,
+      "delta_usd": 0.000004038102711537556,
+      "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
-      "below_threshold": false,
-      "classification": "aligned",
+      "below_threshold": true,
+      "classification": "below-threshold",
       "protocols_missing_or_misaligned": []
     },
     {
       "wallet": "0xd6c757043e7d59088969b188923c62fa960afe9b",
       "whale": "Midas",
       "chain": "arb",
-      "debank_usd": 0.010162284551582117,
+      "debank_usd": 0.01016429392731477,
       "modeled_usd": 0,
-      "delta_usd": 0.010162284551582117,
+      "delta_usd": 0.01016429392731477,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -1463,9 +1421,9 @@
       "wallet": "0xd6c757043e7d59088969b188923c62fa960afe9b",
       "whale": "Midas",
       "chain": "bsc",
-      "debank_usd": 1875010.1192284971,
-      "modeled_usd": 0,
-      "delta_usd": 1875010.1192284971,
+      "debank_usd": 1874557.430919935,
+      "modeled_usd": 1053394.74003849,
+      "delta_usd": 821162.6908814451,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -1473,9 +1431,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "bsc_venusflux",
-          "debank_usd": 1875010.1192284971,
-          "modeled_usd": 0,
-          "delta_usd": 1875010.1192284971
+          "debank_usd": 1874557.430919935,
+          "modeled_usd": 1053394.74003849,
+          "delta_usd": 821162.6908814451
         }
       ]
     },
@@ -1483,9 +1441,9 @@
       "wallet": "0xd6c757043e7d59088969b188923c62fa960afe9b",
       "whale": "Midas",
       "chain": "eth",
-      "debank_usd": 5897512.279708633,
-      "modeled_usd": 24237650.98212117,
-      "delta_usd": -18340138.70241254,
+      "debank_usd": 10237698.319159241,
+      "modeled_usd": 31582772.2602538,
+      "delta_usd": -21345073.941094555,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -1493,21 +1451,15 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "euler",
-          "debank_usd": 2593182.538609033,
-          "modeled_usd": 21404984.32884333,
-          "delta_usd": -18811801.790234298
-        },
-        {
-          "protocol": "compound3",
-          "debank_usd": 2794126.213157953,
-          "modeled_usd": 0,
-          "delta_usd": 2794126.213157953
+          "debank_usd": 7145912.508765154,
+          "modeled_usd": 29735225.59623566,
+          "delta_usd": -22589313.087470505
         },
         {
           "protocol": "morpho",
-          "debank_usd": 508333.4918886696,
-          "modeled_usd": 194948.55726427957,
-          "delta_usd": 313384.93462439004
+          "debank_usd": 3088835.9061725456,
+          "modeled_usd": 1847546.6640181402,
+          "delta_usd": 1241289.2421544055
         }
       ]
     },
@@ -1515,9 +1467,9 @@
       "wallet": "0xd6c757043e7d59088969b188923c62fa960afe9b",
       "whale": "Midas",
       "chain": "plasma",
-      "debank_usd": 0.011120504414890889,
+      "debank_usd": 0.011120837926634694,
       "modeled_usd": 0,
-      "delta_usd": 0.011120504414890889,
+      "delta_usd": 0.011120837926634694,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -1528,9 +1480,9 @@
       "wallet": "0x41a9eb398518d2487301c61d2b33e4e966a9f1dd",
       "whale": "Superform",
       "chain": "eth",
-      "debank_usd": 14223985.422661234,
-      "modeled_usd": 14225958.267457599,
-      "delta_usd": -1972.844796365127,
+      "debank_usd": 14227569.627895415,
+      "modeled_usd": 14227359.433888352,
+      "delta_usd": 210.19400706328452,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -1541,9 +1493,9 @@
       "wallet": "0x9ea38e09f41a9de53972a68268ba0dcc6d2fadf8",
       "whale": "Re Protocol",
       "chain": "eth",
-      "debank_usd": 41457848.639176525,
-      "modeled_usd": 41459011.3628622,
-      "delta_usd": -1162.7236856743693,
+      "debank_usd": 41462688.89727888,
+      "modeled_usd": 41466727.9745239,
+      "delta_usd": -4039.0772450193763,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -1551,9 +1503,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "ethena",
-          "debank_usd": 41457848.639176525,
+          "debank_usd": 41462688.89727888,
           "modeled_usd": 0,
-          "delta_usd": 41457848.639176525
+          "delta_usd": 41462688.89727888
         }
       ]
     },
@@ -1561,9 +1513,9 @@
       "wallet": "0x295f67fdb21255a3db82964445628a706fbe689e",
       "whale": "Re Protocol",
       "chain": "base",
-      "debank_usd": 38.37790503781885,
+      "debank_usd": 38.38560684016127,
       "modeled_usd": 0,
-      "delta_usd": 38.37790503781885,
+      "delta_usd": 38.38560684016127,
       "active_for_position_scan": false,
       "scan_threshold_usd": 50000,
       "below_threshold": true,
@@ -1574,9 +1526,9 @@
       "wallet": "0x295f67fdb21255a3db82964445628a706fbe689e",
       "whale": "Re Protocol",
       "chain": "eth",
-      "debank_usd": 22045723.687958643,
-      "modeled_usd": 32775224.883274253,
-      "delta_usd": -10729501.19531561,
+      "debank_usd": 22047053.147646163,
+      "modeled_usd": 36201433.36701449,
+      "delta_usd": -14154380.219368327,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -1584,9 +1536,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "ethena",
-          "debank_usd": 20635824.449396823,
+          "debank_usd": 20636938.359635968,
           "modeled_usd": 0,
-          "delta_usd": 20635824.449396823
+          "delta_usd": 20636938.359635968
         }
       ]
     },
@@ -1594,9 +1546,9 @@
       "wallet": "0x5c454f5526e41fbe917b63475cd8ca7e4631b147",
       "whale": "Re Protocol",
       "chain": "eth",
-      "debank_usd": 3199625.826086685,
-      "modeled_usd": 3199715.56255048,
-      "delta_usd": -89.7364637949504,
+      "debank_usd": 3122609.6455599237,
+      "modeled_usd": 3123070.31930776,
+      "delta_usd": -460.6737478361465,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -1604,9 +1556,9 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "ethena",
-          "debank_usd": 3199625.826086685,
+          "debank_usd": 3122609.6455599237,
           "modeled_usd": 0,
-          "delta_usd": 3199625.826086685
+          "delta_usd": 3122609.6455599237
         }
       ]
     },
@@ -1614,9 +1566,9 @@
       "wallet": "0xd4374008c88321eb2e59abd311156c44b25831e9",
       "whale": "Re Protocol",
       "chain": "eth",
-      "debank_usd": 1625434.6532399221,
-      "modeled_usd": 3066478.8867089404,
-      "delta_usd": -1441044.2334690182,
+      "debank_usd": 1625737.4926503275,
+      "modeled_usd": 3066648.8261244204,
+      "delta_usd": -1440911.333474093,
       "active_for_position_scan": true,
       "scan_threshold_usd": 50000,
       "below_threshold": false,
@@ -1624,11 +1576,24 @@
       "protocols_missing_or_misaligned": [
         {
           "protocol": "ethena",
-          "debank_usd": 1625434.6532399221,
+          "debank_usd": 1625737.4926503275,
           "modeled_usd": 0,
-          "delta_usd": 1625434.6532399221
+          "delta_usd": 1625737.4926503275
         }
       ]
+    },
+    {
+      "wallet": "0xe1886be2ba8b2496c2044a77516f63a734193082",
+      "whale": "Re Protocol",
+      "chain": "eth",
+      "debank_usd": 258.5407293609351,
+      "modeled_usd": 0,
+      "delta_usd": 258.5407293609351,
+      "active_for_position_scan": false,
+      "scan_threshold_usd": 50000,
+      "below_threshold": true,
+      "classification": "below-threshold",
+      "protocols_missing_or_misaligned": []
     }
   ]
 }
