@@ -8,9 +8,9 @@
   --bg-card: #1c2128;
   --border: #30363d;
   --text-primary: #f0f6fc;
-  --text-secondary: #8b949e;
+  --text-secondary: #c9d1d9;
   --accent-blue: #58a6ff;
-  --accent-green: #3fb950;
+  --accent-green: #4ade80;
   --accent-purple: #a371f7;
   --accent-orange: #d29922;
   --gradient-blue: linear-gradient(175deg, #2a5a9a 0%, #1e4a8a 5%, #244888a0 50%, #0e2a4a 100%);
@@ -61,9 +61,9 @@ h1 {
 .card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
 .card-label { color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
 .card-value { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.card-value.green { color: var(--accent-green); }
+.card-value.green { background: var(--gradient-teal); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 .card-value.red { color: #f85149; }
-.card-value.blue { color: var(--accent-blue); }
+.card-value.blue { background: var(--gradient-teal); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 .card-value.purple { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 .card-sub { color: var(--text-secondary); font-size: 12px; margin-top: 4px; }
 
