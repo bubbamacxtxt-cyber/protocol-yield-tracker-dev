@@ -39,20 +39,56 @@ const RPC_MAP = {
 
 // Pool addresses by chain — from memory and aave-scanner.js
 const POOL_ADDRESSES = {
-  1: '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2',
-  8453: '0xA238Dd80C259a72e81d7e4664a9801593F98d1c5',
-  42161: '0x794a61358D6845594F94dc1DB02A252b5b4814aD',
-  5000: '0x458F293454fE0d67EC0655f3672301301DD51422',
-  9745: '0x925a2A7214Ed92428B5b1B090F80b25700095e12',
-  56: '0x6807dc923806fE8Fd134338EABCA509979a7e0cB',
-  146: '0x5362dBb1e601AbF2a150D1999Be54a4d308f4F6e',
+  1: '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2', // Aave ETH
+  8453: '0xA238Dd80C259a72e81d7e4664a9801593F98d1c5', // Aave Base
+  42161: '0x794a61358D6845594F94dc1DB02A252b5b4814aD', // Aave Arb
+  5000: '0x458F293454fE0d67EC0655f3672301301DD51422', // Aave Mantle
+  9745: '0x925a2A7214Ed92428B5b1B090F80b25700095e12', // Aave Plasma
+  56: '0x6807dc923806fE8Fd134338EABCA509979a7e0cB', // Aave BSC
+  146: '0x5362dBb1e601AbF2a150D1999Be54a4d308f4F6e', // Aave Sonic
 };
+
+// Spark Lend pool (Aave fork)
+const SPARK_POOL = '0x02C3eA4e34C0cBd694D2adFa2c690EECbC1793eE'; // Spark ETH pool
+
+// Recognized Spark protocol IDs
+const SPARK_PROTOCOLS = new Set(['spark-savings', 'spark-savings-legacy']);
+
+/**
+ * Resolve the Spark pool address via the addresses provider contract
+ */
+async function getSparkPoolAddress(rpcUrl) {
+  const provider = new JsonRpcProvider(rpcUrl);
+  const providerContract = new Contract(SPARK_POOL, ['function getPool() view returns (address)'], provider);
+  try {
+    const poolAddr = await providerContract.getPool();
+    return poolAddr;
+  } catch (e) {
+    console.error(`[lookthrough] aave: failed to resolve Spark pool: ${e.message}`);
+    return null;
+  }
+}
 
 /**
  * Fetch pool reserve data via RPC
+ * @param {number} chainId - chain ID
+ * @param {string} chainName - chain name for logging
+ * @param {string} rpcUrl - RPC endpoint
+ * @param {string} [overridePoolAddress] - Optional: override pool address (for Spark)
  */
-async function getPoolReserves(chainId, chainName, rpcUrl) {
-  const poolAddress = POOL_ADDRESSES[chainId];
+async function getPoolReserves(chainId, chainName, rpcUrl, overridePoolAddress) {
+  let poolAddress = overridePoolAddress || POOL_ADDRESSES[chainId];
+  
+  // If override is the Spark addresses provider, resolve the actual pool
+  if (overridePoolAddress === SPARK_POOL) {
+    const resolved = await getSparkPoolAddress(rpcUrl);
+    if (resolved) {
+      poolAddress = resolved;
+    } else {
+      return null;
+    }
+  }
+  
   if (!poolAddress) return null;
 
   const provider = new JsonRpcProvider(rpcUrl);
@@ -96,16 +132,22 @@ async function compute(positions, db) {
 
   const chainIdMap = { eth: 1, base: 8453, arb: 42161, poly: 137, opt: 10, mnt: 5000, blast: 81457, scroll: 534352, sonic: 146, plasma: 9745, uni: 130, wct: 747474, monad: 143, ink: 999, abstract: 2741, bsc: 56 };
 
-  // Group positions by chain (string) to avoid duplicate RPC calls
-  const pools = new Map(); // chain string -> positions[]
+  // Group positions by protocol+chain to avoid duplicate RPC calls
+  // (Spark and Aave both run on ETH but use different pool addresses)
+  const pools = new Map(); // 'protocol_id:chain' -> positions[]
   for (const pos of positions) {
-    if (!pools.has(pos.chain)) pools.set(pos.chain, []);
-    pools.get(pos.chain).push(pos);
+    // Normalize protocol_id to 'aave' or 'spark' for grouping
+    const protoKey = SPARK_PROTOCOLS.has(pos.protocol_id) ? 'spark' : 'aave';
+    const poolKey = `${protoKey}:${pos.chain}`;
+    if (!pools.has(poolKey)) pools.set(poolKey, []);
+    pools.get(poolKey).push(pos);
   }
 
   const rows = [];
 
-  for (const [chainStr, chainPositions] of pools) {
+  for (const [poolKey, chainPositions] of pools) {
+    const [protoTag, chainStr] = poolKey.split(':');
+    const isSpark = protoTag === 'spark';
     const chainId = chainIdMap[chainStr.toLowerCase()];
     if (!chainId) {
       console.log(`[lookthrough] aave: unknown chain '${chainStr}', skipping`);
@@ -114,11 +156,17 @@ async function compute(positions, db) {
     
     const rpcUrl = process.env[`${chainStr.toUpperCase()}_RPC_URL`] || process.env[`ALCHEMY_${chainStr.toUpperCase()}_RPC_URL`] || process.env.ALCHEMY_RPC_URL || 'https://eth.drpc.org';
 
-    console.log(`[lookthrough] aave: fetching reserves for ${chainStr} (chainId=${chainId})`);
+    // Determine pool address: Spark uses its own pool on ETH
+    let poolAddress = POOL_ADDRESSES[chainId];
+    if (isSpark && chainId === 1) {
+      poolAddress = SPARK_POOL;
+    }
+
+    console.log(`[lookthrough] aave: fetching reserves for ${chainStr} (${isSpark ? 'Spark' : 'Aave'}, chainId=${chainId}, pool=${poolAddress?.slice(0, 10)}...)`);
 
     let reserves;
     try {
-      reserves = await getPoolReserves(chainId, chainStr, rpcUrl);
+      reserves = await getPoolReserves(chainId, chainStr, rpcUrl, poolAddress);
     } catch (e) {
       console.error(`[lookthrough] aave: RPC failed for ${chainStr}: ${e.message}`);
       continue;
