@@ -72,7 +72,7 @@ h1 {
 .card-sub { color: var(--text-secondary); font-size: 12px; margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
 
 .proto-summary { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-.proto-chip { padding: 6px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; }
+.proto-chip { padding: 6px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: 'JetBrains Mono', monospace; }
 .proto-chip strong { color: var(--accent-blue); }
 
 .filters { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
