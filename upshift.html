@@ -74,5 +74,22 @@ function fmtShort(n) {
 
 document.addEventListener('DOMContentLoaded', loadVaults);
 </script>
+
+<section id="lookthrough-section" style="max-width:1200px;margin:40px auto;padding:0 24px;">
+  <h3 style="font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:18px;color:var(--text-primary);margin-bottom:16px;">Secondary Risk — Final Market Exposure</h3>
+  <div class="lookthrough-content" style="text-align:center;padding:40px;color:var(--text-secondary);font-size:14px;">Loading...</div>
+</section>
+<script src="whale-common.js?v=202604271453"></script>
+<script>
+  // Render lookthrough after page loads
+  setTimeout(() => {
+    fetch('data.json?t=' + Date.now())
+      .then(r => r.json())
+      .then(data => {
+        const whale = data.whales['Upshift'];
+        if (window.renderLookthroughCards && whale) renderLookthroughCards(whale);
+      });
+  }, 500);
+</script>
 </body>
 </html>

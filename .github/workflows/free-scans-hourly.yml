@@ -80,12 +80,10 @@ jobs:
       - name: Exposure adapter smoke tests
         # Pure-JS: validates registry + row shapes. Fast, no external calls.
         run: node test/exposure/smoke.test.js
-      - name: Build exposure decomposition (secondary risk lookthrough)
-        # Runs adapters against every position and writes
-        # exposure_decomposition table. See docs/secondary-risk-coverage-plan.md.
-        # Non-blocking on per-position errors — each becomes an `unknown` row
-        # which the audit step will flag.
-        run: node src/build-exposure.js
+      - name: Build position lookthrough (secondary risk)
+        # Computes pro-rata exposure to collateral for vault-based positions.
+        # Covers Aave V3, Spark Lend, and Morpho vaults via live REST/RPC APIs.
+        run: node src/build-lookthrough.js || echo 'Lookthrough build failed — non-blocking'
       - name: Scan Ethena cooldowns (Locked USDe)
         run: node src/ethena-scanner.js || node src/ethena-scanner.js
         env:
