@@ -45,6 +45,7 @@ body {
 
 h1 {
   font-size: 28px; font-weight: 700;
+  font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.5px;
   background: var(--gradient-teal); -webkit-background-clip: text;
   -webkit-text-fill-color: transparent; background-clip: text;
 }
