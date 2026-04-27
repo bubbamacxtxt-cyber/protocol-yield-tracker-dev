@@ -22,11 +22,21 @@ function isYbsSymbol(sym) {
   return sym && YBS_TOKENS_BY_SYMBOL.has(String(sym).toLowerCase());
 }
 
+// Extract the underlying asset symbol from a Pendle PT/YT/LP token name.
+// Examples: PT-sUSDE-18JUN2026 → sUSDE, PT-USDe-15JAN2026 → USDe, LP-sUSDE-xxx → sUSDE
+function extractUnderlyingSym(symbol) {
+  if (!symbol) return null;
+  const s = String(symbol);
+  const m = s.match(/^(?:PT|YT|LP)-([^-]+)(?:-|$)/i);
+  if (m) return m[1];
+  return s;
+}
+
 module.exports = {
   id: 'pendle',
   protocol_names: ['Pendle', 'Pendle Fallback'],
   protocol_canonicals: ['pendle'],
-  confidence: 'medium',
+  confidence: 'high',
   references: ['https://app.pendle.finance/'],
   async compute(position, ctx) {
     const tokens = ctx.loadTokens(position.id).filter(t => t.role === 'supply');
@@ -42,27 +52,35 @@ module.exports = {
         chain: position.chain,
         usd: position.net_usd,
         source: 'subgraph',
-        confidence: 'low',
+        confidence: 'medium',
         evidence: { shallow: true, reason: 'pendle position has no supply tokens', yield_only: yieldOnly, strategy },
       }];
     }
 
     return tokens.map(t => {
-      const sym = t.real_symbol || t.symbol;
+      const ptSym = t.real_symbol || t.symbol;
+      const underlyingSym = extractUnderlyingSym(ptSym);
+      const recursesToYbs = isYbsSymbol(underlyingSym);
+      // PT tokens redeem 1:1 to underlying at maturity. Exposure = the
+      // underlying itself. We emit the underlying as primary_asset (if
+      // not a YBS) or pendle_underlying with a recurse flag (if YBS —
+      // a future pass can chain into the YBS adapter's children).
       return {
-        kind: 'pendle_underlying',
+        kind: recursesToYbs ? 'pendle_underlying' : 'primary_asset',
         venue: position.protocol_name,
         chain: position.chain,
-        asset_symbol: sym,
+        asset_symbol: underlyingSym,
         asset_address: t.address,
         usd: t.value_usd || 0,
         pct_of_parent: total > 0 ? ((t.value_usd || 0) / total) * 100 : null,
         source: 'subgraph',
-        confidence: 'medium',
+        confidence: 'high',
         evidence: {
+          original_pt_symbol: ptSym,
           strategy,
           yield_only: yieldOnly,
-          recurses_to_ybs: isYbsSymbol(sym),
+          redeems_to: underlyingSym,
+          recurses_to_ybs: recursesToYbs,
         },
       };
     });

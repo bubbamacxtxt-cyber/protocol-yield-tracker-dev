@@ -24,6 +24,94 @@ const CHAIN_NAMES = {
   146: 'sonic', 130: 'uni', 747474: 'wct', 143: 'monad', 999: 'ink', 56: 'bsc',
 };
 
+async function fetchBlueMarket(uniqueKey, chainId, cache) {
+  const key = `morpho:blue:${chainId}:${uniqueKey}`;
+  const hit = cache.get(key);
+  if (hit !== undefined) return hit;
+  const q = `{ marketByUniqueKey(uniqueKey: "${uniqueKey}", chainId: ${chainId}) { uniqueKey collateralAsset { symbol address } loanAsset { symbol address } state { supplyAssetsUsd borrowAssetsUsd collateralAssetsUsd utilization } } }`;
+  try {
+    const res = await fetch('https://app.morpho.org/api/graphql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: q }),
+    });
+    if (!res.ok) { cache.set(key, null); return null; }
+    const data = await res.json();
+    const market = data?.data?.marketByUniqueKey || null;
+    cache.set(key, market);
+    return market;
+  } catch {
+    cache.set(key, null);
+    return null;
+  }
+}
+
+async function tryMorphoBlueByIndex(position, ctx) {
+  // position_index = "<wallet>|<chain>|<loanAddr>|<uniqueKey>"
+  const parts = String(position.position_index || '').split('|');
+  const uniqueKey = parts[3];
+  if (!uniqueKey || !/^0x[0-9a-f]{64}$/i.test(uniqueKey)) return null;
+  const chainId = {
+    eth: 1, base: 8453, arb: 42161, poly: 137, opt: 10, mnt: 5000,
+    uni: 130, wct: 747474, ink: 999, monad: 143, bsc: 56,
+  }[position.chain];
+  if (!chainId) return null;
+
+  const market = await fetchBlueMarket(uniqueKey, chainId, ctx.cache);
+  if (!market) return null;
+
+  // This is an isolated market — the user supplies collateral and borrows
+  // loanAsset. Secondary risk on the supply side = the collateral they posted
+  // (explicit, no pro-rata). We emit two children: the primary collateral and
+  // the loan-asset exposure (for the borrow leg). Root row carries the market
+  // total supply/borrow + utilization.
+  const tokens = ctx.loadTokens(position.id);
+  const supplyTokens = tokens.filter(t => t.role === 'supply');
+  const borrowTokens = tokens.filter(t => t.role === 'borrow');
+
+  const children = [];
+  for (const t of supplyTokens) {
+    children.push({
+      kind: 'primary_asset',
+      venue: `Morpho Blue ${market.collateralAsset?.symbol || 'mkt'}/${market.loanAsset?.symbol || '?'}`,
+      venue_address: uniqueKey,
+      chain: position.chain,
+      asset_symbol: t.real_symbol || t.symbol,
+      asset_address: t.address,
+      usd: t.value_usd || 0,
+      pct_of_parent: position.asset_usd > 0 ? ((t.value_usd || 0) / position.asset_usd) * 100 : null,
+      source: 'subgraph',
+      confidence: 'high',
+      evidence: { isolated_market: true, role: 'collateral' },
+    });
+  }
+
+  return [{
+    kind: 'market_exposure',
+    venue: `Morpho Blue ${market.collateralAsset?.symbol || '?'}/${market.loanAsset?.symbol || '?'}`,
+    venue_address: uniqueKey,
+    chain: position.chain,
+    asset_symbol: `${market.collateralAsset?.symbol || '?'} / ${market.loanAsset?.symbol || '?'}`,
+    asset_address: market.collateralAsset?.address || null,
+    usd: position.net_usd,
+    utilization: market.state?.utilization ?? null,
+    source: 'subgraph',
+    confidence: 'high',
+    as_of: ctx.now,
+    evidence: {
+      blue_market: true,
+      unique_key: uniqueKey,
+      market_supply_usd: Number(market.state?.supplyAssetsUsd || 0),
+      market_borrow_usd: Number(market.state?.borrowAssetsUsd || 0),
+      market_collateral_usd: Number(market.state?.collateralAssetsUsd || 0),
+      collateral_symbol: market.collateralAsset?.symbol,
+      loan_symbol: market.loanAsset?.symbol,
+      borrowed_usd: borrowTokens.reduce((s, t) => s + (t.value_usd || 0), 0),
+    },
+    children,
+  }];
+}
+
 async function fetchEarn(wallet, cache) {
   const key = `morpho:earn:${wallet.toLowerCase()}`;
   const hit = cache.get(key);
@@ -72,7 +160,15 @@ module.exports = {
     });
 
     if (!match) {
-      // Could be borrow-only morpho position or unresolved. Shallow row.
+      // No matching earn item — could be a Morpho Blue direct borrow position.
+      // The position_index has the form "<wallet>|<chain>|<loanAssetAddr>|<uniqueKey>"
+      // where uniqueKey is the 32-byte Blue market id. If present, resolve the
+      // market via GraphQL and decompose as an isolated (collateral / loan)
+      // market_exposure row — the whale has a direct loan against one collateral,
+      // so secondary risk is just that collateral.
+      const blueRows = await tryMorphoBlueByIndex(position, ctx);
+      if (blueRows) return blueRows;
+
       return [{
         kind: 'pool_share',
         venue: 'Morpho',

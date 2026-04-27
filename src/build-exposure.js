@@ -7,6 +7,7 @@
  * rows per-position before re-writing.
  */
 
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const { run } = require('./exposure/index');
 
 run().then(summary => {

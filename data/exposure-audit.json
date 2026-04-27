@@ -1,25 +1,25 @@
 {
-  "generated_at": "2026-04-27T19:47:18.895Z",
+  "generated_at": "2026-04-27T20:19:41.729Z",
   "total_value": 759708003.5043765,
   "total_positions": 123,
   "positions_decomposed": 123,
   "positions_missing_decomposition": 0,
-  "decomposed_value": 763500078.6592158,
-  "decomposition_rows_usd": 769907001.4116746,
+  "decomposed_value": 762666681.7044547,
+  "decomposition_rows_usd": 759212059.1259242,
   "coverage_pct": 100,
-  "opaque_offchain_value": 227080595.7528601,
+  "opaque_offchain_value": 259682276.16229108,
   "unknown_value": 0,
   "by_confidence": {
-    "high": 243791173.40501913,
-    "medium": 367397327.20475703,
-    "low": 158718500.80189815
+    "high": 759212059.1259242,
+    "medium": 0,
+    "low": 0
   },
   "by_adapter": {
     "offchain": {
-      "value": 227080595.7528601,
-      "positions": 13,
-      "high": 0,
-      "medium": 227080595.7528601,
+      "value": 259682276.16229108,
+      "positions": 16,
+      "high": 259682276.16229108,
+      "medium": 0,
       "low": 0
     },
     "aave": {
@@ -30,25 +30,25 @@
       "low": 0
     },
     "ybs": {
-      "value": 123584797.62603211,
-      "positions": 10,
-      "high": 0,
+      "value": 101546241.10328977,
+      "positions": 8,
+      "high": 101546241.10328977,
       "medium": 0,
-      "low": 123584797.62603211
+      "low": 0
     },
     "euler": {
       "value": 86676279.54023653,
       "positions": 9,
-      "high": 0,
-      "medium": 86676279.54023653,
+      "high": 86676279.54023653,
+      "medium": 0,
       "low": 0
     },
     "morpho": {
-      "value": 144370823.06124973,
+      "value": 144369955.62716454,
       "positions": 39,
-      "high": 109237119.88538373,
+      "high": 144369955.62716454,
       "medium": 0,
-      "low": 35133703.175866
+      "low": 0
     },
     "wallet": {
       "value": 24351260.215327613,
@@ -57,32 +57,32 @@
       "medium": 0,
       "low": 0
     },
-    "single-venue": {
-      "value": 30931435.16984175,
-      "positions": 14,
-      "high": 0,
-      "medium": 30931435.16984175,
-      "low": 0
-    },
     "fluid": {
-      "value": 12800488.324292097,
+      "value": 11297162.427242858,
       "positions": 6,
-      "high": 0,
-      "medium": 12800488.324292097,
+      "high": 11297162.427242858,
+      "medium": 0,
       "low": 0
     },
     "spark": {
       "value": 6028254.102009371,
       "positions": 1,
-      "high": 0,
-      "medium": 6028254.102009371,
+      "high": 6028254.102009371,
+      "medium": 0,
       "low": 0
     },
     "pendle": {
       "value": 3880274.315517322,
       "positions": 4,
-      "high": 0,
-      "medium": 3880274.315517322,
+      "high": 3880274.315517322,
+      "medium": 0,
+      "low": 0
+    },
+    "single-venue": {
+      "value": 11177562.328537144,
+      "positions": 12,
+      "high": 11177562.328537144,
+      "medium": 0,
       "low": 0
     },
     "curve": {
@@ -98,93 +98,93 @@
   "adapter_health": [
     {
       "adapter": "aave",
-      "last_run": "2026-04-27T19:44:08.760Z",
-      "last_success": "2026-04-27T19:44:08.760Z",
+      "last_run": "2026-04-27T20:19:19.696Z",
+      "last_success": "2026-04-27T20:19:19.696Z",
       "last_error": "2026-04-27T19:39:00.937Z",
       "last_error_msg": "Error: Aave: empty reserve set for 1:0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2 |     at Object.compute (/home/node/.openclaw/workspace/protocol-yield-tracker-dev/src/exposure/adapters/aave.js:133:33) |     at process.processTicksAndRejections (node:internal/process/task_queues:104:5)",
-      "positions_handled": 89,
+      "positions_handled": 169,
       "errors": 19,
-      "runs": 89
+      "runs": 169
     },
     {
       "adapter": "curve",
-      "last_run": "2026-04-27T19:44:08.760Z",
-      "last_success": "2026-04-27T19:44:08.760Z",
+      "last_run": "2026-04-27T20:19:19.696Z",
+      "last_success": "2026-04-27T20:19:19.696Z",
       "last_error": null,
       "last_error_msg": null,
-      "positions_handled": 10,
+      "positions_handled": 20,
       "errors": 0,
-      "runs": 10
+      "runs": 20
     },
     {
       "adapter": "euler",
-      "last_run": "2026-04-27T19:44:08.760Z",
-      "last_success": "2026-04-27T19:44:08.760Z",
+      "last_run": "2026-04-27T20:19:19.696Z",
+      "last_success": "2026-04-27T20:19:19.696Z",
       "last_error": null,
       "last_error_msg": null,
-      "positions_handled": 81,
+      "positions_handled": 126,
       "errors": 0,
-      "runs": 81
+      "runs": 126
     },
     {
       "adapter": "fluid",
-      "last_run": "2026-04-27T19:44:08.760Z",
-      "last_success": "2026-04-27T19:44:08.760Z",
+      "last_run": "2026-04-27T20:19:19.696Z",
+      "last_success": "2026-04-27T20:19:19.696Z",
       "last_error": null,
       "last_error_msg": null,
-      "positions_handled": 30,
+      "positions_handled": 60,
       "errors": 0,
-      "runs": 30
+      "runs": 60
     },
     {
       "adapter": "morpho",
-      "last_run": "2026-04-27T19:44:08.760Z",
-      "last_success": "2026-04-27T19:44:08.760Z",
+      "last_run": "2026-04-27T20:19:19.696Z",
+      "last_success": "2026-04-27T20:19:19.696Z",
       "last_error": "2026-04-27T19:39:00.937Z",
       "last_error_msg": "Error: Morpho GraphQL: [{\"message\":\"No results matching given parameters\",\"status\":\"NOT_FOUND\",\"extensions\":{}}] |     at gql (/home/node/.openclaw/workspace/protocol-yield-tracker-dev/src/exposure/adapters/morpho.js:29:26) |     at process.processTicksAndRejections (node:internal/process/task_queues:104:5)",
-      "positions_handled": 243,
+      "positions_handled": 438,
       "errors": 37,
-      "runs": 243
+      "runs": 438
     },
     {
       "adapter": "offchain",
-      "last_run": "2026-04-27T19:44:08.760Z",
-      "last_success": "2026-04-27T19:44:08.760Z",
+      "last_run": "2026-04-27T20:19:19.696Z",
+      "last_success": "2026-04-27T20:19:19.696Z",
       "last_error": null,
       "last_error_msg": null,
-      "positions_handled": 26,
+      "positions_handled": 97,
       "errors": 0,
-      "runs": 26
+      "runs": 97
     },
     {
       "adapter": "pendle",
-      "last_run": "2026-04-27T19:44:08.760Z",
-      "last_success": "2026-04-27T19:44:08.760Z",
+      "last_run": "2026-04-27T20:19:19.696Z",
+      "last_success": "2026-04-27T20:19:19.696Z",
       "last_error": null,
       "last_error_msg": null,
-      "positions_handled": 38,
+      "positions_handled": 58,
       "errors": 0,
-      "runs": 38
+      "runs": 58
     },
     {
       "adapter": "single-venue",
-      "last_run": "2026-04-27T19:44:08.760Z",
-      "last_success": "2026-04-27T19:44:08.760Z",
+      "last_run": "2026-04-27T20:19:19.696Z",
+      "last_success": "2026-04-27T20:19:19.696Z",
       "last_error": null,
       "last_error_msg": null,
-      "positions_handled": 65,
+      "positions_handled": 128,
       "errors": 0,
-      "runs": 65
+      "runs": 128
     },
     {
       "adapter": "spark",
-      "last_run": "2026-04-27T19:44:08.760Z",
-      "last_success": "2026-04-27T19:44:08.760Z",
+      "last_run": "2026-04-27T20:19:19.696Z",
+      "last_success": "2026-04-27T20:19:19.696Z",
       "last_error": null,
       "last_error_msg": null,
-      "positions_handled": 11,
+      "positions_handled": 16,
       "errors": 0,
-      "runs": 11
+      "runs": 16
     },
     {
       "adapter": "unknown",
@@ -198,165 +198,165 @@
     },
     {
       "adapter": "wallet",
-      "last_run": "2026-04-27T19:44:08.760Z",
-      "last_success": "2026-04-27T19:44:08.760Z",
+      "last_run": "2026-04-27T20:19:19.696Z",
+      "last_success": "2026-04-27T20:19:19.696Z",
       "last_error": null,
       "last_error_msg": null,
-      "positions_handled": 50,
+      "positions_handled": 100,
       "errors": 0,
-      "runs": 50
+      "runs": 100
     },
     {
       "adapter": "ybs",
-      "last_run": "2026-04-27T19:44:08.760Z",
-      "last_success": "2026-04-27T19:44:08.760Z",
+      "last_run": "2026-04-27T20:19:19.696Z",
+      "last_success": "2026-04-27T20:19:19.696Z",
       "last_error": null,
       "last_error_msg": null,
-      "positions_handled": 44,
+      "positions_handled": 90,
       "errors": 0,
-      "runs": 44
+      "runs": 90
     }
   ],
   "top_systemic_exposures": [
     {
+      "asset_symbol": "sUSDe",
+      "asset_address": "0x9d39a5de30e57443bff2a8307a4256c8797a3497",
+      "chain": "eth",
+      "total_usd": 186040474.27982512,
+      "row_count": 20
+    },
+    {
+      "asset_symbol": "REINSURANCE",
+      "asset_address": null,
+      "chain": "avalanche",
+      "total_usd": 173830514.22457114,
+      "row_count": 1
+    },
+    {
+      "asset_symbol": "USDC",
+      "asset_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+      "chain": "eth",
+      "total_usd": 71156918.40194567,
+      "row_count": 28
+    },
+    {
       "asset_symbol": "USDT0",
       "asset_address": "0xb8ce59fc3717ada4c02eadf9682a9e934f625ebb",
       "chain": "plasma",
-      "total_usd": 58202833.326500416,
+      "total_usd": 61065544.48749056,
+      "row_count": 9
+    },
+    {
+      "asset_symbol": "USDE",
+      "asset_address": null,
+      "chain": "eth",
+      "total_usd": 56731732.801610135,
       "row_count": 5
     },
     {
       "asset_symbol": "USDT0",
       "asset_address": "0x779ded0c9e1022225f8e0630b35a9b54be713736",
       "chain": "mnt",
-      "total_usd": 47119542.837013505,
-      "row_count": 4
-    },
-    {
-      "asset_symbol": "USDe",
-      "asset_address": "0x5d3a1ff2b6bab83b63cd9ad0787074081a52ef34",
-      "chain": "plasma",
-      "total_usd": 32322635.105460152,
-      "row_count": 5
-    },
-    {
-      "asset_symbol": "WETH",
-      "asset_address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-      "chain": "eth",
-      "total_usd": 29389360.650007743,
-      "row_count": 5
-    },
-    {
-      "asset_symbol": "USDC",
-      "asset_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-      "chain": "eth",
-      "total_usd": 26891317.30158751,
-      "row_count": 11
-    },
-    {
-      "asset_symbol": "sUSDe",
-      "asset_address": "0x211cc4dd073734da055fbf44a2b4667d5e5fe5d2",
-      "chain": "plasma",
-      "total_usd": 25340652.875918023,
-      "row_count": 5
-    },
-    {
-      "asset_symbol": "wrsETH",
-      "asset_address": "0x93e855643e940d025be2e529272e4dbd15a2cf74",
-      "chain": "mnt",
-      "total_usd": 25197661.790346198,
-      "row_count": 4
-    },
-    {
-      "asset_symbol": "sUSDe",
-      "asset_address": "0x211cc4dd073734da055fbf44a2b4667d5e5fe5d2",
-      "chain": "mnt",
-      "total_usd": 23653282.50756899,
-      "row_count": 4
-    },
-    {
-      "asset_symbol": "WETH",
-      "asset_address": "0xdeaddeaddeaddeaddeaddeaddeaddeaddead1111",
-      "chain": "mnt",
-      "total_usd": 23431889.171509147,
+      "total_usd": 47161561.01783143,
       "row_count": 4
     },
     {
       "asset_symbol": "RLUSD",
       "asset_address": "0x8292bb45bf1ee4d140127049757c2e0ff06317ed",
       "chain": "eth",
-      "total_usd": 20985985.940209843,
-      "row_count": 10
+      "total_usd": 39114968.2515649,
+      "row_count": 14
     },
     {
-      "asset_symbol": "PT-sUSDE-18JUN2026",
-      "asset_address": "0x30559e3d35e33ab69399a3fe9f383d32bd3c016e",
+      "asset_symbol": "sUSDS",
+      "asset_address": "0xa3931d71877c0e7a3148cb7eb4463524fec27fbd",
+      "chain": "eth",
+      "total_usd": 37563402.54209152,
+      "row_count": 2
+    },
+    {
+      "asset_symbol": "FASANARA",
+      "asset_address": null,
+      "chain": "eth",
+      "total_usd": 36284591.28149888,
+      "row_count": 3
+    },
+    {
+      "asset_symbol": "USDe",
+      "asset_address": "0x5d3a1ff2b6bab83b63cd9ad0787074081a52ef34",
       "chain": "plasma",
-      "total_usd": 20883720.939372394,
+      "total_usd": 32332633.45474366,
       "row_count": 5
     },
     {
-      "asset_symbol": "syrupUSDT",
-      "asset_address": "0x051665f2455116e929b9972c36d23070f5054ce0",
+      "asset_symbol": "WETH",
+      "asset_address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+      "chain": "eth",
+      "total_usd": 30709339.956125237,
+      "row_count": 7
+    },
+    {
+      "asset_symbol": "USDC",
+      "asset_address": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+      "chain": "base",
+      "total_usd": 30253170.648552757,
+      "row_count": 4
+    },
+    {
+      "asset_symbol": "CAP",
+      "asset_address": null,
+      "chain": "eth",
+      "total_usd": 29211975.528114,
+      "row_count": 1
+    },
+    {
+      "asset_symbol": "sUSDe",
+      "asset_address": "0x211cc4dd073734da055fbf44a2b4667d5e5fe5d2",
+      "chain": "plasma",
+      "total_usd": 25337493.999960795,
+      "row_count": 5
+    },
+    {
+      "asset_symbol": "wrsETH",
+      "asset_address": "0x93e855643e940d025be2e529272e4dbd15a2cf74",
       "chain": "mnt",
-      "total_usd": 19645364.1578953,
+      "total_usd": 25220070.578783426,
+      "row_count": 4
+    },
+    {
+      "asset_symbol": "wsrUSD",
+      "asset_address": "0xd3fd63209fa2d55b07a0f6db36c2f43900be3094",
+      "chain": "eth",
+      "total_usd": 23894910.601952586,
+      "row_count": 2
+    },
+    {
+      "asset_symbol": "sUSDe",
+      "asset_address": "0x211cc4dd073734da055fbf44a2b4667d5e5fe5d2",
+      "chain": "mnt",
+      "total_usd": 23674317.848386254,
+      "row_count": 4
+    },
+    {
+      "asset_symbol": "WETH",
+      "asset_address": "0xdeaddeaddeaddeaddeaddeaddeaddeaddead1111",
+      "chain": "mnt",
+      "total_usd": 23452774.787069876,
       "row_count": 4
     },
     {
       "asset_symbol": "weETH",
       "asset_address": "0xcd5fe23c85820f7b72d0926fc9b05b43e359b7ee",
       "chain": "eth",
-      "total_usd": 19493640.749768168,
-      "row_count": 5
+      "total_usd": 21971091.499366887,
+      "row_count": 6
     },
     {
-      "asset_symbol": "syrupUSDC / RLUSD",
-      "asset_address": "0x80ac24aa929eaf5013f6436cda2a7ba190f5cc0b",
-      "chain": "eth",
-      "total_usd": 15179713.030712929,
-      "row_count": 4
-    },
-    {
-      "asset_symbol": "WBTC",
-      "asset_address": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
-      "chain": "eth",
-      "total_usd": 13124270.30225564,
-      "row_count": 5
-    },
-    {
-      "asset_symbol": "wstETH",
-      "asset_address": "0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
-      "chain": "eth",
-      "total_usd": 12324740.675513417,
-      "row_count": 5
-    },
-    {
-      "asset_symbol": "USDT",
-      "asset_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
-      "chain": "eth",
-      "total_usd": 11266151.832683716,
-      "row_count": 5
-    },
-    {
-      "asset_symbol": "syrupUSDT",
-      "asset_address": "0xc4374775489cb9c56003bf2c9b12495fc64f0771",
+      "asset_symbol": "PT-sUSDE-18JUN2026",
+      "asset_address": "0x30559e3d35e33ab69399a3fe9f383d32bd3c016e",
       "chain": "plasma",
-      "total_usd": 10821313.149712648,
+      "total_usd": 20881173.295787994,
       "row_count": 5
-    },
-    {
-      "asset_symbol": "wsrUSD / USDC",
-      "asset_address": "0xd3fd63209fa2d55b07a0f6db36c2f43900be3094",
-      "chain": "eth",
-      "total_usd": 8554139.156052416,
-      "row_count": 3
-    },
-    {
-      "asset_symbol": "WBTC / AUSD",
-      "asset_address": "0x0555e30da8f98308edb960aa94c0db47230d2b9c",
-      "chain": "monad",
-      "total_usd": 7791250.686122142,
-      "row_count": 2
     }
   ],
   "acceptance": {
