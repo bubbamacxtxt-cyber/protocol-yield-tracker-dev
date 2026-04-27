@@ -195,7 +195,42 @@ function renderCards(data) {
     '</div>';
   }).join('');
 
-  document.getElementById('summaryCards').innerHTML = cardsHtml + '<div id="walletCards"></div>';
+  // Render wallet card as an additional .card in the grid
+  let walletCardHtml = '';
+  const whale = data.whales[WHALE_NAME];
+  if (whale && whale.wallets && whale.wallets.length) {
+    const allWallets = whale.wallets;
+    const unique = [...new Set(allWallets.map(w => w.toLowerCase()))];
+    const walletValue = {};
+    (whale.positions||[]).forEach(p => {
+      const addr = (p.wallet||'').toLowerCase();
+      walletValue[addr] = (walletValue[addr]||0) + (p.net_usd||0);
+    });
+    const THRESHOLD = 50000;
+    const sorted = [...unique].sort((a,b) => {
+      const av = walletValue[a]||0, bv = walletValue[b]||0;
+      return (bv >= THRESHOLD) - (av >= THRESHOLD) || bv - av;
+    });
+    const activeCount = sorted.filter(a => (walletValue[a]||0) >= THRESHOLD).length;
+    const items = sorted.map(addr => {
+      const val = walletValue[addr]||0;
+      const active = val >= THRESHOLD;
+      const color = active ? 'var(--accent-green)' : '#f85149';
+      return '<a href="https://debank.com/profile/'+addr+'" target="_blank" style="'
+        +'display:flex;align-items:center;gap:6px;padding:6px 0;text-decoration:none;font-size:13px;">'
+        +'<span style="width:8px;height:8px;border-radius:50%;background:'+color+';flex-shrink:0"></span>'
+        +'<span style="color:var(--text-primary);font-family:monospace">'+shortWallet(addr)+'</span>'
+        +'<span style="color:var(--text-secondary);margin-left:auto;font-size:12px">'+(active?'$'+fmtShort(val):'—')+'</span>'
+        +'</a>';
+    }).join('');
+    walletCardHtml = '<div class="card">'
+      +'<div class="card-label">Wallets</div>'
+      +'<div class="card-value green">'+activeCount+'<span style="font-size:14px;font-weight:400;color:var(--text-secondary);margin-left:6px">/ '+unique.length+'</span></div>'
+      +'<div class="card-sub" style="max-height:80px;overflow-y:auto;scrollbar-width:thin;margin-top:8px;display:flex;flex-direction:column;gap:2px">'
+      +items
+      +'</div></div>';
+  }
+  document.getElementById('summaryCards').innerHTML = cardsHtml + walletCardHtml;
 
   const grouped = new Map();
   data.forEach(p => {
@@ -385,61 +420,6 @@ async function loadData() {
   } catch (e) {
     document.querySelector('.container').innerHTML = '<div style="text-align:center;padding:80px;color:#f85149"><h2>Failed to load data</h2><p style="color:#8b949e;margin-top:8px">' + e.message + '</p></div>';
   }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// WALLET CARDS — debank links, green/red status, no API calls
-// ═══════════════════════════════════════════════════════════════
-// Build a set of wallet addresses that have positions in the current
-// filtered view.  Wallets with ANY position value > 0 are "active".
-function renderWalletCards(whaleData) {
-  const container = document.getElementById('walletCards');
-  if (!container) return;
-
-  const allWallets = whaleData.wallets || [];
-  const positions = whaleData.positions || [];
-
-  // Deduplicate
-  const unique = [...new Set(allWallets.map(w => w.toLowerCase()))];
-
-  // Value per wallet from existing positions
-  const walletValue = {};
-  positions.forEach(p => {
-    const addr = (p.wallet || '').toLowerCase();
-    walletValue[addr] = (walletValue[addr] || 0) + (p.net_usd || 0);
-  });
-
-  const THRESHOLD = 50000;
-
-  // Sort: green (active) first, then red
-  const sorted = [...unique].sort((a, b) => {
-    const av = walletValue[a] || 0, bv = walletValue[b] || 0;
-    const aActive = av >= THRESHOLD ? 1 : 0;
-    const bActive = bv >= THRESHOLD ? 1 : 0;
-    return bActive - aActive || bv - av;
-  });
-
-  const activeCount = sorted.filter(a => (walletValue[a] || 0) >= THRESHOLD).length;
-
-  // Render as a .card with scrollable wallet list inside
-  const items = sorted.map(addr => {
-    const val = walletValue[addr] || 0;
-    const active = val >= THRESHOLD;
-    const color = active ? 'var(--accent-green)' : '#f85149';
-    return '<a href="https://debank.com/profile/' + addr + '" target="_blank" style="'
-      + 'display:flex;align-items:center;gap:6px;padding:6px 0;text-decoration:none;font-size:13px;">'
-      + '<span style="width:8px;height:8px;border-radius:50%;background:' + color + ';flex-shrink:0"></span>'
-      + '<span style="color:var(--text-primary);font-family:monospace">' + shortWallet(addr) + '</span>'
-      + '<span style="color:var(--text-secondary);margin-left:auto;font-size:12px">' + (active ? '$' + fmtShort(val) : '—') + '</span>'
-      + '</a>';
-  }).join('');
-
-  container.innerHTML = '<div class="card">'
-    + '<div class="card-label">Wallets</div>'
-    + '<div class="card-value green">' + activeCount + '<span style="font-size:14px;font-weight:400;color:var(--text-secondary);margin-left:6px">/ ' + unique.length + '</span></div>'
-    + '<div class="card-sub" style="max-height:80px;overflow-y:auto;scrollbar-width:thin;margin-top:8px;display:flex;flex-direction:column;gap:2px">'
-    + items
-    + '</div></div>';
 }
 
 // Call this from each page's DOMContentLoaded
