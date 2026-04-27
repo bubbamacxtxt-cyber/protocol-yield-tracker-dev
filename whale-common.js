@@ -399,10 +399,10 @@ function renderWalletCards(whaleData) {
   const allWallets = whaleData.wallets || [];
   const positions = whaleData.positions || [];
 
-  // Deduplicate — some whales list the same address twice
+  // Deduplicate
   const unique = [...new Set(allWallets.map(w => w.toLowerCase()))];
 
-  // Compute value per wallet from current positions
+  // Value per wallet from existing positions
   const walletValue = {};
   positions.forEach(p => {
     const addr = (p.wallet || '').toLowerCase();
@@ -410,25 +410,28 @@ function renderWalletCards(whaleData) {
   });
 
   const THRESHOLD = 50000;
+  const activeCount = unique.filter(a => (walletValue[a] || 0) >= THRESHOLD).length;
 
-  const items = unique.map(addr => {
+  // Wallet list as colored dots with short labels
+  const dots = unique.map(addr => {
     const val = walletValue[addr] || 0;
     const active = val >= THRESHOLD;
-    const dotColor = active ? 'var(--accent-green)' : '#f85149';
-    const valStr = active ? '$' + fmtShort(val) : 'no positions';
+    const color = active ? 'var(--accent-green)' : '#f85149';
+    const label = shortWallet(addr);
     return '<a href="https://debank.com/profile/' + addr + '" target="_blank" '
-      + 'style="display:flex;align-items:center;gap:8px;padding:8px 12px;'
-      + 'text-decoration:none;color:var(--text-primary);font-size:13px;white-space:nowrap">'
-      + '<span style="width:8px;height:8px;border-radius:50%;background:' + dotColor + ';flex-shrink:0"></span>'
-      + '<span style="font-family:monospace">' + shortWallet(addr) + '</span>'
-      + '<span style="color:var(--text-secondary);margin-left:auto">' + valStr + '</span>'
-      + '</a>';
+      + 'title="' + label + (active ? ' — $' + fmtShort(val) : ' — no positions') + '"'
+      + ' style="display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border-radius:4px;'
+      + 'text-decoration:none;color:' + color + ';font-size:11px;font-family:monospace;white-space:nowrap">'
+      + '<span style="width:7px;height:7px;border-radius:50%;background:' + color + ';flex-shrink:0"></span>'
+      + label + '</a>';
   });
 
-  container.innerHTML = '<div style="background:var(--surface-secondary,var(--bg-secondary,#161b22));border:1px solid var(--border-default,rgba(255,255,255,0.08));border-radius:10px;overflow:hidden">'
-    + '<div style="padding:10px 14px;font-size:12px;font-weight:600;color:var(--text-secondary);border-bottom:1px solid var(--border-default,rgba(255,255,255,0.08))">Wallets (' + unique.length + ')</div>'
-    + '<div style="max-height:160px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.15) transparent">'
-    + items.join('')
+  // Render as a card matching .card style
+  container.innerHTML = '<div class="card">'
+    + '<div class="card-label">Wallets</div>'
+    + '<div class="card-value green">' + activeCount + '<span style="font-size:14px;font-weight:400;color:var(--text-secondary);margin-left:6px">/ ' + unique.length + ' active</span></div>'
+    + '<div class="card-sub" style="display:flex;flex-wrap:wrap;gap:3px;margin-top:8px;max-height:80px;overflow-y:auto;scrollbar-width:thin">'
+    + dots.join('')
     + '</div></div>';
 }
 
