@@ -431,14 +431,6 @@ function renderWalletCards(whaleData) {
     + items.join('')
     + '</div></div>';
 }
-  }).join('');
-
-  container.innerHTML = '<div style="background:var(--surface-secondary,var(--bg-secondary,#161b22));border:1px solid var(--border-default,rgba(255,255,255,0.08));border-radius:10px;overflow:hidden">'
-    + '<div style="padding:10px 14px;font-size:12px;font-weight:600;color:var(--text-secondary);border-bottom:1px solid var(--border-default,rgba(255,255,255,0.08))">Wallets (' + unique.length + ')</div>'
-    + '<div style="max-height:160px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.15) transparent">'
-    + items
-    + '</div></div>';
-}
 
 // Call this from each page's DOMContentLoaded
 function whaleInit() {
