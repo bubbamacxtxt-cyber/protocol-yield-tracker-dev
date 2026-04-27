@@ -129,6 +129,92 @@ async function tryMorphoBlueByIndex(position, ctx) {
   }];
 }
 
+async function fetchMarketsForLoanAsset(loanAssetAddress, chainId, cache) {
+  // v2 MetaMorpho vaults aren't indexed by `vaultByAddress`, but per-market
+  // state is still available via the `markets()` query filtered by loan
+  // asset. Multiple sub-markets can share the same (loan, collateral) pair
+  // with different oracle/irm/lltv, so we aggregate by collateral address.
+  const key = `morpho:marketsbyloan:${chainId}:${String(loanAssetAddress).toLowerCase()}`;
+  const hit = cache.get(key);
+  if (hit !== undefined) return hit;
+  const q = `{ markets(first: 100, where: { loanAssetAddress_in: ["${loanAssetAddress}"], chainId_in: [${chainId}] }) {
+    items {
+      uniqueKey
+      collateralAsset { symbol address }
+      loanAsset { symbol address }
+      state { supplyAssetsUsd borrowAssetsUsd liquidityAssetsUsd utilization }
+    }
+  } }`;
+  try {
+    const res = await fetch('https://app.morpho.org/api/graphql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: q }),
+    });
+    if (!res.ok) { cache.set(key, null); return null; }
+    const data = await res.json();
+    const markets = data?.data?.markets?.items || [];
+    const byCol = new Map();
+    for (const m of markets) {
+      const col = String(m.collateralAsset?.address || '').toLowerCase() || '_idle';
+      const prev = byCol.get(col) || {
+        collateral_symbol: m.collateralAsset?.symbol || 'Idle',
+        collateral_address: m.collateralAsset?.address || null,
+        loan_symbol: m.loanAsset?.symbol,
+        supplyAssetsUsd: 0,
+        borrowAssetsUsd: 0,
+        market_count: 0,
+      };
+      prev.supplyAssetsUsd += Number(m.state?.supplyAssetsUsd || 0);
+      prev.borrowAssetsUsd += Number(m.state?.borrowAssetsUsd || 0);
+      prev.market_count++;
+      byCol.set(col, prev);
+    }
+    cache.set(key, byCol);
+    return byCol;
+  } catch {
+    cache.set(key, null);
+    return null;
+  }
+}
+
+async function fetchVaultAllocations(vaultAddress, chainId, cache) {
+  // Try GraphQL vaultByAddress for per-market state (v1 MetaMorpho vaults).
+  // Returns null for v2 vaults the subgraph doesn't index.
+  const key = `morpho:gqlvault:${chainId}:${vaultAddress.toLowerCase()}`;
+  const hit = cache.get(key);
+  if (hit !== undefined) return hit;
+  const q = `{ vaultByAddress(address: "${vaultAddress}", chainId: ${chainId}) {
+    state {
+      totalAssetsUsd
+      allocation {
+        supplyAssetsUsd
+        market {
+          uniqueKey
+          collateralAsset { symbol address }
+          loanAsset { symbol address }
+          state { supplyAssetsUsd borrowAssetsUsd liquidityAssetsUsd utilization }
+        }
+      }
+    }
+  } }`;
+  try {
+    const res = await fetch('https://app.morpho.org/api/graphql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: q }),
+    });
+    if (!res.ok) { cache.set(key, null); return null; }
+    const data = await res.json();
+    const out = data?.data?.vaultByAddress?.state || null;
+    cache.set(key, out);
+    return out;
+  } catch {
+    cache.set(key, null);
+    return null;
+  }
+}
+
 async function fetchEarn(wallet, cache) {
   const key = `morpho:earn:${wallet.toLowerCase()}`;
   const hit = cache.get(key);
@@ -209,41 +295,133 @@ module.exports = {
     const vaultTotalUsd = Number(vault.totalAssetsUsd || 0);
     const sharePct = vaultTotalUsd > 0 ? (userUsd / vaultTotalUsd) * 100 : null;
 
-    // Net-basis lens: legs sum to userUsd (the whale's actual deposit into
-    // this vault). `exposurePercent` from Morpho is already a fraction of
-    // vault total, so leg.usd = userUsd * exposurePercent. Vault TVL is
-    // promoted to root evidence for the UI.
-    const exposures = Array.isArray(vault.exposure) ? vault.exposure : [];
-    const children = exposures
-      .filter(e => Number(e.exposureUSD || 0) > 0)
-      .map(e => {
-        const isIdle = !e.collateralAsset;
-        const collSym = e.collateralAsset?.symbol || 'Idle';
-        const collAddr = e.collateralAsset?.address || null;
-        const compositionPct = Number(e.exposurePercent || 0);
+    // MetaMorpho vaults are supply aggregators. Each allocation is a
+    // Morpho Blue market (collateral / loan pair) the vault supplies into.
+    // For v1 vaults we can query GraphQL for per-market state (supply,
+    // borrow, utilization). For v2 vaults GraphQL doesn't index them, so we
+    // fall back to REST's supply-only `exposure[]`.
+    //
+    // Net-basis: legs sum to userUsd. The "borrowable" column in the UI is
+    // derived from per-market state when we have it.
+    const chainIdFromVault = Number(match.vault?.chainId || 0) || { eth: 1, base: 8453, arb: 42161, poly: 137, opt: 10, mnt: 5000, uni: 130, wct: 747474, ink: 999, monad: 143, bsc: 56 }[position.chain];
+    const gqlState = chainIdFromVault ? await fetchVaultAllocations(vault.address, chainIdFromVault, ctx.cache) : null;
+
+    let children = [];
+    let totalBorrowUsd = 0;
+
+    if (gqlState && Array.isArray(gqlState.allocation) && gqlState.allocation.length) {
+      // v1 path: real per-market state from GraphQL.
+      const totalVaultSupply = Number(gqlState.totalAssetsUsd || 0) || vaultTotalUsd;
+      for (const a of gqlState.allocation) {
+        const marketSupplyInVault = Number(a.supplyAssetsUsd || 0);
+        if (marketSupplyInVault <= 0) continue;
+        const m = a.market || {};
+        const mState = m.state || {};
+        const col = m.collateralAsset?.symbol || 'Idle';
+        const colAddr = m.collateralAsset?.address || null;
+        const loanSym = m.loanAsset?.symbol || vault.asset?.symbol || '?';
+        const isIdle = !m.collateralAsset;
+        const compositionPct = totalVaultSupply > 0 ? marketSupplyInVault / totalVaultSupply : 0;
         const userExposureUsd = userUsd * compositionPct;
-        return {
+        const marketSupply = Number(mState.supplyAssetsUsd || 0);
+        const marketBorrow = Number(mState.borrowAssetsUsd || 0);
+        const marketAvailable = Math.max(0, marketSupply - marketBorrow);
+        // Attribute vault-proportional share of market borrow to this allocation
+        const vaultShareOfMarket = marketSupply > 0 ? marketSupplyInVault / marketSupply : 0;
+        totalBorrowUsd += marketBorrow * vaultShareOfMarket;
+        children.push({
           kind: isIdle ? 'primary_asset' : 'market_exposure',
           venue: `Morpho ${vault.name || vault.symbol}`,
-          venue_address: vault.address,
+          venue_address: m.uniqueKey || vault.address,
           chain: position.chain,
-          asset_symbol: isIdle ? vault.asset?.symbol : `${collSym} / ${vault.asset?.symbol}`,
-          asset_address: collAddr,
+          asset_symbol: isIdle ? loanSym : `${col} / ${loanSym}`,
+          asset_address: colAddr,
           usd: userExposureUsd,
           pct_of_parent: compositionPct * 100,
-          source: 'protocol-api',
+          source: 'subgraph',
           confidence: 'high',
           as_of: ctx.now,
           evidence: {
-            collateral_symbol: collSym,
-            collateral_address: collAddr,
-            pool_reserve_total_supply_usd: Number(e.exposureUSD),
+            market_unique_key: m.uniqueKey,
+            collateral_symbol: col,
+            collateral_address: colAddr,
+            loan_symbol: loanSym,
+            pool_reserve_total_supply_usd: marketSupply,
+            pool_reserve_total_borrow_usd: marketBorrow,
+            pool_reserve_available_usd: marketAvailable,
+            market_utilization: Number(mState.utilization || 0),
+            vault_allocation_usd: marketSupplyInVault,
             is_collateral: !isIdle,
-            is_borrowable: false, // MetaMorpho markets are isolated; loan side is just the vault asset
+            is_borrowable: false,   // markets are allocations, not borrowable from the vault
             is_idle: isIdle,
           },
-        };
-      });
+        });
+      }
+    } else {
+      // v2 path: combine REST exposure (per-collateral USD in vault) with
+      // subgraph markets() query filtered by loan asset (per-market state).
+      const exposures = Array.isArray(vault.exposure) ? vault.exposure : [];
+      const loanAsset = vault.asset?.address;
+      const marketsByCol = (loanAsset && chainIdFromVault)
+        ? await fetchMarketsForLoanAsset(loanAsset, chainIdFromVault, ctx.cache)
+        : null;
+
+      children = exposures
+        .filter(e => Number(e.exposureUSD || 0) > 0)
+        .map(e => {
+          const isIdle = !e.collateralAsset;
+          const collSym = e.collateralAsset?.symbol || 'Idle';
+          const collAddr = e.collateralAsset?.address || null;
+          const collKey = collAddr ? String(collAddr).toLowerCase() : '_idle';
+          const compositionPct = Number(e.exposurePercent || 0);
+          const userExposureUsd = userUsd * compositionPct;
+          const userSupplyInMarket = Number(e.exposureUSD);
+          const marketAgg = marketsByCol ? marketsByCol.get(collKey) : null;
+          const marketSupply = marketAgg ? marketAgg.supplyAssetsUsd : 0;
+          const marketBorrow = marketAgg ? marketAgg.borrowAssetsUsd : 0;
+          const marketAvailable = Math.max(0, marketSupply - marketBorrow);
+          const util = marketSupply > 0 ? marketBorrow / marketSupply : 0;
+          return {
+            kind: isIdle ? 'primary_asset' : 'market_exposure',
+            venue: `Morpho ${vault.name || vault.symbol}`,
+            venue_address: vault.address,
+            chain: position.chain,
+            asset_symbol: isIdle ? vault.asset?.symbol : `${collSym} / ${vault.asset?.symbol}`,
+            asset_address: collAddr,
+            usd: userExposureUsd,
+            pct_of_parent: compositionPct * 100,
+            source: marketAgg ? 'subgraph' : 'protocol-api',
+            confidence: 'high',
+            as_of: ctx.now,
+            evidence: {
+              collateral_symbol: collSym,
+              collateral_address: collAddr,
+              pool_reserve_total_supply_usd: marketSupply || userSupplyInMarket,
+              pool_reserve_total_borrow_usd: marketBorrow,
+              pool_reserve_available_usd: marketAvailable,
+              market_utilization: util,
+              market_count: marketAgg ? marketAgg.market_count : 0,
+              vault_allocation_usd: userSupplyInMarket,
+              is_collateral: !isIdle,
+              is_borrowable: false,
+              is_idle: isIdle,
+            },
+          };
+        });
+      // Vault-level total borrow from market aggregates:
+      // for each exposure, the vault holds a fraction of that market's supply,
+      // so is on the hook for that fraction of that market's borrow.
+      if (marketsByCol) {
+        totalBorrowUsd = 0;
+        for (const e of exposures) {
+          const collKey = String(e.collateralAsset?.address || '').toLowerCase() || '_idle';
+          const marketAgg = marketsByCol.get(collKey);
+          if (!marketAgg || !marketAgg.supplyAssetsUsd) continue;
+          const shareOfMarket = Math.min(1, Number(e.exposureUSD) / marketAgg.supplyAssetsUsd);
+          totalBorrowUsd += marketAgg.borrowAssetsUsd * shareOfMarket;
+        }
+      }
+    }
 
     return [{
       kind: 'pool_share',
@@ -263,13 +441,15 @@ module.exports = {
         vault_symbol: vault.symbol,
         vault_version: vault.version,
         pool_tvl_usd: vaultTotalUsd,
-        pool_total_borrow_usd: 0, // MetaMorpho vaults don't borrow; suppliers own the full asset side
-        pool_available_usd: vaultTotalUsd,
-        pool_utilization: 0,
+        pool_total_borrow_usd: totalBorrowUsd,
+        pool_available_usd: Math.max(0, vaultTotalUsd - totalBorrowUsd),
+        pool_utilization: vaultTotalUsd > 0 ? totalBorrowUsd / vaultTotalUsd : 0,
         user_share_pct: sharePct,
         user_net_usd: userUsd,
         wallet: position.wallet,
         exposure_count: children.length,
+        allocation_source: (gqlState && gqlState.allocation?.length) ? 'graphql' : 'rest',
+        has_per_market_state: Boolean(gqlState && gqlState.allocation?.length),
       },
       children,
     }];

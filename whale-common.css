@@ -378,6 +378,8 @@ tr:hover td { background: var(--bg-secondary); }
 .exposure-col-header-borrow > span:nth-child(n+2) { text-align: right; }
 .exposure-col-header-single { grid-template-columns: 1fr 90px 70px; }
 .exposure-col-header-single > span:nth-child(n+2) { text-align: right; }
+.exposure-col-header-allocation { grid-template-columns: 1fr 90px 100px 50px; }
+.exposure-col-header-allocation > span:nth-child(n+2) { text-align: right; }
 
 .exposure-col-scroll {
   max-height: 260px;
@@ -427,6 +429,10 @@ tr:hover td { background: var(--bg-secondary); }
 /* Single col (misc) */
 .exposure-single-col .exposure-leg-row {
   grid-template-columns: 1fr 90px 70px;
+}
+/* Allocation view (MetaMorpho) — 4 cols */
+.exposure-single-col .exposure-leg-row:has(.leg-pool-usd) {
+  grid-template-columns: 1fr 90px 100px 50px;
 }
 
 .leg-label {

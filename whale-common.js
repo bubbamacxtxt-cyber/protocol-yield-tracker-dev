@@ -531,16 +531,16 @@ function renderPositionExposureCard(p, totalWhaleUsd) {
   const poolUtil = Number(ev.pool_utilization || 0);
   const walletAddr = ev.wallet || p.wallet || '';
 
-  // Two-column leg layout for lending pools. Single column for LP / YBS / etc.
-  // legSource: depth=1 leaves that belong to the root.
+  // Two-column leg layout for shared lending pools (Aave, Spark, Fluid,
+  // Euler clusters). MetaMorpho vaults get a dedicated allocation view.
+  // Everything else gets a single-column breakdown.
   const legSource = leaves.length ? leaves : [root];
   const legsSorted = legSource
     .filter(r => (r.usd || 0) > 0)
     .sort((a, b) => (b.usd || 0) - (a.usd || 0));
 
-  // Classify legs by is_collateral / is_borrowable from evidence.
-  // Lending / cluster layouts use both columns. Everything else single column.
   const twoCol = ['lending_pool', 'cluster', 'isolated_market'].includes(layout);
+  const allocationView = layout === 'metamorpho_vault';
 
   const collatLegs = [];
   const borrowLegs = [];
@@ -601,9 +601,46 @@ function renderPositionExposureCard(p, totalWhaleUsd) {
     );
   }
 
-  // Build the body. Two-column or single-column.
+  // Build the body. Allocation view (Morpho) / two-column / single-column.
   let bodyHtml;
-  if (twoCol) {
+  if (allocationView) {
+    const rows = legsSorted.map(leg => {
+      let legEv = {};
+      try { legEv = typeof leg.evidence === 'string' ? JSON.parse(leg.evidence) : (leg.evidence || {}); } catch {}
+      const pct = leg.pct_of_parent != null ? leg.pct_of_parent : (p.net_usd > 0 ? (leg.usd / p.net_usd * 100) : 0);
+      const barW = Math.max(1, Math.min(100, pct));
+      const marketSupply = Number(legEv.pool_reserve_total_supply_usd || 0);
+      const marketBorrow = Number(legEv.pool_reserve_total_borrow_usd || 0);
+      const util = Number(legEv.market_utilization || (marketSupply > 0 ? marketBorrow / marketSupply : 0));
+      const isIdle = legEv.is_idle === true;
+      const label = leg.asset_symbol || leg.venue || '?';
+      const kindClass = 'kind-' + leg.kind;
+      const tooltip = isIdle
+        ? `${label} · idle vault liquidity (not deployed)`
+        : `${label} · market $${fmtUsd(marketSupply)} supply / $${fmtUsd(marketBorrow)} borrowed`;
+      return (
+        '<div class="exposure-leg-row ' + kindClass + '" title="' + escapeHtml(tooltip) + '">' +
+          '<div class="leg-label">' + escapeHtml(label) + '</div>' +
+          '<div class="leg-usd">' + fmtUsd(leg.usd) + '</div>' +
+          '<div class="leg-pool-usd">' + (marketBorrow > 0 ? fmtUsd(marketBorrow) : (isIdle ? '— idle —' : '—')) + '</div>' +
+          '<div class="leg-pct">' + (util > 0 ? (util * 100).toFixed(0) + '%' : '—') + '</div>' +
+          '<div class="exposure-leg-bar"><div class="exposure-leg-bar-fill" style="width:' + barW.toFixed(1) + '%"></div></div>' +
+        '</div>'
+      );
+    }).join('');
+    const v2Note = ev.has_per_market_state === false
+      ? '<div class="exposure-leg-empty" style="padding:6px 12px;text-align:left">Morpho V2 vault — per-market borrow state not indexed yet; showing supply-side only.</div>'
+      : '';
+    bodyHtml = (
+      '<div class="exposure-single-col">' +
+        '<div class="exposure-col-title">ALLOCATED MARKETS</div>' +
+        '<div class="exposure-col-header exposure-col-header-allocation">' +
+          '<span>Collateral / Loan</span><span>Your exposure</span><span>Market borrowed</span><span>Util</span>' +
+        '</div>' +
+        '<div class="exposure-col-scroll">' + (rows || '<div class="exposure-leg-empty">No allocations</div>') + v2Note + '</div>' +
+      '</div>'
+    );
+  } else if (twoCol) {
     const collatHtml = collatLegs.length
       ? collatLegs.map(x => renderLegRow(x, 'collateral')).join('')
       : '<div class="exposure-leg-empty">No collateral assets</div>';
