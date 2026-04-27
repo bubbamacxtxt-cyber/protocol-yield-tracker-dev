@@ -92,7 +92,7 @@ h1 {
 .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th {
-  background: linear-gradient(175deg, #1a3a6a 0%, #224e82 20%, #2a5a9a 45%, #3468a4 55%, #2a5a9a 70%, #224e82 85%, #1a3a6a 100%); padding: 12px 16px; text-align: left;
+  background: #2a5a9a; padding: 12px 16px; text-align: left;
   color: var(--text-primary); font-size: 11px; text-transform: uppercase;
   letter-spacing: 1px; position: sticky; top: 0;
 }
