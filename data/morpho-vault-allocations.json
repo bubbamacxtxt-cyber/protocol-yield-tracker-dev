@@ -1,0 +1,82 @@
+{
+  "_comment": "Morpho vault market allocations - manually curated from reservoir-monitor API and on-chain data",
+  "_updated": "2026-04-27",
+  "_source": "reservoir-monitor.vercel.app/api/data + Morpho public API",
+  "vaults": {
+    "0x71cb2f8038b2c5d65ddc740b2f3268890cd2a89c": {
+      "name": "senRLUSD v1",
+      "asset": "RLUSD",
+      "totalAssetsUsd": 197883309,
+      "network": "eth",
+      "allocations": [
+        { "collateral": "syrupUSDC", "loan": "RLUSD", "vaultSupplyUsd": 150052932, "pct": 75.83 },
+        { "collateral": "weETH", "loan": "RLUSD", "vaultSupplyUsd": 16840924, "pct": 8.51 },
+        { "collateral": "cbBTC", "loan": "RLUSD", "vaultSupplyUsd": 761636, "pct": 0.38 },
+        { "collateral": "sUSDe", "loan": "RLUSD", "vaultSupplyUsd": 152453, "pct": 0.08 },
+        { "collateral": "wstETH", "loan": "RLUSD", "vaultSupplyUsd": 141527, "pct": 0.07 },
+        { "collateral": "idle", "loan": "RLUSD", "vaultSupplyUsd": 29933837, "pct": 15.13 }
+      ]
+    },
+    "0x6dc58a0fdfc8d694e571dc59b9a52eeea780e6bf": {
+      "name": "senRLUSDv2 (V2, maps to v1 above)",
+      "asset": "RLUSD",
+      "totalAssetsUsd": 121814906,
+      "network": "eth",
+      "_maps_to": "0x71cb2f8038b2c5d65ddc740b2f3268890cd2a89c",
+      "allocations": [
+        { "collateral": "syrupUSDC", "loan": "RLUSD", "vaultSupplyUsd": 92385606, "pct": 75.83 },
+        { "collateral": "weETH", "loan": "RLUSD", "vaultSupplyUsd": 10366448, "pct": 8.51 },
+        { "collateral": "cbBTC", "loan": "RLUSD", "vaultSupplyUsd": 467765, "pct": 0.38 },
+        { "collateral": "sUSDe", "loan": "RLUSD", "vaultSupplyUsd": 96202, "pct": 0.08 },
+        { "collateral": "wstETH", "loan": "RLUSD", "vaultSupplyUsd": 86490, "pct": 0.07 },
+        { "collateral": "idle", "loan": "RLUSD", "vaultSupplyUsd": 18408395, "pct": 15.13 }
+      ]
+    },
+    "0x19b3cd7032b8c062e8d44ecad661a0970dd8c55": {
+      "name": "senPYUSD v1",
+      "asset": "PYUSD",
+      "totalAssetsUsd": 412020124,
+      "network": "eth",
+      "allocations": [
+        { "collateral": "sUSDe", "loan": "PYUSD", "vaultSupplyUsd": 130643211, "pct": 31.71 },
+        { "collateral": "cbBTC", "loan": "PYUSD", "vaultSupplyUsd": 130158405, "pct": 31.59 },
+        { "collateral": "syrupUSDC", "loan": "PYUSD", "vaultSupplyUsd": 100064077, "pct": 24.29 },
+        { "collateral": "weETH", "loan": "PYUSD", "vaultSupplyUsd": 38891277, "pct": 9.44 },
+        { "collateral": "idle", "loan": "PYUSD", "vaultSupplyUsd": 8600071, "pct": 2.09 },
+        { "collateral": "PT-sUSDE-7MAY2026", "loan": "PYUSD", "vaultSupplyUsd": 3365628, "pct": 0.82 },
+        { "collateral": "wstETH", "loan": "PYUSD", "vaultSupplyUsd": 142217, "pct": 0.03 },
+        { "collateral": "sUSDS", "loan": "PYUSD", "vaultSupplyUsd": 130614, "pct": 0.03 },
+        { "collateral": "LBTC", "loan": "PYUSD", "vaultSupplyUsd": 24624, "pct": 0.01 }
+      ]
+    },
+    "0xb576765fb15505433af24fee2c0325895c559fb2": {
+      "name": "senPYUSDv2 (V2, maps to v1 above)",
+      "asset": "PYUSD",
+      "totalAssetsUsd": 230000000,
+      "network": "eth",
+      "_maps_to": "0x19b3cd7032b8c062e8d44ecad661a0970dd8c55",
+      "allocations": [
+        { "collateral": "sUSDe", "loan": "PYUSD", "vaultSupplyUsd": 72937000, "pct": 31.71 },
+        { "collateral": "cbBTC", "loan": "PYUSD", "vaultSupplyUsd": 72604658, "pct": 31.59 },
+        { "collateral": "syrupUSDC", "loan": "PYUSD", "vaultSupplyUsd": 55748939, "pct": 24.29 },
+        { "collateral": "weETH", "loan": "PYUSD", "vaultSupplyUsd": 21712480, "pct": 9.44 },
+        { "collateral": "idle", "loan": "PYUSD", "vaultSupplyUsd": 4798000, "pct": 2.09 },
+        { "collateral": "PT-sUSDE-7MAY2026", "loan": "PYUSD", "vaultSupplyUsd": 1879000, "pct": 0.82 },
+        { "collateral": "wstETH", "loan": "PYUSD", "vaultSupplyUsd": 69000, "pct": 0.03 },
+        { "collateral": "sUSDS", "loan": "PYUSD", "vaultSupplyUsd": 69000, "pct": 0.03 }
+      ]
+    },
+    "0xbeef01735c132ada46aa9aa4c54623caa92a64cb": {
+      "name": "Steakhouse USDC",
+      "asset": "USDC",
+      "totalAssetsUsd": 118919290,
+      "network": "eth",
+      "allocations": [
+        { "collateral": "cbBTC", "loan": "USDC", "vaultSupplyUsd": 73050000, "pct": 61.39 },
+        { "collateral": "WBTC", "loan": "USDC", "vaultSupplyUsd": 29800000, "pct": 25.07 },
+        { "collateral": "wstETH", "loan": "USDC", "vaultSupplyUsd": 16080000, "pct": 13.52 },
+        { "collateral": "WETH", "loan": "USDC", "vaultSupplyUsd": 20200, "pct": 0.02 }
+      ]
+    }
+  }
+}
