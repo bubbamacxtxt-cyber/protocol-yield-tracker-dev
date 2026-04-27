@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-<link rel="stylesheet" href="whale-common.css?v=202604272200">
+<link rel="stylesheet" href="whale-common.css?v=202604272210">
 </head>
 <body>
 <div class="container">
@@ -21,7 +21,6 @@
   <p class="subtitle">Wallet positions and yield strategies — on-chain + off-chain reinsurance reserves</p>
   <div class="cards" id="summaryCards"></div>
   <div class="proto-summary" id="protoSummary"></div>
-  <section id="exposure-section"></section>
   <div class="filters">
     <div class="filter-group"><label>Chain:</label><select id="chainFilter"><option value="all">All chains</option></select></div>
     <div class="filter-group"><label>Protocol:</label><select id="protoFilter"><option value="all">All protocols</option></select></div>
@@ -35,8 +34,9 @@
     </table>
   </div>
 </div>
+  <section id="exposure-section"></section>
 <div id="detail-modal"></div>
-<script src="whale-common.js?v=202604272200"></script>
+<script src="whale-common.js?v=202604272210"></script>
 <script>
   WHALE_NAME = 'Re Protocol';
   VAULT_NAME = null;

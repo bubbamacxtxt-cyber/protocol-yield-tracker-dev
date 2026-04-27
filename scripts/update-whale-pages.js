@@ -45,9 +45,10 @@ function transformRegular(html) {
   //    Only if not already present.
   if (!/id="exposure-section"/.test(html)) {
     const anchor = /(<div class="cards" id="summaryCards"><\/div>\s*<div class="proto-summary" id="protoSummary"><\/div>)/;
-    const exposureBlock = `$1\n  <section id="exposure-section"></section>`;
-    if (anchor.test(html)) {
-      html = html.replace(anchor, exposureBlock);
+    // Place exposure section AFTER the table-wrap (below positions table)
+    const tableEnd = /(\s*<\/div>\s*)(<div id="detail-modal">)/;
+    if (tableEnd.test(html)) {
+      html = html.replace(tableEnd, `$1  <section id="exposure-section"></section>\n$2`);
       changed = true;
     }
   }
