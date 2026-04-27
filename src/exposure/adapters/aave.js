@@ -146,25 +146,24 @@ module.exports = {
       ? (userSupplyUsd / ourReserve.supplyUsd) * 100
       : null;
 
-    // Secondary-exposure lens for a shared lending pool:
-    //   yourShareOfPool = userSupplyUsd / totalPoolSupplyUsd
-    //   perReserveExposure = yourShareOfPool * reserve.supplyUsd
+    // Net-basis secondary-exposure lens:
+    //   pool_composition_pct[i] = reserve[i].supplyUsd / totalPoolSupplyUsd
+    //   leg.usd = position.net_usd * pool_composition_pct[i]
     //
-    // This represents: if the entire pool had to be distributed pro-rata to
-    // suppliers, this is how much of each reserve you'd claim. Your primary
-    // asset row's USD ends up equal to userSupplyUsd * (thatReserve / totalPool),
-    // *not* your full deposit. Summing children = userSupplyUsd exactly (up to
-    // rounding). The deep lens (Phase 4) re-weights children by borrower
-    // collateral mix instead of by reserve supply share.
+    // Percentages reflect actual pool composition. Leg USDs sum to
+    // position.net_usd (not gross), matching Vercel/reservoir-monitor
+    // behaviour. The raw pool USD per reserve is kept in evidence so the UI
+    // can still show "Pool $" alongside "Your exposure $".
     const totalMarketSupply = reserves.reduce((s, r) => s + r.supplyUsd, 0);
     const totalMarketBorrow = reserves.reduce((s, r) => s + r.borrowUsd, 0);
-    const yourPoolShare = totalMarketSupply > 0 ? userSupplyUsd / totalMarketSupply : 0;
+    const userNetUsd = Number(position.net_usd || 0);
 
     const children = reserves
       .filter(r => r.supplyUsd > 0)
       .map(r => {
         const isPrimary = String(r.symbol || '').toLowerCase() === suppliedSymbol;
-        const proRata = r.supplyUsd * yourPoolShare;
+        const compositionPct = totalMarketSupply > 0 ? (r.supplyUsd / totalMarketSupply) : 0;
+        const userExposureUsd = userNetUsd * compositionPct;
         return {
           kind: isPrimary ? 'primary_asset' : 'market_exposure',
           venue: `Aave V3 ${position.chain}`,
@@ -172,15 +171,17 @@ module.exports = {
           chain: position.chain,
           asset_symbol: r.symbol,
           asset_address: r.address,
-          usd: proRata,
-          pct_of_parent: userSupplyUsd > 0 ? (proRata / userSupplyUsd) * 100 : null,
+          usd: userExposureUsd,
+          pct_of_parent: compositionPct * 100,
           utilization: r.utilization != null ? r.utilization : (r.supplyUsd > 0 ? r.borrowUsd / r.supplyUsd : null),
           source: 'subgraph',
           confidence: 'high',
           evidence: {
-            reserve_total_supply_usd: r.supplyUsd,
-            reserve_total_borrow_usd: r.borrowUsd,
-            collateralEnabled: r.collateralEnabled,
+            pool_reserve_total_supply_usd: r.supplyUsd,
+            pool_reserve_total_borrow_usd: r.borrowUsd,
+            pool_reserve_available_usd: Math.max(0, r.supplyUsd - r.borrowUsd),
+            is_collateral: r.collateralEnabled === true,
+            is_borrowable: r.isFrozen !== true && r.isPaused !== true && r.borrowUsd > 0,
             is_primary_asset: isPrimary,
             frozen: r.isFrozen,
             paused: r.isPaused,
@@ -200,15 +201,19 @@ module.exports = {
       confidence: 'high',
       as_of: ctx.now,
       evidence: {
+        layout: 'lending_pool',
+        strategy: position.strategy || 'lend',
         market_address: market.marketAddress,
         chain_id: market.chainId,
+        user_net_usd: userNetUsd,
         user_supply_usd: userSupplyUsd,
         user_share_pct: sharePct,
-        market_total_supply_usd: totalMarketSupply,
-        market_total_borrow_usd: totalMarketBorrow,
+        pool_tvl_usd: totalMarketSupply,
+        pool_total_borrow_usd: totalMarketBorrow,
+        pool_available_usd: Math.max(0, totalMarketSupply - totalMarketBorrow),
+        pool_utilization: totalMarketSupply > 0 ? totalMarketBorrow / totalMarketSupply : 0,
         reserve_count: reserves.length,
-        shallow_lens: true,
-        deep_lens_available_at: 'borrower_mix_cache (phase 4)',
+        wallet: position.wallet,
       },
       children,
     }];

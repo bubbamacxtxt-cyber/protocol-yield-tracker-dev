@@ -1249,36 +1249,46 @@ async function main() {
             if (!byPosition.has(r.position_id)) byPosition.set(r.position_id, []);
             byPosition.get(r.position_id).push(r);
         }
-        // Fallback lookup for manual positions that don't carry a DB id in
-        // whale JSON (they're loaded from manual-positions.json and merged in
-        // after the DB read). Key by (wallet, chain, protocol_id, position_index)
-        // matching the upsert key in build-exposure's upsertManualPositions.
-        const manualPosIds = db.prepare(`
-            SELECT id, wallet, chain, protocol_id, position_index
+        // Fallback lookup for positions that don't carry a DB id in the whale
+        // JSON. Two cases:
+        //   1. Manual positions loaded from manual-positions.json (InfiniFi,
+        //      Pareto, Anzen, Re Protocol). Keyed by (wallet, chain, protocol_id).
+        //   2. Scanner-owned positions that got merged into the whale object
+        //      without carrying p.id (rare, but happens for some whales).
+        //
+        // Index every row in the positions table by several composite keys so
+        // any reasonable whale-side identifier can find its DB id.
+        const allPositions = db.prepare(`
+            SELECT id, wallet, chain, protocol_id, protocol_name, position_index
             FROM positions
-            WHERE wallet = 'off-chain' OR position_index LIKE '%|off-chain|%'
-               OR (wallet IS NOT NULL AND wallet NOT LIKE '0x%')
         `).all();
         const manualIdMap = new Map();
-        for (const r of manualPosIds) {
-            const key = `${String(r.wallet || '').toLowerCase()}|${r.chain}|${r.protocol_id}|${r.position_index || ''}`;
-            manualIdMap.set(key, r.id);
-            // Also index by (whale-derived) protocol_name pattern. We use a
-            // simpler fallback: `${wallet}|${chain}|${protocol_id}` without
-            // position_index suffix.
-            manualIdMap.set(`${String(r.wallet || '').toLowerCase()}|${r.chain}|${r.protocol_id}`, r.id);
+        for (const r of allPositions) {
+            const wallet = String(r.wallet || '').toLowerCase();
+            const chain = r.chain;
+            const pid = r.protocol_id;
+            const pname = String(r.protocol_name || '').toLowerCase();
+            const idx = r.position_index || '';
+            // Primary keys
+            manualIdMap.set(`${wallet}|${chain}|${pid}|${idx}`, r.id);
+            manualIdMap.set(`${wallet}|${chain}|${pid}`, r.id);
+            manualIdMap.set(`${wallet}|${chain}|${pname}`, r.id);
+            // Position-index only (for positions that store everything in the index)
+            if (idx) manualIdMap.set(idx, r.id);
         }
         function resolvePositionId(p) {
             if (p.id) return p.id;
             const wallet = String(p.wallet || 'off-chain').toLowerCase();
             const chain = p.chain || 'off-chain';
             const pid = p.protocol_id || p.protocol_name;
-            // Try position_index + broader keys
+            const pname = String(p.protocol_name || '').toLowerCase();
+            const idx = p.position_index || '';
             const candidates = [
-                `${wallet}|${chain}|${pid}|${p.position_index || ''}`,
-                `${wallet}|${chain}|${pid}|${wallet}|${chain}|${pid}`,
+                `${wallet}|${chain}|${pid}|${idx}`,
                 `${wallet}|${chain}|${pid}`,
-            ];
+                `${wallet}|${chain}|${pname}`,
+                idx,
+            ].filter(Boolean);
             for (const k of candidates) {
                 const hit = manualIdMap.get(k);
                 if (hit) return hit;
@@ -1291,26 +1301,33 @@ async function main() {
                 const posId = resolvePositionId(p);
                 const rows = posId ? (byPosition.get(posId) || []) : [];
                 if (posId && !p.id) p.id = posId;
-                p.exposure_tree = rows.map(r => ({
-                    id: r.id,
-                    parent_id: r.parent_id,
-                    depth: r.depth,
-                    kind: r.kind,
-                    venue: r.venue,
-                    venue_address: r.venue_address,
-                    chain: r.chain,
-                    asset_symbol: r.asset_symbol,
-                    asset_address: r.asset_address,
-                    usd: r.usd,
-                    pct_of_parent: r.pct_of_parent,
-                    pct_of_root: r.pct_of_root,
-                    utilization: r.utilization,
-                    adapter: r.adapter,
-                    source: r.source,
-                    confidence: r.confidence,
-                    as_of: r.as_of,
-                    attestation_url: r.attestation_url,
-                }));
+                p.exposure_tree = rows.map(r => {
+                    let evidence = null;
+                    if (r.evidence_json) {
+                        try { evidence = JSON.parse(r.evidence_json); } catch { evidence = null; }
+                    }
+                    return {
+                        id: r.id,
+                        parent_id: r.parent_id,
+                        depth: r.depth,
+                        kind: r.kind,
+                        venue: r.venue,
+                        venue_address: r.venue_address,
+                        chain: r.chain,
+                        asset_symbol: r.asset_symbol,
+                        asset_address: r.asset_address,
+                        usd: r.usd,
+                        pct_of_parent: r.pct_of_parent,
+                        pct_of_root: r.pct_of_root,
+                        utilization: r.utilization,
+                        adapter: r.adapter,
+                        source: r.source,
+                        confidence: r.confidence,
+                        as_of: r.as_of,
+                        attestation_url: r.attestation_url,
+                        evidence,
+                    };
+                });
                 // Leaves for rollup = non-root rows with asset_symbol. Root rows are the full position.
                 const leaves = rows.filter(r => r.depth > 0 && r.asset_symbol);
                 const rootSum = rows.filter(r => r.depth === 0).reduce((s, r) => s + r.usd, 0) || p.net_usd;

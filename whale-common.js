@@ -440,10 +440,11 @@ function renderExposureSection(whale, filteredPositions) {
 }
 
 function renderExposureDonuts(rollup) {
-  const card = (id, title, rows) => {
+  const card = (id, title, tooltip, rows) => {
     const top = rows.slice(0, 8);
     const total = rows.reduce((s, r) => s + (r.usd || 0), 0);
-    const legend = top.map((r, i) => {
+    const tooltipText = `${title} — ${fmtUsd(total)} across ${rows.length} item${rows.length === 1 ? '' : 's'}. ${tooltip}`;
+    const legend = top.length ? top.map((r, i) => {
       const color = EXPOSURE_PALETTE[i % EXPOSURE_PALETTE.length];
       const pct = total > 0 ? (r.usd / total * 100) : 0;
       return (
@@ -454,20 +455,20 @@ function renderExposureDonuts(rollup) {
           '<span class="exposure-donut-legend-pct">' + pct.toFixed(1) + '%</span>' +
         '</div>'
       );
-    }).join('');
+    }).join('') : '<div class="exposure-donut-legend-row" style="color:var(--text-secondary);grid-column:1/-1">No data available at this level</div>';
     return (
-      '<div class="exposure-donut-card">' +
+      '<div class="exposure-donut-card" title="' + escapeHtml(tooltipText) + '">' +
         '<div class="exposure-donut-title">' + title + '</div>' +
-        '<div class="exposure-donut-canvas-wrap"><canvas id="' + id + '" width="200" height="200"></canvas></div>' +
-        '<div class="exposure-donut-legend">' + (legend || '<div class="exposure-donut-legend-row" style="color:var(--text-secondary)">No data</div>') + '</div>' +
+        '<div class="exposure-donut-canvas-wrap"><canvas id="' + id + '" width="200" height="200" title="' + escapeHtml(tooltipText) + '"></canvas></div>' +
+        '<div class="exposure-donut-legend">' + legend + '</div>' +
       '</div>'
     );
   };
   return (
     '<div class="exposure-donuts">' +
-      card('exp-donut-proto',  'by protocol', rollup.by_protocol || []) +
-      card('exp-donut-token',  'by token',    rollup.by_token || []) +
-      card('exp-donut-market', 'by market',   rollup.by_market || []) +
+      card('exp-donut-proto',  'by protocol', 'Which protocols the whale holds assets in.',                rollup.by_protocol || []) +
+      card('exp-donut-token',  'by token',    'Final underlying assets after recursion through each leg.', rollup.by_token || []) +
+      card('exp-donut-market', 'by market',   'Which specific pools / vaults / markets the whale is in.',  rollup.by_market || []) +
     '</div>'
   );
 }
@@ -491,6 +492,18 @@ function renderExposurePositions(positions, filteredPositions) {
   return '<div class="exposure-positions-grid">' + cards + '</div>';
 }
 
+// Strategy badge colour classes (reuse table badges from whale-common.css)
+function strategyBadgeClass(strat) {
+  const s = String(strat || '').toLowerCase();
+  if (s === 'loop') return 'badge-loop';
+  if (s === 'stake') return 'badge-stake';
+  if (s === 'farm') return 'badge-farm';
+  if (s === 'lp') return 'badge-lp';
+  if (s === 'hold' || s === 'wallet') return 'badge-stake';
+  if (s === 'rwa') return 'badge-illiquid';
+  return 'badge-lend';
+}
+
 function renderPositionExposureCard(p, totalWhaleUsd) {
   const tree = p.exposure_tree || [];
   if (!tree.length) return '';
@@ -500,55 +513,173 @@ function renderPositionExposureCard(p, totalWhaleUsd) {
   const confClass = 'exposure-conf-' + (root.confidence || 'low');
   const pctOfWhale = totalWhaleUsd > 0 ? (p.net_usd / totalWhaleUsd * 100) : 0;
 
-  // Build leg rows — flat list of depth-1 children sorted by USD desc.
-  // For opaque root rows (no children), show the root itself as a single leg.
+  // Pull pool metadata from root evidence (promoted by adapters in this
+  // redesign so the UI doesn't have to guess).
+  let ev = {};
+  try {
+    // exposure_tree was built from DB rows whose evidence was parsed into an
+    // object by export.js. If it's a string we parse it here too.
+    const rawEv = root.evidence;
+    ev = typeof rawEv === 'string' ? JSON.parse(rawEv) : (rawEv || {});
+  } catch {}
+
+  const layout = ev.layout || 'lending_pool';
+  const strategy = ev.strategy || p.strategy || 'lend';
+  const poolTvl = Number(ev.pool_tvl_usd || 0);
+  const poolBorrow = Number(ev.pool_total_borrow_usd || 0);
+  const poolAvailable = Number(ev.pool_available_usd ?? Math.max(0, poolTvl - poolBorrow));
+  const poolUtil = Number(ev.pool_utilization || 0);
+  const walletAddr = ev.wallet || p.wallet || '';
+
+  // Two-column leg layout for lending pools. Single column for LP / YBS / etc.
+  // legSource: depth=1 leaves that belong to the root.
   const legSource = leaves.length ? leaves : [root];
   const legsSorted = legSource
     .filter(r => (r.usd || 0) > 0)
     .sort((a, b) => (b.usd || 0) - (a.usd || 0));
 
-  const legRows = legsSorted.map(leg => {
+  // Classify legs by is_collateral / is_borrowable from evidence.
+  // Lending / cluster layouts use both columns. Everything else single column.
+  const twoCol = ['lending_pool', 'cluster', 'isolated_market'].includes(layout);
+
+  const collatLegs = [];
+  const borrowLegs = [];
+  const miscLegs = [];
+  for (const leg of legsSorted) {
+    let legEv = {};
+    try { legEv = typeof leg.evidence === 'string' ? JSON.parse(leg.evidence) : (leg.evidence || {}); } catch {}
+    const isCol = legEv.is_collateral === true;
+    const isBor = legEv.is_borrowable === true;
+    if (twoCol) {
+      if (isCol) collatLegs.push({ leg, legEv });
+      else if (isBor) borrowLegs.push({ leg, legEv });
+      else miscLegs.push({ leg, legEv });
+    } else {
+      miscLegs.push({ leg, legEv });
+    }
+  }
+
+  function renderLegRow({ leg, legEv }, mode) {
     const pct = leg.pct_of_parent != null ? leg.pct_of_parent : (p.net_usd > 0 ? (leg.usd / p.net_usd * 100) : 0);
     const barW = Math.max(1, Math.min(100, pct));
     const barClass = (leg.kind === 'opaque_offchain' || leg.kind === 'unknown') ? 'opaque' : '';
     const kindClass = 'kind-' + leg.kind;
     const label = leg.asset_symbol || leg.venue || '?';
+    const poolUsd = Number(legEv.pool_reserve_total_supply_usd || 0);
+    const availUsd = Number(legEv.pool_reserve_available_usd || legEv.pool_reserve_available || 0);
+
+    if (mode === 'collateral') {
+      return (
+        '<div class="exposure-leg-row ' + kindClass + '" title="' + escapeHtml(label) + ' · pool $' + fmtUsd(poolUsd) + '">' +
+          '<div class="leg-label">' + escapeHtml(label) + '</div>' +
+          '<div class="leg-pool-usd">' + (poolUsd > 0 ? fmtUsd(poolUsd) : '—') + '</div>' +
+          '<div class="leg-pct">' + pct.toFixed(1) + '%</div>' +
+          '<div class="exposure-leg-bar"><div class="exposure-leg-bar-fill ' + barClass + '" style="width:' + barW.toFixed(1) + '%"></div></div>' +
+        '</div>'
+      );
+    }
+    if (mode === 'borrowable') {
+      const utilPct = poolUsd > 0 ? Math.max(0, Math.min(100, (1 - (availUsd / poolUsd)) * 100)) : 0;
+      return (
+        '<div class="exposure-leg-row ' + kindClass + '" title="' + escapeHtml(label) + ' · pool $' + fmtUsd(poolUsd) + ' · avail $' + fmtUsd(availUsd) + '">' +
+          '<div class="leg-label">' + escapeHtml(label) + '</div>' +
+          '<div class="leg-pool-usd">' + (poolUsd > 0 ? fmtUsd(poolUsd) : '—') + '</div>' +
+          '<div class="leg-avail-usd">' + (availUsd > 0 ? fmtUsd(availUsd) : '—') + '</div>' +
+          '<div class="leg-pct">' + utilPct.toFixed(0) + '%</div>' +
+          '<div class="exposure-leg-bar"><div class="exposure-leg-bar-fill ' + barClass + '" style="width:' + utilPct.toFixed(1) + '%"></div></div>' +
+        '</div>'
+      );
+    }
+    // misc / single-column
     return (
-      '<div class="exposure-leg-row ' + kindClass + '">' +
-        '<div class="leg-label" title="' + escapeHtml(label) + '">' + escapeHtml(label) + '</div>' +
+      '<div class="exposure-leg-row ' + kindClass + '" title="' + escapeHtml(label) + '">' +
+        '<div class="leg-label">' + escapeHtml(label) + '</div>' +
         '<div class="leg-usd">' + fmtUsd(leg.usd) + '</div>' +
         '<div class="leg-pct">' + pct.toFixed(1) + '%</div>' +
         '<div class="exposure-leg-bar"><div class="exposure-leg-bar-fill ' + barClass + '" style="width:' + barW.toFixed(1) + '%"></div></div>' +
       '</div>'
     );
-  }).join('');
+  }
+
+  // Build the body. Two-column or single-column.
+  let bodyHtml;
+  if (twoCol) {
+    const collatHtml = collatLegs.length
+      ? collatLegs.map(x => renderLegRow(x, 'collateral')).join('')
+      : '<div class="exposure-leg-empty">No collateral assets</div>';
+    const borrowHtml = borrowLegs.length
+      ? borrowLegs.map(x => renderLegRow(x, 'borrowable')).join('')
+      : '<div class="exposure-leg-empty">No borrowable liquidity</div>';
+    bodyHtml = (
+      '<div class="exposure-two-col">' +
+        '<div class="exposure-col">' +
+          '<div class="exposure-col-title">COLLATERAL ASSETS</div>' +
+          '<div class="exposure-col-header exposure-col-header-collateral">' +
+            '<span>Asset</span><span>Pool $</span><span>% of pool</span>' +
+          '</div>' +
+          '<div class="exposure-col-scroll">' + collatHtml + '</div>' +
+        '</div>' +
+        '<div class="exposure-col">' +
+          '<div class="exposure-col-title">BORROWABLE LIQUIDITY</div>' +
+          '<div class="exposure-col-header exposure-col-header-borrow">' +
+            '<span>Asset</span><span>Pool $</span><span>Avail</span><span>Util</span>' +
+          '</div>' +
+          '<div class="exposure-col-scroll">' + borrowHtml + '</div>' +
+        '</div>' +
+      '</div>'
+    );
+  } else {
+    const rows = (miscLegs.length ? miscLegs : legsSorted.map(l => ({ leg: l, legEv: {} })))
+      .map(x => renderLegRow(x, 'misc')).join('');
+    bodyHtml = (
+      '<div class="exposure-single-col">' +
+        '<div class="exposure-col-title">' + legs_title(root).toUpperCase() + '</div>' +
+        '<div class="exposure-col-header exposure-col-header-single">' +
+          '<span>Asset</span><span>Your exposure</span><span>% of position</span>' +
+        '</div>' +
+        '<div class="exposure-col-scroll">' + rows + '</div>' +
+      '</div>'
+    );
+  }
 
   const chain = p.chain || '';
-  const source = root.adapter + (root.source ? (' · ' + root.source) : '');
-  const subtitle = root.venue || p.protocol_name;
+  const adapter = root.adapter || '?';
+  const source = root.source || '?';
+  const asOf = root.as_of ? new Date(root.as_of).toLocaleString() : '';
+  const stratClass = strategyBadgeClass(strategy);
+  const walletShort = walletAddr && walletAddr.startsWith('0x')
+    ? (walletAddr.slice(0, 6) + '…' + walletAddr.slice(-4))
+    : walletAddr;
 
-  // Position title — if venue has vault name, use it. Else protocol + supply tokens.
-  const supplyDisp = p.supply_tokens_display && p.supply_tokens_display !== '-' ? p.supply_tokens_display : '';
-  const headerName = subtitle && subtitle !== p.protocol_name ? subtitle : (supplyDisp || p.protocol_name);
+  const venue = root.venue || p.protocol_name;
+  const headerName = venue && venue !== p.protocol_name ? venue : (p.supply_tokens_display || p.protocol_name);
 
   return (
     '<div class="exposure-position-card">' +
       '<div class="exposure-position-head">' +
-        '<div class="exposure-position-proto">' + escapeHtml(p.protocol_name || '') + '</div>' +
+        '<div class="exposure-position-proto-row">' +
+          '<span class="exposure-position-proto">' + escapeHtml(p.protocol_name || '') + '</span>' +
+          '<span class="badge ' + stratClass + '" title="strategy">' + escapeHtml(strategy) + '</span>' +
+          '<span class="exposure-conf-badge ' + confClass + '" title="confidence">' + (root.confidence || 'low') + '</span>' +
+        '</div>' +
         '<div class="exposure-position-name">' +
           '<span>' + escapeHtml(headerName) + '</span>' +
           (chain ? '<span class="exposure-position-chain">' + escapeHtml(chain) + '</span>' : '') +
-          '<span class="exposure-conf-badge ' + confClass + '">' + (root.confidence || 'low') + '</span>' +
         '</div>' +
-        '<div class="exposure-position-value">' + fmtUsd(p.net_usd) +
-          '<span class="pct-of-whale">(' + pctOfWhale.toFixed(1) + '% of whale)</span>' +
-        '</div>' +
+        (walletShort ? '<div class="exposure-position-wallet" title="' + escapeHtml(walletAddr) + '">wallet ' + escapeHtml(walletShort) + '</div>' : '') +
       '</div>' +
-      '<div class="exposure-position-body">' +
-        '<div class="exposure-position-body-title">' + (legs_title(root) || 'final market exposure') + '</div>' +
-        legRows +
+      '<div class="exposure-stats-strip">' +
+        '<div class="exposure-stat"><div class="exposure-stat-label">Whale exposure</div><div class="exposure-stat-value money">' + fmtUsd(p.net_usd) + '</div><div class="exposure-stat-sub">' + pctOfWhale.toFixed(1) + '% of whale</div></div>' +
+        '<div class="exposure-stat"><div class="exposure-stat-label">Pool TVL</div><div class="exposure-stat-value">' + (poolTvl > 0 ? fmtUsd(poolTvl) : '—') + '</div><div class="exposure-stat-sub">' + (poolTvl > 0 ? ('net ' + fmtUsd(poolAvailable)) : '') + '</div></div>' +
+        '<div class="exposure-stat"><div class="exposure-stat-label">Total borrowed</div><div class="exposure-stat-value">' + (poolBorrow > 0 ? fmtUsd(poolBorrow) : '—') + '</div><div class="exposure-stat-sub">' + (poolUtil > 0 ? ((poolUtil * 100).toFixed(1) + '% util') : '') + '</div></div>' +
       '</div>' +
-      '<div class="exposure-position-footer">' + escapeHtml(source) + '</div>' +
+      '<div class="exposure-position-body">' + bodyHtml + '</div>' +
+      '<div class="exposure-position-footer">' +
+        '<span>Protocol: <b>' + escapeHtml(p.protocol_name || '?') + '</b></span>' +
+        '<span>Market: <b>' + escapeHtml(venue) + '</b></span>' +
+        '<span>Chain: <b>' + escapeHtml(chain) + '</b></span>' +
+        '<span class="exposure-position-footer-meta">' + escapeHtml(adapter) + ' · ' + escapeHtml(source) + (asOf ? (' · ' + asOf) : '') + '</span>' +
+      '</div>' +
     '</div>'
   );
 }

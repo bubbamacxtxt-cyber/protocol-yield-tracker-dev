@@ -18,20 +18,46 @@ module.exports = {
   references: [],
   async compute(position, ctx) {
     const tokens = ctx.loadTokens(position.id).filter(t => (t.role === 'supply'));
-    if (!tokens.length) {
-      return [primaryAssetRow({
-        symbol: position.yield_source || position.protocol_name,
-        chain: position.chain,
-        usd: position.net_usd,
-      })];
-    }
     const total = tokens.reduce((s, t) => s + (t.value_usd || 0), 0) || position.net_usd;
-    return tokens.map(t => primaryAssetRow({
-      symbol: t.real_symbol || t.symbol,
-      address: t.address,
+
+    const children = tokens.length
+      ? tokens.map(t => ({
+          ...primaryAssetRow({
+            symbol: t.real_symbol || t.symbol,
+            address: t.address,
+            chain: position.chain,
+            usd: t.value_usd || 0,
+            pct: total > 0 ? ((t.value_usd || 0) / total) * 100 : null,
+          }),
+          evidence: { is_collateral: false, is_borrowable: false, wallet_hold: true },
+        }))
+      : [{
+          ...primaryAssetRow({
+            symbol: position.yield_source || position.protocol_name,
+            chain: position.chain,
+            usd: position.net_usd,
+          }),
+          evidence: { is_collateral: false, is_borrowable: false, wallet_hold: true },
+        }];
+
+    return [{
+      kind: 'pool_share',
+      venue: 'Wallet hold',
       chain: position.chain,
-      usd: t.value_usd || 0,
-      pct: total > 0 ? ((t.value_usd || 0) / total) * 100 : null,
-    }));
+      asset_symbol: tokens[0]?.real_symbol || tokens[0]?.symbol || position.protocol_name,
+      asset_address: tokens[0]?.address,
+      usd: position.net_usd,
+      source: 'onchain',
+      confidence: 'high',
+      as_of: ctx.now,
+      evidence: {
+        layout: 'wallet_hold',
+        strategy: 'hold',
+        leg_count: children.length,
+        user_net_usd: position.net_usd,
+        wallet: position.wallet,
+      },
+      children,
+    }];
   },
 };

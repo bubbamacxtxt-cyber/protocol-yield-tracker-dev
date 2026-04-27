@@ -99,9 +99,16 @@ module.exports = {
           confidence: 'high',
           as_of: backing.as_of,
           evidence: {
+            layout: 'single_venue',
+            strategy: position.strategy || 'lend',
             llama_slug: slug,
-            protocol_total_tvl_usd: backing.total_usd,
+            pool_tvl_usd: backing.total_usd,
+            pool_total_borrow_usd: 0,
+            pool_available_usd: backing.total_usd,
+            pool_utilization: 0,
             leg_count: backing.composition.length,
+            user_net_usd: userUsd,
+            wallet: position.wallet,
           },
           children: backing.composition.map(b => ({
             kind: 'market_exposure',
@@ -113,16 +120,16 @@ module.exports = {
             source: 'protocol-api',
             confidence: 'high',
             as_of: backing.as_of,
-            evidence: { protocol_tvl_in_asset_usd: b.usd },
+            evidence: {
+              pool_reserve_total_supply_usd: b.usd,
+              is_collateral: true,
+              is_borrowable: false,
+            },
           })),
         }];
       }
     }
 
-    // Fallback: single-asset claim. We still know the underlying denomination
-    // (e.g. USDS, USDC) with high confidence — that's enough for a depth-1
-    // tree where the child is the primary_asset. The counterparty (ethstrat,
-    // LFJ, etc.) is captured in the root row's evidence.
     if (primary) {
       return [{
         kind: 'pool_share',
@@ -135,10 +142,14 @@ module.exports = {
         confidence: 'high',
         as_of: ctx.now,
         evidence: {
+          layout: 'single_asset',
+          strategy: position.strategy || 'lend',
           single_asset_venue: true,
           reason: slug ? `DeFiLlama /protocol/${slug} returned no composition — denomination-only decomposition` : 'no llama slug mapped; denomination-only decomposition',
           slug,
           yield_source: position.yield_source,
+          user_net_usd: userUsd,
+          wallet: position.wallet,
         },
         children: [{
           kind: 'primary_asset',
@@ -150,7 +161,7 @@ module.exports = {
           pct_of_parent: 100,
           source: slug ? 'protocol-api' : 'onchain',
           confidence: 'high',
-          evidence: { denomination_only: true },
+          evidence: { denomination_only: true, is_collateral: false, is_borrowable: false },
         }],
       }];
     }
@@ -162,7 +173,14 @@ module.exports = {
       usd: userUsd,
       source: 'manual',
       confidence: 'low',
-      evidence: { shallow: true, reason: 'no supply tokens and no llama slug' },
+      evidence: {
+        layout: 'single_asset',
+        strategy: position.strategy || 'lend',
+        shallow: true,
+        reason: 'no supply tokens and no llama slug',
+        user_net_usd: userUsd,
+        wallet: position.wallet,
+      },
     }];
   },
 };

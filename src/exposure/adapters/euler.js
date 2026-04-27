@@ -331,9 +331,16 @@ module.exports = {
         confidence: 'high',
         as_of: breakdown.as_of,
         evidence: {
+          layout: 'passive_vault',
+          strategy: position.strategy || 'stake',
           passive_vault: true,
-          loan_total_assets_usd: breakdown.loan_total_assets_usd,
+          pool_tvl_usd: breakdown.loan_total_assets_usd,
+          pool_total_borrow_usd: 0,
+          pool_available_usd: breakdown.loan_total_assets_usd,
+          pool_utilization: 0,
           user_share_pct: breakdown.loan_total_assets_usd > 0 ? (userUsd / breakdown.loan_total_assets_usd) * 100 : null,
+          user_net_usd: userUsd,
+          wallet: position.wallet,
         },
         children: [{
           kind: 'primary_asset',
@@ -356,13 +363,14 @@ module.exports = {
       ? (userUsd / breakdown.loan_total_assets_usd) * 100
       : 0;
 
-    // Primary asset (the loan asset itself — user's claim on the unborrowed portion)
+    // Net-basis: legs sum to userUsd. Loan-asset unlent portion + collateral
+    // mix of borrowers (from Goldsky sample). Each child has pool-level
+    // metadata in evidence for the UI.
     const unborrowedRatio = breakdown.loan_total_assets_usd > 0
       ? Math.max(0, (breakdown.loan_total_assets_usd - breakdown.loan_total_borrows_usd) / breakdown.loan_total_assets_usd)
       : 0;
 
     const children = [];
-    // Unlent (cash): the portion of the vault not borrowed
     if (unborrowedRatio > 0.001) {
       children.push({
         kind: 'primary_asset',
@@ -375,11 +383,16 @@ module.exports = {
         pct_of_parent: unborrowedRatio * 100,
         source: 'onchain',
         confidence: 'high',
-        evidence: { role: 'unlent', utilization: breakdown.utilization },
+        evidence: {
+          role: 'unlent',
+          pool_reserve_total_supply_usd: breakdown.loan_total_assets_usd - breakdown.loan_total_borrows_usd,
+          pool_reserve_available_usd: breakdown.loan_total_assets_usd - breakdown.loan_total_borrows_usd,
+          is_collateral: false,
+          is_borrowable: true,
+        },
       });
     }
 
-    // Pro-rata across collateral types
     const totalCol = breakdown.total_collateral_usd_from_sample;
     const borrowedRatio = 1 - unborrowedRatio;
     for (const c of breakdown.collateral_breakdown) {
@@ -399,9 +412,11 @@ module.exports = {
         confidence: 'high',
         evidence: {
           collateral_vault: c.collateral_vault,
-          total_collateral_usd_in_cluster: c.total_usd_in_cluster,
+          pool_reserve_total_supply_usd: c.total_usd_in_cluster,
           col_share_of_borrows_pct: colShareOfBorrows * 100,
           supporting_borrowers: c.supporting_borrowers,
+          is_collateral: true,
+          is_borrowable: false,
         },
       });
     }
@@ -419,10 +434,16 @@ module.exports = {
       confidence: 'high',
       as_of: breakdown.as_of,
       evidence: {
+        layout: 'cluster',
+        strategy: position.strategy || 'lend',
         cluster_loan_vault: loanVault,
-        loan_total_assets_usd: breakdown.loan_total_assets_usd,
-        loan_total_borrows_usd: breakdown.loan_total_borrows_usd,
+        pool_tvl_usd: breakdown.loan_total_assets_usd,
+        pool_total_borrow_usd: breakdown.loan_total_borrows_usd,
+        pool_available_usd: Math.max(0, breakdown.loan_total_assets_usd - breakdown.loan_total_borrows_usd),
+        pool_utilization: breakdown.utilization,
         user_share_pct: sharePct,
+        user_net_usd: userUsd,
+        wallet: position.wallet,
         borrower_sample_size: breakdown.borrower_count,
         collateral_count: breakdown.collateral_breakdown.length,
       },

@@ -165,10 +165,17 @@ module.exports = {
         confidence,
         as_of: backing.as_of,
         evidence: {
+          layout: 'ybs_backing',
+          strategy: position.strategy || 'stake',
           llama_slug: slug,
           leg_count: backing.composition.length,
-          total_protocol_tvl_usd: backing.total_usd,
+          pool_tvl_usd: backing.total_usd,
+          pool_total_borrow_usd: 0,
+          pool_available_usd: backing.total_usd,
+          pool_utilization: 0,
           age_hours: ageHours(backing.as_of),
+          user_net_usd: userUsd,
+          wallet: position.wallet,
         },
         children: backing.composition.map(b => ({
           kind: 'ybs_strategy',
@@ -180,7 +187,11 @@ module.exports = {
           source,
           confidence,
           as_of: backing.as_of,
-          evidence: { protocol_tvl_in_asset_usd: b.usd },
+          evidence: {
+            pool_reserve_total_supply_usd: b.usd,
+            is_collateral: true,
+            is_borrowable: false,
+          },
         })),
       }];
     }

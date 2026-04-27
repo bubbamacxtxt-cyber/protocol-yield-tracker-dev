@@ -69,7 +69,11 @@ async function tryMorphoBlueByIndex(position, ctx) {
   const supplyTokens = tokens.filter(t => t.role === 'supply');
   const borrowTokens = tokens.filter(t => t.role === 'borrow');
 
+  // Net-basis: legs sum to position.net_usd. Isolated market so single leg
+  // covers 100% of user exposure (their collateral balance is what they owe
+  // pro-rata exposure to).
   const children = [];
+  const userNetUsd = Number(position.net_usd || 0);
   for (const t of supplyTokens) {
     children.push({
       kind: 'primary_asset',
@@ -78,11 +82,18 @@ async function tryMorphoBlueByIndex(position, ctx) {
       chain: position.chain,
       asset_symbol: t.real_symbol || t.symbol,
       asset_address: t.address,
-      usd: t.value_usd || 0,
-      pct_of_parent: position.asset_usd > 0 ? ((t.value_usd || 0) / position.asset_usd) * 100 : null,
+      usd: userNetUsd,
+      pct_of_parent: 100,
       source: 'subgraph',
       confidence: 'high',
-      evidence: { isolated_market: true, role: 'collateral' },
+      evidence: {
+        isolated_market: true,
+        role: 'collateral',
+        pool_reserve_total_supply_usd: Number(market.state?.collateralAssetsUsd || 0),
+        is_collateral: true,
+        is_borrowable: false,
+        user_supply_usd: Number(t.value_usd || 0),
+      },
     });
   }
 
@@ -99,14 +110,20 @@ async function tryMorphoBlueByIndex(position, ctx) {
     confidence: 'high',
     as_of: ctx.now,
     evidence: {
+      layout: 'isolated_market',
+      strategy: position.strategy || 'lend',
       blue_market: true,
       unique_key: uniqueKey,
-      market_supply_usd: Number(market.state?.supplyAssetsUsd || 0),
-      market_borrow_usd: Number(market.state?.borrowAssetsUsd || 0),
-      market_collateral_usd: Number(market.state?.collateralAssetsUsd || 0),
+      pool_tvl_usd: Number(market.state?.supplyAssetsUsd || 0),
+      pool_total_borrow_usd: Number(market.state?.borrowAssetsUsd || 0),
+      pool_collateral_usd: Number(market.state?.collateralAssetsUsd || 0),
+      pool_available_usd: Math.max(0, Number(market.state?.supplyAssetsUsd || 0) - Number(market.state?.borrowAssetsUsd || 0)),
+      pool_utilization: market.state?.utilization ?? 0,
       collateral_symbol: market.collateralAsset?.symbol,
       loan_symbol: market.loanAsset?.symbol,
-      borrowed_usd: borrowTokens.reduce((s, t) => s + (t.value_usd || 0), 0),
+      user_borrowed_usd: borrowTokens.reduce((s, t) => s + (t.value_usd || 0), 0),
+      user_net_usd: position.net_usd,
+      wallet: position.wallet,
     },
     children,
   }];
@@ -192,6 +209,10 @@ module.exports = {
     const vaultTotalUsd = Number(vault.totalAssetsUsd || 0);
     const sharePct = vaultTotalUsd > 0 ? (userUsd / vaultTotalUsd) * 100 : null;
 
+    // Net-basis lens: legs sum to userUsd (the whale's actual deposit into
+    // this vault). `exposurePercent` from Morpho is already a fraction of
+    // vault total, so leg.usd = userUsd * exposurePercent. Vault TVL is
+    // promoted to root evidence for the UI.
     const exposures = Array.isArray(vault.exposure) ? vault.exposure : [];
     const children = exposures
       .filter(e => Number(e.exposureUSD || 0) > 0)
@@ -199,7 +220,8 @@ module.exports = {
         const isIdle = !e.collateralAsset;
         const collSym = e.collateralAsset?.symbol || 'Idle';
         const collAddr = e.collateralAsset?.address || null;
-        const userPro = Number(e.exposureUSD) * (vaultTotalUsd > 0 ? (userUsd / vaultTotalUsd) : 0);
+        const compositionPct = Number(e.exposurePercent || 0);
+        const userExposureUsd = userUsd * compositionPct;
         return {
           kind: isIdle ? 'primary_asset' : 'market_exposure',
           venue: `Morpho ${vault.name || vault.symbol}`,
@@ -207,16 +229,18 @@ module.exports = {
           chain: position.chain,
           asset_symbol: isIdle ? vault.asset?.symbol : `${collSym} / ${vault.asset?.symbol}`,
           asset_address: collAddr,
-          usd: userPro,
-          pct_of_parent: Number(e.exposurePercent) * 100,
+          usd: userExposureUsd,
+          pct_of_parent: compositionPct * 100,
           source: 'protocol-api',
           confidence: 'high',
           as_of: ctx.now,
           evidence: {
             collateral_symbol: collSym,
             collateral_address: collAddr,
-            exposure_usd_in_vault: Number(e.exposureUSD),
-            exposure_pct_of_vault: Number(e.exposurePercent) * 100,
+            pool_reserve_total_supply_usd: Number(e.exposureUSD),
+            is_collateral: !isIdle,
+            is_borrowable: false, // MetaMorpho markets are isolated; loan side is just the vault asset
+            is_idle: isIdle,
           },
         };
       });
@@ -233,11 +257,18 @@ module.exports = {
       confidence: 'high',
       as_of: ctx.now,
       evidence: {
+        layout: 'metamorpho_vault',
+        strategy: position.strategy || 'lend',
         vault_name: vault.name,
         vault_symbol: vault.symbol,
         vault_version: vault.version,
-        vault_total_usd: vaultTotalUsd,
+        pool_tvl_usd: vaultTotalUsd,
+        pool_total_borrow_usd: 0, // MetaMorpho vaults don't borrow; suppliers own the full asset side
+        pool_available_usd: vaultTotalUsd,
+        pool_utilization: 0,
         user_share_pct: sharePct,
+        user_net_usd: userUsd,
+        wallet: position.wallet,
         exposure_count: children.length,
       },
       children,

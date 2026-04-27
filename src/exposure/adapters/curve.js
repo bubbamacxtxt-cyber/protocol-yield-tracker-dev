@@ -27,17 +27,41 @@ module.exports = {
         evidence: { shallow: true, reason: 'Curve LP with no per-leg scanner output' },
       }];
     }
-    return tokens.map(t => ({
-      kind: 'lp_underlying',
+    // Wrap in a root pool_share so layout metadata travels with the row set.
+    return [{
+      kind: 'pool_share',
       venue: 'Curve',
       chain: position.chain,
-      asset_symbol: t.real_symbol || t.symbol,
-      asset_address: t.address,
-      usd: t.value_usd || 0,
-      pct_of_parent: total > 0 ? ((t.value_usd || 0) / total) * 100 : null,
+      asset_symbol: tokens[0]?.real_symbol || tokens[0]?.symbol,
+      asset_address: tokens[0]?.address,
+      usd: position.net_usd,
       source: 'onchain',
       confidence: 'high',
-      evidence: { curve_leg: true },
-    }));
+      as_of: ctx.now,
+      evidence: {
+        layout: 'lp_pool',
+        strategy: position.strategy || 'lp',
+        leg_count: tokens.length,
+        user_net_usd: position.net_usd,
+        wallet: position.wallet,
+      },
+      children: tokens.map(t => ({
+        kind: 'lp_underlying',
+        venue: 'Curve',
+        chain: position.chain,
+        asset_symbol: t.real_symbol || t.symbol,
+        asset_address: t.address,
+        usd: t.value_usd || 0,
+        pct_of_parent: total > 0 ? ((t.value_usd || 0) / total) * 100 : null,
+        source: 'onchain',
+        confidence: 'high',
+        evidence: {
+          curve_leg: true,
+          pool_reserve_total_supply_usd: t.value_usd || 0,
+          is_collateral: true,
+          is_borrowable: false,
+        },
+      })),
+    }];
   },
 };

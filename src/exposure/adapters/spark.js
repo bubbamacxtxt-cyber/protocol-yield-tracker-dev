@@ -61,7 +61,16 @@ module.exports = {
       source: 'onchain',
       confidence: 'high',
       as_of: ctx.now,
-      evidence: { erc4626: true, share_symbol: sym, underlying: under?.symbol || '?' },
+      evidence: {
+        layout: 'erc4626_savings',
+        strategy: position.strategy || 'stake',
+        erc4626: true,
+        share_symbol: sym,
+        underlying: under?.symbol || '?',
+        pool_tvl_usd: null,
+        user_net_usd: userUsd,
+        wallet: position.wallet,
+      },
       children: [{
         kind: 'primary_asset',
         venue: position.protocol_name,
@@ -72,7 +81,7 @@ module.exports = {
         pct_of_parent: 100,
         source: 'onchain',
         confidence: 'high',
-        evidence: { share_to_asset_ratio: 'erc4626_direct' },
+        evidence: { share_to_asset_ratio: 'erc4626_direct', is_collateral: false, is_borrowable: false },
       }],
     }];
   },

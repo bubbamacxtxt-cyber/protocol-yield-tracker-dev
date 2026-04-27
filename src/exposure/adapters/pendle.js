@@ -57,32 +57,50 @@ module.exports = {
       }];
     }
 
-    return tokens.map(t => {
-      const ptSym = t.real_symbol || t.symbol;
-      const underlyingSym = extractUnderlyingSym(ptSym);
-      const recursesToYbs = isYbsSymbol(underlyingSym);
-      // PT tokens redeem 1:1 to underlying at maturity. Exposure = the
-      // underlying itself. We emit the underlying as primary_asset (if
-      // not a YBS) or pendle_underlying with a recurse flag (if YBS —
-      // a future pass can chain into the YBS adapter's children).
-      return {
-        kind: recursesToYbs ? 'pendle_underlying' : 'primary_asset',
-        venue: position.protocol_name,
-        chain: position.chain,
-        asset_symbol: underlyingSym,
-        asset_address: t.address,
-        usd: t.value_usd || 0,
-        pct_of_parent: total > 0 ? ((t.value_usd || 0) / total) * 100 : null,
-        source: 'subgraph',
-        confidence: 'high',
-        evidence: {
-          original_pt_symbol: ptSym,
-          strategy,
-          yield_only: yieldOnly,
-          redeems_to: underlyingSym,
-          recurses_to_ybs: recursesToYbs,
-        },
-      };
-    });
+    return [{
+      kind: 'pool_share',
+      venue: position.protocol_name,
+      chain: position.chain,
+      asset_symbol: tokens[0]?.real_symbol || tokens[0]?.symbol,
+      asset_address: tokens[0]?.address,
+      usd: position.net_usd,
+      source: 'subgraph',
+      confidence: 'high',
+      as_of: ctx.now,
+      evidence: {
+        layout: 'pendle',
+        strategy: position.strategy || 'farm',
+        yield_only: yieldOnly,
+        leg_count: tokens.length,
+        user_net_usd: position.net_usd,
+        wallet: position.wallet,
+      },
+      children: tokens.map(t => {
+        const ptSym = t.real_symbol || t.symbol;
+        const underlyingSym = extractUnderlyingSym(ptSym);
+        const recursesToYbs = isYbsSymbol(underlyingSym);
+        return {
+          kind: recursesToYbs ? 'pendle_underlying' : 'primary_asset',
+          venue: position.protocol_name,
+          chain: position.chain,
+          asset_symbol: underlyingSym,
+          asset_address: t.address,
+          usd: t.value_usd || 0,
+          pct_of_parent: total > 0 ? ((t.value_usd || 0) / total) * 100 : null,
+          source: 'subgraph',
+          confidence: 'high',
+          evidence: {
+            original_pt_symbol: ptSym,
+            strategy,
+            yield_only: yieldOnly,
+            redeems_to: underlyingSym,
+            recurses_to_ybs: recursesToYbs,
+            pool_reserve_total_supply_usd: t.value_usd || 0,
+            is_collateral: true,
+            is_borrowable: false,
+          },
+        };
+      }),
+    }];
   },
 };

@@ -88,9 +88,14 @@ module.exports = {
       as_of: position.scanned_at,
       attestation_url: cls.attestation,
       evidence: {
+        layout: 'opaque_offchain',
+        strategy: position.strategy || 'rwa',
         counterparty: position.protocol_name,
         category: cls.category,
         yield_source: position.yield_source,
+        maturity: position.maturity || null,
+        user_net_usd: userUsd,
+        wallet: position.wallet,
         decomposable: false,
         decomposition_reason: 'off-chain counterparty \u2014 no trustless lookthrough; attestation link below',
       },
@@ -104,7 +109,7 @@ module.exports = {
         pct_of_parent: 100,
         source: 'manual',
         confidence: 'high',
-        evidence: { denomination: true, note: 'underlying denomination is known; counterparty wrapper is opaque' },
+        evidence: { denomination: true, is_collateral: false, is_borrowable: false, note: 'underlying denomination is known; counterparty wrapper is opaque' },
       }],
     }];
   },

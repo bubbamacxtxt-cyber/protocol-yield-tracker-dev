@@ -111,7 +111,6 @@ module.exports = {
     }
 
     if (!poolTotalAssetsUsd || totalBorrowsUsd <= 0) {
-      // Pool has no borrowers, user is 100% primary asset
       return [{
         kind: 'pool_share',
         venue: `Fluid ${ftoken.symbol}`,
@@ -124,7 +123,18 @@ module.exports = {
         source: 'protocol-api',
         confidence: 'high',
         as_of: ctx.now,
-        evidence: { ftoken: ftoken.symbol, pool_total_assets_usd: poolTotalAssetsUsd, total_borrows_usd: totalBorrowsUsd, passive: true },
+        evidence: {
+          layout: 'passive_vault',
+          strategy: position.strategy || 'lend',
+          ftoken: ftoken.symbol,
+          pool_tvl_usd: poolTotalAssetsUsd,
+          pool_total_borrow_usd: 0,
+          pool_available_usd: poolTotalAssetsUsd,
+          pool_utilization: 0,
+          user_net_usd: userUsd,
+          wallet: position.wallet,
+          passive: true,
+        },
         children: [{
           kind: 'primary_asset',
           venue: `Fluid ${ftoken.symbol}`,
@@ -135,7 +145,7 @@ module.exports = {
           pct_of_parent: 100,
           source: 'protocol-api',
           confidence: 'high',
-          evidence: { role: 'passive_unlent' },
+          evidence: { role: 'passive_unlent', is_collateral: false, is_borrowable: true },
         }],
       }];
     }
@@ -155,7 +165,13 @@ module.exports = {
         pct_of_parent: unborrowedRatio * 100,
         source: 'protocol-api',
         confidence: 'high',
-        evidence: { role: 'unlent' },
+        evidence: {
+          role: 'unlent',
+          pool_reserve_total_supply_usd: poolTotalAssetsUsd - totalBorrowsUsd,
+          pool_reserve_available_usd: poolTotalAssetsUsd - totalBorrowsUsd,
+          is_collateral: false,
+          is_borrowable: true,
+        },
       });
     }
 
@@ -171,7 +187,13 @@ module.exports = {
         pct_of_parent: borrowedRatio * collateralShare * 100,
         source: 'protocol-api',
         confidence: 'high',
-        evidence: { collateral_total_borrow_usd: info.usd, pool_total_borrow_usd: totalBorrowsUsd },
+        evidence: {
+          pool_reserve_total_supply_usd: info.usd,
+          collateral_total_borrow_usd: info.usd,
+          pool_total_borrow_usd: totalBorrowsUsd,
+          is_collateral: true,
+          is_borrowable: false,
+        },
       });
     }
 
@@ -188,10 +210,16 @@ module.exports = {
       confidence: 'high',
       as_of: ctx.now,
       evidence: {
+        layout: 'lending_pool',
+        strategy: position.strategy || 'lend',
         ftoken: ftoken.symbol,
-        pool_total_assets_usd: poolTotalAssetsUsd,
-        total_borrows_usd: totalBorrowsUsd,
+        pool_tvl_usd: poolTotalAssetsUsd,
+        pool_total_borrow_usd: totalBorrowsUsd,
+        pool_available_usd: Math.max(0, poolTotalAssetsUsd - totalBorrowsUsd),
+        pool_utilization: borrowedRatio,
         user_share_pct: poolTotalAssetsUsd > 0 ? (userUsd / poolTotalAssetsUsd) * 100 : null,
+        user_net_usd: userUsd,
+        wallet: position.wallet,
         borrower_vault_count: borrowerVaults.length,
         collateral_count: byCollateral.size,
       },
