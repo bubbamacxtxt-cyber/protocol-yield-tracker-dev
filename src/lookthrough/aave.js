@@ -112,7 +112,7 @@ async function compute(positions, db) {
       continue;
     }
     
-    const rpcUrl = process.env[`${chainStr.toUpperCase()}_RPC_URL`] || process.env.ALCHEMY_RPC_URL || 'https://eth.drpc.org';
+    const rpcUrl = process.env[`${chainStr.toUpperCase()}_RPC_URL`] || process.env[`ALCHEMY_${chainStr.toUpperCase()}_RPC_URL`] || process.env.ALCHEMY_RPC_URL || 'https://eth.drpc.org';
 
     console.log(`[lookthrough] aave: fetching reserves for ${chainStr} (chainId=${chainId})`);
 
