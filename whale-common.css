@@ -148,6 +148,13 @@ tr:hover td { background: var(--bg-secondary); }
 .vault-stat .label { color: var(--text-secondary); font-size: 14px; }
 .vault-stat .value { font-weight: 600; font-size: 15px; }
 .vault-stat .value.money { color: var(--accent-green); }
+
+/* scrollbar — matches home page YBS list */
+.card-sub::-webkit-scrollbar { width: 6px; }
+.card-sub::-webkit-scrollbar-track { background: #0d1117; }
+.card-sub::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+.card-sub::-webkit-scrollbar-thumb:hover { background: #484f58; }
+.card-sub { scrollbar-width: thin; scrollbar-color: #30363d #0d1117; }
 .vault-card-footer {
   padding: 16px 20px;
   background: var(--bg-secondary);

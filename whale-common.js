@@ -226,7 +226,7 @@ function renderCards(data) {
     walletCardHtml = '<div class="card">'
       +'<div class="card-label">Wallets</div>'
       +'<div class="card-value green">'+activeCount+'<span style="font-size:14px;font-weight:400;color:var(--text-secondary);margin-left:6px">/ '+unique.length+'</span></div>'
-      +'<div class="card-sub" style="max-height:80px;overflow-y:auto;scrollbar-width:thin;margin-top:8px;display:flex;flex-direction:column;gap:2px">'
+      +'<div class="card-sub" style="max-height:80px;overflow-y:auto;margin-top:8px;display:flex;flex-direction:column;gap:2px">'
       +items
       +'</div></div>';
   }
