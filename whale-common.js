@@ -30,9 +30,6 @@ const CARDS = [
   { label: 'Net APY',     field: 'apy_net',    aggregate: 'wavg',    weight: 'asset_usd', format: 'pct', color: 'blue', subtitle: () => 'weighted avg' },
   { label: 'Health Factor', field: 'health_rate', aggregate: 'avg', filter: p => p.health_rate > 0 && p.health_rate < 1000, format: 'num', render_class: v => hfClass(v), color: 'purple', subtitle: d => { const valid = d.filter(p => p.health_rate > 0 && p.health_rate < 1000); const avg = valid.length ? valid.reduce((s,p) => s + p.health_rate, 0) / valid.length : 0; return avg >= 1.1 ? 'Safe' : '⚠️ Below 1.1'; } },
   { label: 'Wallets',     field: 'wallet',     aggregate: 'count_unique', format: 'none', subtitle: () => 'active' },
-  { label: 'Top Protocol', field: 'protocol',  aggregate: 'top',     sort_field: 'net_usd', format: 'label', color: 'blue', subtitle: (d, top) => top ? fmtShort(top.sum) : '' },
-  { label: 'Top Chain',   field: 'chain',      aggregate: 'top',     sort_field: 'net_usd', format: 'label', color: 'blue', render: v => (v||'').toUpperCase(), subtitle: (d, top) => top ? fmtShort(top.sum) : '' },
-  { label: 'Distribution', field: '_computed', aggregate: 'custom',  fn: (d) => { const chains = new Set(d.map(p => p.chain)).size; const protos = new Set(d.map(p => getFieldValue(p, COLUMNS.find(c => c.key === 'protocol')))).size; return chains + ' chains'; }, subtitle: d => { const protos = new Set(d.map(p => getFieldValue(p, COLUMNS.find(c => c.key === 'protocol')))).size; return protos + ' protocols'; } },
 ];
 
 // ═══════════════════════════════════════════════════════════════
