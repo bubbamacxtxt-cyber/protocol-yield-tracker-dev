@@ -411,7 +411,7 @@ async function loadData() {
 
     WHALE_DATA.forEach(p => { p.bonus_total = (p.bonus_supply || 0) + (p.bonus_borrow || 0); });
     positions = WHALE_DATA;
-    renderWalletCards(whale);
+
     protocolCol = COLUMNS.find(c => c.key === 'protocol');
     chains = [...new Set(positions.map(p => p.chain))].sort();
     protos = [...new Set(positions.map(p => getFieldValue(p, protocolCol)))].sort();
