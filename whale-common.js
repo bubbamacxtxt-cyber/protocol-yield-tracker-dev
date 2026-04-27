@@ -418,13 +418,19 @@ function renderWalletCards(whaleData) {
     const valStr = active ? '$' + fmtShort(val) : 'no positions';
     return '<a href="https://debank.com/profile/' + addr + '" target="_blank" '
       + 'style="display:flex;align-items:center;gap:8px;padding:8px 12px;'
-      + 'text-decoration:none;color:var(--text-primary);font-size:13px;white-space:nowrap" '
-      + 'onmouseover="this.style.background=\'rgba(255,255,255,0.04)\'" '
-      + 'onmouseout="this.style.background=\'transparent\'"'>
+      + 'text-decoration:none;color:var(--text-primary);font-size:13px;white-space:nowrap">'
       + '<span style="width:8px;height:8px;border-radius:50%;background:' + dotColor + ';flex-shrink:0"></span>'
       + '<span style="font-family:monospace">' + shortWallet(addr) + '</span>'
       + '<span style="color:var(--text-secondary);margin-left:auto">' + valStr + '</span>'
       + '</a>';
+  });
+
+  container.innerHTML = '<div style="background:var(--surface-secondary,var(--bg-secondary,#161b22));border:1px solid var(--border-default,rgba(255,255,255,0.08));border-radius:10px;overflow:hidden">'
+    + '<div style="padding:10px 14px;font-size:12px;font-weight:600;color:var(--text-secondary);border-bottom:1px solid var(--border-default,rgba(255,255,255,0.08))">Wallets (' + unique.length + ')</div>'
+    + '<div style="max-height:160px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.15) transparent">'
+    + items.join('')
+    + '</div></div>';
+}
   }).join('');
 
   container.innerHTML = '<div style="background:var(--surface-secondary,var(--bg-secondary,#161b22));border:1px solid var(--border-default,rgba(255,255,255,0.08));border-radius:10px;overflow:hidden">'
