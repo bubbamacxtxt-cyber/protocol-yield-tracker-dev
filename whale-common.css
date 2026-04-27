@@ -7,14 +7,18 @@
   --bg-secondary: #161b22;
   --bg-card: #1c2128;
   --border: #30363d;
-  --text-primary: #f0f6fc;
+  --text-primary: #ffffff;
   --text-secondary: #c9d1d9;
   --accent-blue: #58a6ff;
   --accent-green: #4ade80;
   --accent-purple: #a371f7;
   --accent-orange: #d29922;
+  --gradient-1: linear-gradient(135deg, #0D47A1 0%, #00E5FF 100%);
+  --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --gradient-4: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
   --gradient-blue: linear-gradient(175deg, #2a5a9a 0%, #1e4a8a 5%, #244888a0 50%, #0e2a4a 100%);
-  --gradient-teal: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --gradient-teal: var(--gradient-3);
   --gradient-btn: linear-gradient(135deg, #1e3a5f 0%, #0d2137 100%);
 }
 
@@ -22,7 +26,7 @@
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: var(--bg-primary);
+  background: linear-gradient(180deg, #0a0e1a 0%, #0d1a2e 25%, #102240 50%, #142a4a 75%, #183354 100%);
   color: var(--text-primary);
   line-height: 1.6;
 }
