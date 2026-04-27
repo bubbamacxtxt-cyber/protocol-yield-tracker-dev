@@ -10,9 +10,6 @@
 
 const MORPHO_VAULTS_API = 'https://app.morpho.org/api/vaults';
 const MORPHO_REST = 'https://app.morpho.org/api';
-const fs = require('fs');
-const path = require('path');
-const MANUAL_ALLOC_PATH = path.join(__dirname, '..', '..', 'data', 'morpho-vault-allocations.json');
 
 // Cache for vault exposure data
 let vaultExposureCache = null;
@@ -116,36 +113,6 @@ async function fetchVaultExposures(positions) {
 
   let cache = await fetchV1VaultExposures();
 
-  // Load manual allocations
-  try {
-    if (fs.existsSync(MANUAL_ALLOC_PATH)) {
-      const manual = JSON.parse(fs.readFileSync(MANUAL_ALLOC_PATH, 'utf8'));
-      const vaults = manual.vaults || {};
-      let added = 0;
-      for (const [addr, data] of Object.entries(vaults)) {
-        const key = addr.toLowerCase();
-        if (!cache.has(key)) {
-          const exposure = (data.allocations || []).map(a => ({
-            collateralAsset: { symbol: a.collateral, address: '' },
-            exposureUSD: a.vaultSupplyUsd,
-            exposurePercent: a.pct / 100,
-          }));
-          cache.set(key, {
-            symbol: data.name,
-            asset: data.asset,
-            totalAssetsUsd: data.totalAssetsUsd,
-            exposure,
-            source: 'manual',
-          });
-          added++;
-        }
-      }
-      console.log(`[lookthrough] morpho: loaded ${added} manual vault allocations`);
-    }
-  } catch (e) {
-    console.error(`[lookthrough] morpho: manual load failed: ${e.message}`);
-  }
-
   // Resolve remaining vaults via REST API per wallet
   const walletVaults = await resolveWalletVaults(positions);
   let resolvedCount = 0;
@@ -153,16 +120,11 @@ async function fetchVaultExposures(positions) {
   for (const [wallet, vaults] of walletVaults) {
     for (const vv of vaults) {
       if (!cache.has(vv.vaultAddress)) {
-        // This vault isn't in REST API or manual file.
-        // We need to fetch its exposure data. For now, we'll skip it
-        // and note it for future manual addition.
-        resolvedCount++;
-        console.log(`[lookthrough] morpho: new vault ${vv.vaultAddress.slice(0,14)}... (${vv.vaultSymbol}) not in cache -- needs manual entry`);
+        // Vault not in REST API -- skip for now
+        // Future: add on-chain resolution or alternative API
       }
     }
   }
-
-  console.log(`[lookthrough] morpho: ${resolvedCount} new vaults discovered (need manual mapping)`);
 
   vaultExposureCache = cache;
   lastFetch = Date.now();
