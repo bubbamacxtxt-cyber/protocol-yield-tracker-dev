@@ -434,10 +434,10 @@ function renderWalletCards(whaleData) {
       + '</a>';
   }).join('');
 
-  container.innerHTML = '<div class="card" style="display:flex;flex-direction:column">'
+  container.innerHTML = '<div class="card">'
     + '<div class="card-label">Wallets</div>'
     + '<div class="card-value green">' + activeCount + '<span style="font-size:14px;font-weight:400;color:var(--text-secondary);margin-left:6px">/ ' + unique.length + '</span></div>'
-    + '<div style="flex:1;overflow-y:auto;scrollbar-width:thin;margin-top:12px;border-top:1px solid rgba(255,255,255,0.08);padding-top:8px">'
+    + '<div class="card-sub" style="max-height:80px;overflow-y:auto;scrollbar-width:thin;margin-top:8px;display:flex;flex-direction:column;gap:2px">'
     + items
     + '</div></div>';
 }
