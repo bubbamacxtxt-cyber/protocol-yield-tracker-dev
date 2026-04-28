@@ -478,24 +478,38 @@ async function main() {
         p.strategy = String(typeToStrategy[p.position_type] || typeToStrategy[p.position_type?.toLowerCase()] || p.strategy || 'lend').toLowerCase();
 
         // ── Refine: Loop, LP, RWA detection ─────────────────────────────
-        // (0) Force RWA to lowercase
-        if (p.strategy === 'rwa') p.strategy = 'rwa'; // already lowercase
         // (1) A lending position with debt is a Loop.
         if (p.strategy === 'lend' && (p.debt_usd || 0) > 0 && (p.borrow || []).length > 0) {
-            p.strategy = 'loop';
+            p.strategy = 'Loop';
         }
         // (2) Curve / Pendle LP / generic AMM positions.
         const lpSignal = (
             String(p.protocol_id || '').includes('curve') ||
-            String(p.yield_source || '').includes('curve-') ||
+            String(p.protocol_name || '').toLowerCase().includes('curve') ||
+            String(p.position_type || '').toLowerCase().includes('lp') ||
             (p.supply || []).some(t => /curve|gauge|lp\b/i.test(String(t.symbol) + ' ' + String(t.address) + ' ' + (t.real_symbol || ''))) ||
             /pendle.*lp|lp.*pendle/i.test(String(p.position_index || ''))
         );
-        if (lpSignal && !['rwa', 'stake'].includes(p.strategy)) {
-            p.strategy = 'lp';
+        if (lpSignal && p.strategy === 'lend') {
+            p.strategy = 'LP';
         }
-        // (4) Force all strategies to lowercase.
-        p.strategy = String(p.strategy || '').toLowerCase();
+        // (3) RWA / off-chain positions — keep canonical uppercase
+        const rwaSignal = (
+            p.manual ||
+            p.protocol_id === 're-offchain-reserves' ||
+            String(p.protocol_name || '').toLowerCase().includes('reinsurance') ||
+            String(p.protocol_name || '').toLowerCase() === 'rwa' ||
+            String(p.protocol_name || '').toLowerCase() === 'private reinsurance deals' ||
+            String(p.protocol_name || '').toLowerCase().includes('fasanara') ||
+            String(p.protocol_name || '').toLowerCase().includes('pareto') ||
+            String(p.protocol_name || '').toLowerCase().includes('adaptive frontier') ||
+            String(p.protocol_name || '').toLowerCase().includes('rockawayx')
+        );
+        if (rwaSignal && p.strategy === 'lend') {
+            p.strategy = 'RWA';
+        }
+        // (4) Normalize canonical strategies.
+        if (p.strategy) p.strategy = p.strategy.charAt(0).toUpperCase() + p.strategy.slice(1);
         
         // Enrich Euler positions with DeFiLlama APYs
         if (p.protocol_name === 'Euler' && eulerApys) {
@@ -1298,11 +1312,11 @@ async function main() {
         }
     }
 
-    // Final pass: force all strategies lowercase, normalise any scanner / manual
-    // rows that slipped through with mixed-case (e.g. RWA vs rwa).
+    // Final pass: normalise strategies — RWA / LP uppercase, rest lowercase.
     for (const w of Object.values(whales)) {
         for (const p of w.positions) {
-            p.strategy = String(p.strategy || '').toLowerCase();
+            const s = String(p.strategy || '').toLowerCase();
+            p.strategy = (s === 'rwa') ? 'RWA' : (s === 'lp') ? 'LP' : s;
         }
     }
 
