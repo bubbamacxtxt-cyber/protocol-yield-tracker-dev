@@ -33,6 +33,7 @@ async function loadVaults() {
     if (!whale || !whale.vaults) throw new Error('No vault data');
 
     const grid = document.getElementById('vaultGrid');
+    grid.innerHTML = '';
     for (const [vName, vData] of Object.entries(whale.vaults)) {
       const positions = vData.positions || [];
       const total = positions.reduce((s, p) => s + (p.net_usd || 0), 0);
