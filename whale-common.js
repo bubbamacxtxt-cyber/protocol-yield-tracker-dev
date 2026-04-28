@@ -866,11 +866,15 @@ function drawDonut(canvasId, rows, labelKey, usdKey) {
     return;
   }
 
+  // Only the top 8 slices are drawn, so divide by the displayed sum (not
+  // the full total) so the donut forms a complete circle without gaps.
+  const visible = rows.slice(0, 8).filter(r => (r[usdKey] || 0) > 0);
+  const visibleSum = visible.reduce((s, r) => s + (r[usdKey] || 0), 0);
+
   let start = -Math.PI / 2;
-  rows.slice(0, 8).forEach((r, i) => {
+  visible.forEach((r, i) => {
     const val = r[usdKey] || 0;
-    if (val <= 0) return;
-    const angle = (val / total) * Math.PI * 2;
+    const angle = visibleSum > 0 ? (val / visibleSum) * Math.PI * 2 : 0;
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.arc(cx, cy, outerR, start, start + angle);
