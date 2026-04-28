@@ -401,12 +401,58 @@ const EXPOSURE_PALETTE = [
   '#f85149', '#bc8cff', '#5a9eda', '#22d3ee',
 ];
 
+// When a sub-vault page is active (VAULT_NAME set), recompute the exposure
+// rollup from that vault's positions so donuts reflect only the visible
+// vault, not the whole whale. Overview pages keep the pre-computed whale
+// rollup from data.json.
+function computeExposureRollupFromPositions(positions) {
+  const byProto = new Map();
+  const byToken = new Map();
+  const byMarket = new Map();
+  const add = (map, label, usd) => {
+    if (!label || !usd) return;
+    map.set(label, (map.get(label) || 0) + usd);
+  };
+  for (const p of positions) {
+    const tree = p.exposure_tree || [];
+    for (const row of tree) {
+      // Leaves only — no parent sums.
+      const hasChildren = tree.some(r => r.parent_id === row.id);
+      if (hasChildren) continue;
+      const label = row.asset_symbol || row.venue || '(unknown)';
+      const usd = Number(row.usd || 0);
+      add(byToken, label, usd);
+      const proto = row.venue || row.adapter || '(unknown)';
+      add(byProto, proto, usd);
+      const market = row.venue_address
+        ? (row.venue || '(market)')
+        : (row.venue || '(unknown)');
+      add(byMarket, market, usd);
+    }
+  }
+  const toRows = m => [...m.entries()].map(([label, usd]) => ({ label, usd })).sort((a, b) => b.usd - a.usd);
+  return {
+    by_protocol: toRows(byProto),
+    by_token: toRows(byToken),
+    by_market: toRows(byMarket),
+  };
+}
+
 function renderExposureSection(whale, filteredPositions) {
   const section = document.getElementById('exposure-section');
   if (!section) return;
 
-  const rollup = whale?.exposure_rollup;
-  const positions = (whale?.positions || []).filter(p => (p.exposure_tree || []).length > 0);
+  const isVaultPage = typeof VAULT_NAME !== 'undefined' && VAULT_NAME;
+  const positionsPool = (whale?.positions || []).filter(p => (p.exposure_tree || []).length > 0);
+
+  // Scope: vault pages use the vault's positions; overview pages use all whale positions.
+  const positions = isVaultPage && whale?.vaults?.[VAULT_NAME]
+    ? (whale.vaults[VAULT_NAME].positions || []).filter(p => (p.exposure_tree || []).length > 0)
+    : positionsPool;
+
+  const rollup = isVaultPage
+    ? computeExposureRollupFromPositions(positions)
+    : (whale?.exposure_rollup || computeExposureRollupFromPositions(positionsPool));
 
   if (!rollup || positions.length === 0) {
     section.innerHTML = '<div class="exposure-empty">No exposure decomposition available yet. Next pipeline run will populate this.</div>';
@@ -415,7 +461,7 @@ function renderExposureSection(whale, filteredPositions) {
 
   // Total decomposed across leaves (sum of pct_of_parent at depth 1)
   const totalUsd = (rollup.by_token || []).reduce((s, t) => s + (t.usd || 0), 0);
-  const totalPositionsUsd = (whale.positions || []).reduce((s, p) => s + (p.net_usd || 0), 0);
+  const totalPositionsUsd = positions.reduce((s, p) => s + (p.net_usd || 0), 0);
   const proRataPct = totalPositionsUsd > 0 ? (totalUsd / totalPositionsUsd) * 100 : 0;
   const asOf = (positions[0]?.exposure_tree || []).find(r => r.as_of)?.as_of;
 
