@@ -1,8 +1,8 @@
-name: Protocol Scans (2h)
+name: Protocol Scans (4h)
 
 on:
   schedule:
-    - cron: '15 */2 * * *'  # Every 2 hours at :15
+    - cron: '15 */4 * * *'  # Every 4 hours at :15 (save Alchemy credits)
   workflow_dispatch:
 
 jobs:

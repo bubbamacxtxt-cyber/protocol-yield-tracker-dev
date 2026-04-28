@@ -2,7 +2,7 @@ name: Update Vault Data
 
 on:
   schedule:
-    - cron: '30 */2 * * *'  # Every 2h at :30 (offset from scanner run at :15)
+    - cron: '30 */4 * * *'  # Every 4h at :30 (offset from scanner run at :15, save Alchemy credits)
   workflow_dispatch:
 
 jobs:

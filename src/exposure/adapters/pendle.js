@@ -44,11 +44,16 @@ module.exports = {
 
     const strategy = String(position.strategy || '').toLowerCase();
     const yieldOnly = strategy.includes('yt') || strategy.includes('yield');
+    // Pendle market / PT token address from position_index or the supply token
+    const marketAddr = (String(position.position_index || '').match(/0x[a-fA-F0-9]{40}/) || [])[0]
+      || tokens[0]?.address
+      || null;
 
     if (!tokens.length) {
       return [{
         kind: 'pendle_underlying',
         venue: position.protocol_name,
+        venue_address: marketAddr,
         chain: position.chain,
         usd: position.net_usd,
         source: 'subgraph',
@@ -60,6 +65,7 @@ module.exports = {
     return [{
       kind: 'pool_share',
       venue: position.protocol_name,
+      venue_address: marketAddr,
       chain: position.chain,
       asset_symbol: tokens[0]?.real_symbol || tokens[0]?.symbol,
       asset_address: tokens[0]?.address,

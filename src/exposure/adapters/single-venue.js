@@ -94,6 +94,11 @@ module.exports = {
     const primary = tokens[0] || null;
     const userUsd = position.net_usd;
     const slug = resolveSlug(position.protocol_name);
+    // Extract the on-chain contract address from scanner position_index.
+    // Scanners store 'chain:probed:0xADDR', 'chain:wallet:0xADDR', or similar.
+    const venueAddr = (String(position.position_index || '').match(/0x[a-fA-F0-9]{40}/) || [])[0]
+      || primary?.address
+      || null;
 
     if (slug) {
       const backing = await fetchLlamaBacking(slug, ctx.cache);
@@ -101,6 +106,7 @@ module.exports = {
         return [{
           kind: 'pool_share',
           venue: position.protocol_name,
+          venue_address: venueAddr,
           chain: position.chain,
           asset_symbol: primary?.real_symbol || primary?.symbol,
           asset_address: primary?.address,
@@ -123,6 +129,7 @@ module.exports = {
           children: backing.composition.map(b => ({
             kind: 'market_exposure',
             venue: position.protocol_name,
+            venue_address: venueAddr,
             chain: position.chain,
             asset_symbol: b.symbol,
             usd: userUsd * (b.pct / 100),
@@ -144,6 +151,7 @@ module.exports = {
       return [{
         kind: 'pool_share',
         venue: position.protocol_name,
+        venue_address: venueAddr,
         chain: position.chain,
         asset_symbol: primary.real_symbol || primary.symbol,
         asset_address: primary.address,
@@ -164,6 +172,7 @@ module.exports = {
         children: [{
           kind: 'primary_asset',
           venue: position.protocol_name,
+          venue_address: venueAddr,
           chain: position.chain,
           asset_symbol: primary.real_symbol || primary.symbol,
           asset_address: primary.address,
@@ -179,6 +188,7 @@ module.exports = {
     return [{
       kind: 'pool_share',
       venue: position.protocol_name,
+      venue_address: venueAddr,
       chain: position.chain,
       usd: userUsd,
       source: 'manual',

@@ -82,7 +82,7 @@ function main() {
     const rows = db.prepare(`
       SELECT id, wallet, chain, protocol_id, net_usd, scanned_at
       FROM positions
-      WHERE scanned_at < datetime('now', '-6 hours')
+      WHERE scanned_at < datetime('now', '-10 hours')
         AND net_usd > 1000
         AND protocol_id IN (${placeholders})
     `).all(...SCANNER_PROTOCOLS);

@@ -40,9 +40,15 @@ module.exports = {
           evidence: { is_collateral: false, is_borrowable: false, wallet_hold: true },
         }];
 
+    // For wallet holds, the "venue_address" is the token contract itself.
+    const tokenAddr = tokens[0]?.address
+      || (String(position.position_index || '').match(/0x[a-fA-F0-9]{40}/) || [])[0]
+      || null;
+
     return [{
       kind: 'pool_share',
       venue: 'Wallet hold',
+      venue_address: tokenAddr,
       chain: position.chain,
       asset_symbol: tokens[0]?.real_symbol || tokens[0]?.symbol || position.protocol_name,
       asset_address: tokens[0]?.address,

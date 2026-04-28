@@ -603,21 +603,7 @@ function renderExposurePositions(positions, filteredPositions) {
     .filter(Boolean)
     .join('');
 
-  // Show a pool-address hint above the grid when there are Aave/Spark positions
-  const poolPositions = show.filter(p => p.protocol_id?.toLowerCase().includes('aave'));
-  const uniquePools = new Map();
-  for (const p of poolPositions) {
-    const root = (p.exposure_tree || []).find(r => r.depth === 0);
-    if (root?.venue_address) uniquePools.set(root.venue, root.venue_address);
-  }
-  const poolLinks = [...uniquePools].map(([name, addr]) =>
-    '<span style="font-size:12px;color:var(--text-secondary)" title="' + escapeHtml(addr) + '">'
-    + escapeHtml(name) + ' <a href="https://etherscan.io/address/' + addr + '" target="_blank" rel="noopener" style="color:var(--accent-blue);text-decoration:none">' + addr.slice(0, 6).toLowerCase() + '..' + addr.slice(-4) + '</a>'
-    + '</span>'
-  ).join('<br>');
-
-  return (poolLinks ? '<div class="exposure-pool-addr" style="margin-bottom:12px">' + poolLinks + '</div>' : '')
-    + '<div class="exposure-positions-grid">' + cards + '</div>';
+  return '<div class="exposure-positions-grid">' + cards + '</div>';
 }
 
 // Strategy badge colour classes (reuse table badges from whale-common.css)
@@ -641,10 +627,35 @@ function renderPositionExposureCard(p, totalWhaleUsd) {
   const confClass = 'exposure-conf-' + (root.confidence || 'low');
   const pctOfWhale = totalWhaleUsd > 0 ? (p.net_usd / totalWhaleUsd * 100) : 0;
 
-  // Pool address for verification
+  // Pool/vault contract address for on-chain verification. Uses chain-specific
+  // explorer. Address comes from the decomposition tree root (venue_address)
+  // which the adapter set to the pool contract (Aave pool, Morpho vault, Curve
+  // LP, Spark pool, etc.).
   const poolAddr = root.venue_address || '';
-  const poolAddrHtml = poolAddr && poolAddr.startsWith('0x')
-    ? ' <a href="https://etherscan.io/address/' + poolAddr + '" target="_blank" rel="noopener" style="color:var(--accent-blue);text-decoration:none;font-size:10px" title="Look up on Etherscan">' + poolAddr.slice(0, 6).toLowerCase() + '…' + poolAddr.slice(-4) + '</a>'
+  const explorerForChain = (chain) => ({
+    eth: 'https://etherscan.io',
+    base: 'https://basescan.org',
+    arb: 'https://arbiscan.io',
+    opt: 'https://optimistic.etherscan.io',
+    poly: 'https://polygonscan.com',
+    bsc: 'https://bscscan.com',
+    mnt: 'https://mantlescan.xyz',
+    plasma: 'https://plasmascan.to',
+    sonic: 'https://sonicscan.org',
+    ink: 'https://explorer.inkonchain.com',
+    monad: 'https://monadexplorer.com',
+    avalanche: 'https://snowtrace.io',
+    uni: 'https://unichain.blockscout.com',
+    scroll: 'https://scrollscan.com',
+  }[chain] || 'https://etherscan.io');
+  const poolExplorerUrl = poolAddr && poolAddr.startsWith('0x')
+    ? explorerForChain(p.chain) + '/address/' + poolAddr
+    : null;
+  const poolAddrShort = poolAddr && poolAddr.startsWith('0x')
+    ? poolAddr.slice(0, 6).toLowerCase() + '…' + poolAddr.slice(-4)
+    : '';
+  const poolAddrRow = poolExplorerUrl
+    ? '<div class="exposure-position-pool" style="font-size:11px;color:var(--text-secondary);margin-top:2px;font-family:monospace">pool <a href="' + poolExplorerUrl + '" target="_blank" rel="noopener" style="color:var(--accent-blue);text-decoration:none" title="' + escapeHtml(poolAddr) + '">' + poolAddrShort + ' ↗</a></div>'
     : '';
 
   // Pull pool metadata from root evidence (promoted by adapters in this
@@ -897,6 +908,7 @@ function renderPositionExposureCard(p, totalWhaleUsd) {
           (chain ? '<span class="exposure-position-chain">' + escapeHtml(chain) + '</span>' : '') +
         '</div>' +
         (walletShort ? '<div class="exposure-position-wallet" title="' + escapeHtml(walletAddr) + '">wallet ' + escapeHtml(walletShort) + '</div>' : '') +
+        poolAddrRow +
       '</div>' +
       '<div class="exposure-stats-strip">' +
         '<div class="exposure-stat"><div class="exposure-stat-label">Whale exposure</div><div class="exposure-stat-value money">' + fmtUsd(p.net_usd) + '</div><div class="exposure-stat-sub">' + pctOfWhale.toFixed(1) + '% of whale</div></div>' +

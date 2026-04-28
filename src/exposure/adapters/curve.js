@@ -16,10 +16,14 @@ module.exports = {
   async compute(position, ctx) {
     const tokens = ctx.loadTokens(position.id).filter(t => t.role === 'supply');
     const total = tokens.reduce((s, t) => s + (t.value_usd || 0), 0) || position.net_usd;
+    // Extract Curve pool address from scanner-set position_index:
+    //   '<chain>:curve:lp:0xPOOL'  or  '<chain>:curve:gauge:0xPOOL'
+    const poolAddr = (String(position.position_index || '').match(/0x[a-fA-F0-9]{40}/) || [])[0] || null;
     if (!tokens.length) {
       return [{
         kind: 'lp_underlying',
         venue: 'Curve',
+        venue_address: poolAddr,
         chain: position.chain,
         usd: position.net_usd,
         source: 'onchain',
@@ -31,6 +35,7 @@ module.exports = {
     return [{
       kind: 'pool_share',
       venue: 'Curve',
+      venue_address: poolAddr,
       chain: position.chain,
       asset_symbol: tokens[0]?.real_symbol || tokens[0]?.symbol,
       asset_address: tokens[0]?.address,
@@ -48,6 +53,7 @@ module.exports = {
       children: tokens.map(t => ({
         kind: 'lp_underlying',
         venue: 'Curve',
+        venue_address: poolAddr,
         chain: position.chain,
         asset_symbol: t.real_symbol || t.symbol,
         asset_address: t.address,
