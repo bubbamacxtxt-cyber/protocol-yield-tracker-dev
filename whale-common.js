@@ -539,8 +539,9 @@ function renderPositionExposureCard(p, totalWhaleUsd) {
     .filter(r => (r.usd || 0) > 0)
     .sort((a, b) => (b.usd || 0) - (a.usd || 0));
 
-  const twoCol = ['lending_pool', 'cluster', 'isolated_market'].includes(layout);
+  const twoCol = ['lending_pool', 'cluster'].includes(layout);
   const allocationView = layout === 'metamorpho_vault';
+  const isolatedView = layout === 'isolated_market';
 
   const collatLegs = [];
   const borrowLegs = [];
@@ -638,6 +639,58 @@ function renderPositionExposureCard(p, totalWhaleUsd) {
           '<span>Collateral / Loan</span><span>Your exposure</span><span>Market borrowed</span><span>Util</span>' +
         '</div>' +
         '<div class="exposure-col-scroll">' + (rows || '<div class="exposure-leg-empty">No allocations</div>') + v2Note + '</div>' +
+      '</div>'
+    );
+  } else if (isolatedView) {
+    // Morpho Blue isolated market: one collateral leg + one loan leg.
+    // The collateral leg is the user's posted collateral (from children).
+    // The loan leg is derived from root evidence (pool_total_borrow_usd).
+    // We show both in a two-column layout: Collateral / Borrowed asset.
+    const colLeg = legsSorted[0] || root;
+    let colEv = {};
+    try { colEv = typeof colLeg.evidence === 'string' ? JSON.parse(colLeg.evidence) : (colLeg.evidence || {}); } catch {}
+    const collateralPool = Number(colEv.pool_reserve_total_supply_usd || ev.pool_collateral_usd || 0);
+    const poolBorrow = Number(ev.pool_total_borrow_usd || 0);
+    const poolSupply = Number(ev.pool_tvl_usd || 0);
+    const poolAvail = Math.max(0, poolSupply - poolBorrow);
+    const loanSym = ev.loan_symbol || '?';
+    const colSym = ev.collateral_symbol || colLeg.asset_symbol || '?';
+    const userBorrow = Number(ev.user_borrowed_usd || 0);
+    const util = ev.pool_utilization || (poolSupply > 0 ? poolBorrow / poolSupply : 0);
+
+    bodyHtml = (
+      '<div class="exposure-two-col">' +
+        '<div class="exposure-col">' +
+          '<div class="exposure-col-title">COLLATERAL (WHAT YOU POSTED)</div>' +
+          '<div class="exposure-col-header exposure-col-header-collateral">' +
+            '<span>Asset</span><span>Pool $</span><span>% of pool</span>' +
+          '</div>' +
+          '<div class="exposure-col-scroll">' +
+            '<div class="exposure-leg-row kind-primary_asset">' +
+              '<div class="leg-label">' + escapeHtml(colSym) + '</div>' +
+              '<div class="leg-pool-usd">' + fmtUsd(collateralPool) + '</div>' +
+              '<div class="leg-pct">100%</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="exposure-col">' +
+          '<div class="exposure-col-title">BORROWED (WHAT THEY OWE)</div>' +
+          '<div class="exposure-col-header exposure-col-header-borrow">' +
+            '<span>Asset</span><span>Pool $</span><span>Avail</span><span>Util</span>' +
+          '</div>' +
+          '<div class="exposure-col-scroll">' +
+            '<div class="exposure-leg-row">' +
+              '<div class="leg-label">' + escapeHtml(loanSym) + '</div>' +
+              '<div class="leg-pool-usd">' + fmtUsd(poolBorrow) + '</div>' +
+              '<div class="leg-avail-usd">' + fmtUsd(poolAvail) + '</div>' +
+              '<div class="leg-pct">' + (util * 100).toFixed(0) + '%</div>' +
+            '</div>' +
+            (userBorrow > 0 ? '<div class="exposure-leg-row kind-market_exposure">' +
+              '<div class="leg-label" style="color:var(--accent-orange)">Your borrow</div>' +
+              '<div class="leg-usd" style="color:#f85149">' + fmtUsd(userBorrow) + '</div>' +
+            '</div>' : '') +
+          '</div>' +
+        '</div>' +
       '</div>'
     );
   } else if (twoCol) {
