@@ -402,7 +402,7 @@ const EXPOSURE_PALETTE = [
 ];
 
 function renderExposureSection(whale, filteredPositions) {
-  const section = document.getElementById('exposure-section') || document.getElementById('lookthrough-section');
+  const section = document.getElementById('exposure-section');
   if (!section) return;
 
   const rollup = whale?.exposure_rollup;

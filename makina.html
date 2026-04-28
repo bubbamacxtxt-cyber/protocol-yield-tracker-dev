@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', loadVaults);
 <section id="exposure-section" style="max-width:1200px;margin:40px auto;padding:0 24px;"></section>
 <script src="whale-common.js?v=0025"></script>
 <script>
-  // Render lookthrough after page loads
+  // Render exposure section after page loads
   loadVaults().then(() => {
     fetch('data.json?t=' + Date.now())
       .then(r => r.json())

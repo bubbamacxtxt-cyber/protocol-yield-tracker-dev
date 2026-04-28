@@ -23,6 +23,9 @@ const LLAMA_SLUGS = {
   'yuzu money':  'yuzu-money',
   'yzusdusdt0':  'yuzu-money',
   'strategy':    null, // generic DeBank bucket — see handling below
+  'ethena':      'ethena',
+  'fusdc':       null,
+  'yzusd':       'yuzu-money',
 };
 
 async function fetchJson(url, timeoutMs = 10000) {
@@ -75,8 +78,15 @@ module.exports = {
   id: 'single-venue',
   protocol_names: [
     'Dolomite', 'Gearbox', 'Curvance', 'Venus Flux', 'LFJ', 'STRATEGY',
-    'Yuzu Money', 'yzUSDUSDT0',
+    'Yuzu Money', 'yzUSDUSDT0', 'Ethena', 'fUSDC', 'yzUSD',
   ],
+  // Also catch vault-probed positions regardless of the yield-source display name
+  match(position) {
+    const pid = String(position.protocol_id || '').toLowerCase();
+    if (pid === 'vault-probed') return true;
+    if (pid === 'ethena-cooldown') return true;
+    return false;
+  },
   confidence: 'high',
   references: ['https://api.llama.fi/protocol/<slug>'],
   async compute(position, ctx) {

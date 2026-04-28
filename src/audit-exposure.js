@@ -92,13 +92,25 @@ function run() {
     age_hours: Math.round((Date.now() - new Date(r.fetched_at).getTime()) / 3600000),
   }));
 
-  // Adapter health snapshot
-  const health = db.prepare(`
+  // Adapter health snapshot. Decorate each row with a derived
+  // `status` field so the audit UI can distinguish transient historical
+  // errors (last_success > last_error) from currently-failing adapters.
+  const healthRows = db.prepare(`
     SELECT adapter, last_run, last_success, last_error, last_error_msg,
            positions_handled, errors, runs
     FROM adapter_health
     ORDER BY adapter
   `).all();
+  const health = healthRows.map(h => {
+    const lastSuccess = h.last_success ? new Date(h.last_success).getTime() : 0;
+    const lastError = h.last_error ? new Date(h.last_error).getTime() : 0;
+    let status;
+    if (!h.last_run) status = 'never_run';
+    else if (!lastError) status = 'healthy';
+    else if (lastSuccess > lastError) status = 'recovered';
+    else status = 'failing';
+    return { ...h, status };
+  });
 
   // Per-adapter decomposed value (from root rows)
   const byAdapter = {};

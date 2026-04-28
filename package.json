@@ -6,7 +6,13 @@
   "scripts": {
     "fetch": "node src/fetch.js",
     "export": "node src/export.js",
-    "analyze": "node src/analyze-wallets.js"
+    "analyze": "node src/analyze-wallets.js",
+    "build:exposure": "node src/build-exposure.js",
+    "audit:exposure": "node src/audit-exposure.js",
+    "audit:check-export": "python3 scripts/check-export.py",
+    "audit:summary": "python3 scripts/audit-summary.py",
+    "build:all": "npm run fetch && npm run build:exposure && npm run export && npm run audit:exposure",
+    "test": "node --test test/"
   },
   "dependencies": {
     "better-sqlite3": "^11.0.0",

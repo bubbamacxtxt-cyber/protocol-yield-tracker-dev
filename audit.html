@@ -128,12 +128,13 @@ tr:hover td { background: rgba(88, 166, 255, 0.04); }
     <table id="healthTable">
       <thead><tr>
         <th>Adapter</th>
+        <th>Status</th>
         <th>Last Success</th>
         <th>Last Error</th>
         <th class="right">Positions</th>
         <th class="right">Errors</th>
       </tr></thead>
-      <tbody id="healthBody"><tr><td colspan="5" class="loading">Loading…</td></tr></tbody>
+      <tbody id="healthBody"><tr><td colspan="6" class="loading">Loading…</td></tr></tbody>
     </table>
   </div>
 
@@ -248,17 +249,31 @@ async function load() {
 
   // Adapter health
   const health = audit.adapter_health || [];
+  const statusColor = s =>
+    s === 'healthy' ? 'var(--accent-green)' :
+    s === 'recovered' ? 'var(--accent-yellow, #d9c87a)' :
+    s === 'failing' ? 'var(--accent-red)' : 'var(--text-secondary)';
+  const statusLabel = s =>
+    s === 'healthy' ? 'healthy' :
+    s === 'recovered' ? 'recovered' :
+    s === 'failing' ? 'failing now' :
+    s === 'never_run' ? 'never run' : s;
   document.getElementById('healthBody').innerHTML = health.map(h => {
     const last_ok = h.last_success ? new Date(h.last_success).toLocaleString() : '—';
     const last_err = h.last_error ? new Date(h.last_error).toLocaleString() : '—';
+    const s = h.status || (h.errors > 0 ? 'failing' : 'healthy');
+    // Only current failures should paint errors red. Recovered adapters keep the
+    // historical error stamp but render neutral.
+    const errColor = s === 'failing' ? 'var(--accent-red)' : 'var(--text-secondary)';
     return `<tr>
       <td>${h.adapter}</td>
+      <td style="color:${statusColor(s)};font-weight:600">${statusLabel(s)}</td>
       <td class="dim">${last_ok}</td>
-      <td class="dim" style="color:${h.errors>0?'var(--accent-red)':'inherit'}">${last_err}</td>
+      <td class="dim" style="color:${errColor}">${last_err}</td>
       <td class="right">${h.positions_handled || 0}</td>
-      <td class="right" style="color:${h.errors>0?'var(--accent-red)':'inherit'}">${h.errors || 0}</td>
+      <td class="right" style="color:${errColor}">${h.errors || 0}</td>
     </tr>`;
-  }).join('') || '<tr><td colspan="5" class="loading">No health data</td></tr>';
+  }).join('') || '<tr><td colspan="6" class="loading">No health data</td></tr>';
 
   // Stale YBS
   const stale = audit.stale_ybs_feeds || [];
